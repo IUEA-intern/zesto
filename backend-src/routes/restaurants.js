@@ -1,107 +1,85 @@
 // routes/restaurants.js
-const express = require('express');
-const db      = require('../db');
-const router  = express.Router();
+const express          = require('express');
+const { auth, requireAdmin } = require('../middleware/auth');
+const restaurantRepo   = require('../repos/restaurantRepo');
+const AppError         = require('../utils/AppError');
+const router           = express.Router();
 
-// ─── GET /restaurants ─────────────────────────────────────────────────────────
-// Query params:
-//   ?category_id=1     filter by category
-//   ?search=kfc        search by name
-//   ?open=true         only open restaurants
-router.get('/', async (req, res) => {
+function parsePagination(query) {
+  const limit  = Math.min(Math.max(parseInt(query.limit)  || 20, 1), 100);
+  const offset = Math.max(parseInt(query.offset) || 0, 0);
+  return { limit, offset };
+}
+
+// ── Public routes ────────────────────────────────────────────────────────────
+
+router.get('/', async (req, res, next) => {
   try {
-    const { category_id, search, open } = req.query;
-
-    let sql = `
-      SELECT
-        r.id,
-        r.name,
-        r.description,
-        r.logo_url,
-        r.cover_url,
-        r.address,
-        r.delivery_time_min,
-        r.delivery_fee,
-        r.min_order_amount,
-        r.rating,
-        r.rating_count,
-        r.is_open,
-        c.id   AS category_id,
-        c.name AS category_name
-      FROM restaurants r
-      JOIN categories c ON c.id = r.category_id
-      WHERE r.is_active = TRUE
-    `;
-    const params = [];
-
-    if (category_id) {
-      sql += ' AND r.category_id = ?';
-      params.push(Number(category_id));
-    }
-    if (search) {
-      sql += ' AND r.name LIKE ?';
-      params.push(`%${search}%`);
-    }
-    if (open === 'true') {
-      sql += ' AND r.is_open = TRUE';
-    }
-
-    sql += ' ORDER BY r.rating DESC, r.name';
-
-    const [rows] = await db.query(sql, params);
-    res.json(rows);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Server error' });
-  }
+    const { limit, offset } = parsePagination(req.query);
+    const rows = await restaurantRepo.list({ ...req.query, limit, offset });
+    res.json({ data: rows, limit, offset });
+  } catch (err) { next(err); }
 });
 
-// ─── GET /restaurants/:id ─────────────────────────────────────────────────────
-router.get('/:id', async (req, res) => {
+router.get('/:id', async (req, res, next) => {
   try {
-    const [rows] = await db.query(
-      `SELECT
-        r.*,
-        c.name AS category_name
-       FROM restaurants r
-       JOIN categories c ON c.id = r.category_id
-       WHERE r.id = ? AND r.is_active = TRUE`,
-      [req.params.id]
-    );
-    if (!rows.length) return res.status(404).json({ error: 'Restaurant not found' });
-    res.json(rows[0]);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Server error' });
-  }
+    const restaurant = await restaurantRepo.findById(req.params.id);
+    if (!restaurant) throw new AppError('Restaurant not found', 404);
+    res.json(restaurant);
+  } catch (err) { next(err); }
 });
 
-// ─── GET /restaurants/:id/menu ────────────────────────────────────────────────
-router.get('/:id/menu', async (req, res) => {
+router.get('/:id/menu', async (req, res, next) => {
   try {
-    // Verify restaurant exists
-    const [rest] = await db.query(
-      'SELECT id, name FROM restaurants WHERE id = ? AND is_active = TRUE',
-      [req.params.id]
-    );
-    if (!rest.length) return res.status(404).json({ error: 'Restaurant not found' });
+    const restaurant = await restaurantRepo.findById(req.params.id);
+    if (!restaurant) throw new AppError('Restaurant not found', 404);
+    const menu = await restaurantRepo.getMenu(req.params.id);
+    res.json({ restaurant, menu });
+  } catch (err) { next(err); }
+});
 
-    const [items] = await db.query(
-      `SELECT id, name, description, price, image_url, is_available
-       FROM menu_items
-       WHERE restaurant_id = ?
-       ORDER BY sort_order, name`,
-      [req.params.id]
-    );
+// ── Admin routes ─────────────────────────────────────────────────────────────
 
-    res.json({
-      restaurant: rest[0],
-      menu: items
-    });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Server error' });
-  }
+router.post('/', auth, requireAdmin, async (req, res, next) => {
+  try {
+    const { category_id, name, address } = req.body;
+    if (!category_id || !name || !address) {
+      throw new AppError('category_id, name and address are required');
+    }
+    const id = await restaurantRepo.create(req.body);
+    res.status(201).json({ id, message: 'Restaurant created' });
+  } catch (err) { next(err); }
+});
+
+router.patch('/:id', auth, requireAdmin, async (req, res, next) => {
+  try {
+    await restaurantRepo.update(req.params.id, req.body);
+    res.json({ message: 'Restaurant updated' });
+  } catch (err) { next(err); }
+});
+
+// Menu item management (admin only)
+router.post('/:id/menu', auth, requireAdmin, async (req, res, next) => {
+  try {
+    const { name, price } = req.body;
+    if (!name || price === undefined) throw new AppError('name and price are required');
+    const itemId = await restaurantRepo.createMenuItem({ ...req.body, restaurant_id: req.params.id });
+    res.status(201).json({ id: itemId, message: 'Menu item created' });
+  } catch (err) { next(err); }
+});
+
+router.patch('/:id/menu/:itemId', auth, requireAdmin, async (req, res, next) => {
+  try {
+    await restaurantRepo.updateMenuItem(req.params.itemId, req.body);
+    res.json({ message: 'Menu item updated' });
+  } catch (err) { next(err); }
+});
+
+router.delete('/:id/menu/:itemId', auth, requireAdmin, async (req, res, next) => {
+  try {
+    await restaurantRepo.deleteMenuItem(req.params.itemId);
+    res.json({ message: 'Menu item deleted' });
+  } catch (err) { next(err); }
 });
 
 module.exports = router;
