@@ -1,7 +1,7 @@
 {
   "name": "food-ordering-api",
-  "version": "1.0.0",
-  "description": "Food ordering backend API (Glovo-style)",
+  "version": "2.0.0",
+  "description": "Food ordering backend API",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
@@ -15,6 +15,7 @@
     "express-rate-limit": "^7.3.1",
     "helmet": "^7.1.0",
     "jsonwebtoken": "^9.0.2",
+    "morgan": "^1.10.0",
     "mysql2": "^3.9.7",
     "uuid": "^10.0.0"
   },
