@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Zesto — Sign In</title>
+<link href="https://fonts.googleapis.com/css2?family=Knewave&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="css/login.css">
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════
+     FORGOT PASSWORD OVERLAY
+════════════════════════════════════════════ -->
+<div class="fp-overlay" id="fpOverlay" role="dialog" aria-modal="true" aria-label="Reset password">
+  <div class="fp-modal" id="fpModal">
+
+    <button class="fp-close" onclick="closeFP()" aria-label="Close">
+      <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 2l10 10M12 2L2 12"/></svg>
+    </button>
+
+    <!-- Step progress -->
+    <div class="fp-progress" id="fpProgress">
+      <div class="fp-dot active" id="dot1"></div>
+      <div class="fp-dot" id="dot2"></div>
+      <div class="fp-dot" id="dot3"></div>
+    </div>
+
+    <!-- ── STEP 1: Enter email ── -->
+    <div class="fp-step active" id="fpStep1">
+      <div class="fp-icon-wrap" id="fpIcon1">
+        <svg viewBox="0 0 26 26" fill="none" stroke="var(--or)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="2" y="5" width="22" height="16" rx="2.5"/>
+          <path d="M2 8l11 7.5L24 8"/>
+        </svg>
+      </div>
+      <h2 class="fp-title">Forgot password?</h2>
+      <p class="fp-sub">No worries — it happens! Enter the email linked to your account and we'll send you a 6-digit code.</p>
+
+      <div class="fp-err" id="fpErr1">
+        <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><path d="M8 5v3M8 10.5v.5" stroke-linecap="round"/></svg>
+        We couldn't find an account with that email.
+      </div>
+
+      <div class="fp-field">
+        <label class="fp-label" for="fpEmail">Email address</label>
+        <div class="fp-input-wrap">
+          <svg class="fp-input-ico" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="1.5" y="3.5" width="13" height="9" rx="1.5"/><path d="M1.5 5l6.5 4.5L14.5 5" stroke-linecap="round"/></svg>
+          <input class="fp-input" id="fpEmail" type="email" placeholder="you@example.com" autocomplete="email" />
+        </div>
+      </div>
+
+      <button class="fp-btn" onclick="sendCode()">
+        Send reset code
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
+      </button>
+      <button class="fp-btn-ghost" onclick="closeFP()">
+        Back to sign in
+      </button>
+    </div>
+
+    <!-- ── STEP 2: Enter OTP ── -->
+    <div class="fp-step" id="fpStep2">
+      <div class="fp-icon-wrap" id="fpIcon2">
+        <svg viewBox="0 0 26 26" fill="none" stroke="var(--or)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="7" y="2" width="12" height="18" rx="2.5"/>
+          <path d="M10 18.5h6"/>
+          <circle cx="13" cy="7" r="1" fill="var(--or)" stroke="none"/>
+          <path d="M10 11h6M10 14h4"/>
+        </svg>
+      </div>
+      <h2 class="fp-title">Check your inbox</h2>
+      <p class="fp-sub" id="fpStep2Sub">We sent a 6-digit code to <strong id="fpEmailDisplay"></strong>. Enter it below to continue.</p>
+
+      <div class="fp-err" id="fpErr2">
+        <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><path d="M8 5v3M8 10.5v.5" stroke-linecap="round"/></svg>
+        Invalid code. Please try again or request a new one.
+      </div>
+
+      <div class="fp-otp-row" id="otpRow">
+        <input class="fp-otp-input" maxlength="1" inputmode="numeric" pattern="[0-9]" id="otp0" />
+        <input class="fp-otp-input" maxlength="1" inputmode="numeric" pattern="[0-9]" id="otp1" />
+        <input class="fp-otp-input" maxlength="1" inputmode="numeric" pattern="[0-9]" id="otp2" />
+        <input class="fp-otp-input" maxlength="1" inputmode="numeric" pattern="[0-9]" id="otp3" />
+        <input class="fp-otp-input" maxlength="1" inputmode="numeric" pattern="[0-9]" id="otp4" />
+        <input class="fp-otp-input" maxlength="1" inputmode="numeric" pattern="[0-9]" id="otp5" />
+      </div>
+
+      <button class="fp-btn" id="fpVerifyBtn" onclick="verifyCode()" disabled>
+        Verify code
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
+      </button>
+
+      <div class="fp-resend">
+        <span id="resendMsg">Didn't get it? <a onclick="resendCode()">Resend code</a></span>
+        <span class="resend-countdown" id="resendCountdown" style="display:none">Resend in <strong id="countdownNum">30</strong>s</span>
+      </div>
+
+      <button class="fp-btn-ghost" onclick="goStep(1)">
+        <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M9 2L4 7l5 5"/></svg>
+        Change email
+      </button>
+    </div>
+
+    <!-- ── STEP 3: New password ── -->
+    <div class="fp-step" id="fpStep3">
+      <div class="fp-icon-wrap" id="fpIcon3">
+        <svg viewBox="0 0 26 26" fill="none" stroke="var(--or)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="4" y="11" width="18" height="12" rx="2.5"/>
+          <path d="M8 11V7a5 5 0 0 1 10 0v4"/>
+          <circle cx="13" cy="17" r="1.5" fill="var(--or)" stroke="none"/>
+        </svg>
+      </div>
+      <h2 class="fp-title">New password</h2>
+      <p class="fp-sub">Almost there! Create a strong new password for your account.</p>
+
+      <div class="fp-err" id="fpErr3">
+        <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><path d="M8 5v3M8 10.5v.5" stroke-linecap="round"/></svg>
+        Passwords don't match. Please try again.
+      </div>
+
+      <div class="fp-field">
+        <label class="fp-label" for="fpNewPw">New password</label>
+        <div class="fp-pw-wrap fp-input-wrap">
+          <svg class="fp-input-ico" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="3" y="7" width="10" height="7" rx="1.5"/><path d="M5 7V5a3 3 0 0 1 6 0v2" stroke-linecap="round"/></svg>
+          <input class="fp-input" id="fpNewPw" type="password" placeholder="Min. 8 characters" oninput="checkStrength(this.value)" />
+          <button type="button" class="fp-pw-eye" onclick="toggleFPPw('fpNewPw', this)" aria-label="Toggle password visibility">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M1 8s2.5-5 7-5 7 5 7 5-2.5 5-7 5-7-5-7-5z"/><circle cx="8" cy="8" r="2"/></svg>
+          </button>
+        </div>
+        <div class="fp-strength-bar"><div class="fp-strength-fill" id="strengthFill"></div></div>
+        <div class="fp-strength-label" id="strengthLabel"></div>
+      </div>
+
+      <div class="fp-field">
+        <label class="fp-label" for="fpConfirmPw">Confirm password</label>
+        <div class="fp-pw-wrap fp-input-wrap">
+          <svg class="fp-input-ico" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="3" y="7" width="10" height="7" rx="1.5"/><path d="M5 7V5a3 3 0 0 1 6 0v2" stroke-linecap="round"/></svg>
+          <input class="fp-input" id="fpConfirmPw" type="password" placeholder="Repeat your password" />
+          <button type="button" class="fp-pw-eye" onclick="toggleFPPw('fpConfirmPw', this)" aria-label="Toggle password visibility">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M1 8s2.5-5 7-5 7 5 7 5-2.5 5-7 5-7-5-7-5z"/><circle cx="8" cy="8" r="2"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <button class="fp-btn" onclick="resetPassword()">
+        Reset password
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
+      </button>
+    </div>
+
+    <!-- ── STEP 4: Success ── -->
+    <div class="fp-step" id="fpStep4" style="text-align:center; padding: 0.5rem 0;">
+      <div style="display:flex; justify-content:center; margin-bottom:1.4rem;">
+        <div class="fp-icon-wrap success" style="margin:0 auto;">
+          <svg class="fp-success-icon" viewBox="0 0 26 26" fill="none" stroke="#22C55E" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="13" cy="13" r="10"/>
+            <path d="M8.5 13l3.5 3.5 5.5-7"/>
+          </svg>
+        </div>
+      </div>
+      <h2 class="fp-title" style="text-align:center;">All set! 🎉</h2>
+      <p class="fp-sub" style="text-align:center; margin-bottom:2rem;">Your password has been reset. You can now sign in with your new credentials.</p>
+      <button class="fp-btn" onclick="closeFPAndFocus()">
+        Sign in now
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
+      </button>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════
+     MAIN PAGE
+════════════════════════════════════════ -->
+<div class="page">
+
+  <!-- LEFT: hero panel -->
+  <div class="left">
+    <div class="left-bg"></div>
+
+    <div class="food-circles">
+      <div class="dish">🍕</div>
+      <div class="dish">🍜</div>
+      <div class="dish">🥗</div>
+      <div class="dish">🍔</div>
+      <div class="dish">🌮</div>
+      <div class="dish">🍣</div>
+    </div>
+
+    <div class="tag">
+      <div class="tag-dot"></div>
+      Delivering in 30 min or less
+    </div>
+
+    <h2 class="left-headline">
+      Good food,<br/>
+      at your<br/>
+      <em>doorstep.</em>
+    </h2>
+
+    <p class="left-sub">
+      Hundreds of restaurants, thousands of dishes — all delivered fresh and fast, right to your door.
+    </p>
+
+    <div class="stats">
+      <div class="stat-item">
+        <span class="stat-num">500+</span>
+        <span class="stat-label">Restaurants</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-item">
+        <span class="stat-num">30 min</span>
+        <span class="stat-label">Avg. Delivery</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-item">
+        <span class="stat-num">50k+</span>
+        <span class="stat-label">Happy Customers</span>
+      </div>
+    </div>
+
+    <div class="ll-card">
+      <div class="ll-card-ico">🍔</div>
+      <div>
+        <div class="ll-card-name">Burger Shack</div>
+        <div class="ll-card-status">On its way — 8 min</div>
+      </div>
+      <div class="ll-card-dot"></div>
+    </div>
+  </div>
+
+  <!-- RIGHT: login form -->
+  <div class="right">
+    <div class="login-box">
+
+      <div class="logo">
+        <div class="logo-icon">
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C8 2 4 5 4 9c0 5 8 13 8 13s8-8 8-13c0-4-4-7-8-7zm0 9a2 2 0 1 1 0-4 2 2 0 0 1 0 4z"/></svg>
+        </div>
+        <div class="logo-name">Zest<span>o</span></div>
+      </div>
+
+      <a href="index.html" class="lf-back">
+        <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M9 2L4 7l5 5"/></svg>
+        Back to home
+      </a>
+
+      <div class="form-header">
+        <h1>Sign in</h1>
+        <p>No account? <a href="signin.html">Create one free →</a></p>
+      </div>
+
+      <div class="social-row">
+        <button class="social-btn" type="button">
+          <svg viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844a4.14 4.14 0 0 1-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z" fill="#4285F4"/>
+            <path d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z" fill="#34A853"/>
+            <path d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z" fill="#FBBC05"/>
+            <path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z" fill="#EA4335"/>
+          </svg>
+          Google
+        </button>
+        <button class="social-btn" type="button">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3">
+            <rect x="4" y="1" width="8" height="14" rx="2"/>
+            <circle cx="8" cy="12.5" r=".8" fill="currentColor" stroke="none"/>
+          </svg>
+          Mobile money
+        </button>
+      </div>
+
+      <div class="divider"><span>or sign in with email</span></div>
+
+      <form class="lf-form" onsubmit="handleLogin(event)">
+
+        <div class="lf-field">
+          <label class="lf-label" for="email">Email address</label>
+          <div class="lf-input-wrap">
+            <svg class="lf-input-ico" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="1.5" y="3.5" width="13" height="9" rx="1.5"/><path d="M1.5 5l6.5 4.5L14.5 5" stroke-linecap="round"/></svg>
+            <input class="lf-input" id="email" type="email" placeholder="you@example.com" autocomplete="email" required />
+          </div>
+        </div>
+
+        <div class="lf-field">
+          <div class="field-row">
+            <label class="lf-label" for="password">Password</label>
+            <button type="button" class="lf-forgot" onclick="openFP()">Forgot password?</button>
+          </div>
+          <div class="lf-input-wrap">
+            <svg class="lf-input-ico" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="3" y="7" width="10" height="7" rx="1.5"/><path d="M5 7V5a3 3 0 0 1 6 0v2" stroke-linecap="round"/></svg>
+            <input class="lf-input" id="password" type="password" placeholder="Enter your password" autocomplete="current-password" required />
+            <button type="button" class="lf-eye" id="eyeBtn" onclick="togglePassword()" aria-label="Toggle password visibility">
+              <svg id="eyeIcon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M1 8s2.5-5 7-5 7 5 7 5-2.5 5-7 5-7-5-7-5z"/><circle cx="8" cy="8" r="2"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="lf-row">
+          <label class="lf-checkbox-label">
+            <input type="checkbox" class="lf-checkbox" id="remember" />
+            Remember me
+          </label>
+        </div>
+
+        <div class="lf-error-msg" id="errorMsg">
+          <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><path d="M8 5v3M8 10.5v.5" stroke-linecap="round"/></svg>
+          Incorrect email or password. Please try again.
+        </div>
+
+        <button type="submit" class="lf-submit">
+          Sign in
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
+        </button>
+
+      </form>
+
+      <div class="lf-promo">
+        <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M7 1.5a5.5 5.5 0 1 1 0 11 5.5 5.5 0 0 1 0-11z"/><path d="M7 4v3l2 1.5" stroke-linecap="round"/></svg>
+        New user? Your first delivery is free — use code <strong style="margin-left:4px;letter-spacing:.06em;">ZESTO30</strong>
+      </div>
+
+      <div class="lf-footer-note">
+        By signing in you agree to our
+        <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>.<br>
+        © 2026 Zesto Technologies Inc.
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<script src="script/login.js">
+ </script>
+
+</body>
+</html>

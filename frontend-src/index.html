@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link href="https://fonts.googleapis.com/css2?family=Knewave&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet"/>
-<link rel="stylesheet" href="./css/style.css"/>
+<link rel="stylesheet" href="./css/index.css"/>
 </head>
 <body>
 
@@ -27,8 +27,8 @@
     <a class="mobile-link" href="#">For Business</a>
   </div>
   <div class="mobile-actions" style="margin-top:24px;">
-    <a href="#" class="btn btn-ghost" style="justify-content:center;padding:14px;">Sign in</a>
-    <a href="#" class="btn btn-primary" style="justify-content:center;padding:14px;border-radius:var(--r12);">Get started</a>
+    <a href="login.html" class="btn btn-ghost" style="justify-content:center;padding:14px;">Sign in</a>
+    <a href="signin.html" class="btn btn-primary" style="justify-content:center;padding:14px;border-radius:var(--r12);">Get started</a>
   </div>
 </div>
 
@@ -36,7 +36,7 @@
 <header class="nav">
   <div class="container">
     <nav class="nav-inner">
-      <a href="#" class="nav-logo">
+      <a href="index.html" class="nav-logo">
         <div class="logo-mark">
           <svg viewBox="0 0 24 24"><path d="M13 2L4 13h7l-1 9 10-12h-7l1-8z"/></svg>
         </div>
@@ -52,8 +52,8 @@
         <svg viewBox="0 0 10 6" fill="none" stroke="currentColor" stroke-width="1.5" style="width:10px;height:10px;"><path d="M1 1l4 4 4-4"/></svg>
       </a>
       <div class="nav-actions">
-        <a href="#" class="btn btn-ghost">Sign in</a>
-        <a href="#" class="btn btn-primary">Get started</a>
+        <a href="login.html" class="btn btn-ghost">Sign in</a>
+        <a href="signin" class="btn btn-primary">Get started</a>
       </div>
       <button class="nav-hamburger" onclick="document.getElementById('mobileMenu').classList.add('open')" aria-label="Open menu">
         <span></span><span></span><span></span>
@@ -95,7 +95,7 @@
       </div>
 
       <div class="hero-right">
-        <a href="#" class="h-card">
+        <a href="order.html" class="h-card">
           <div class="h-c-ico" style="background:#FFF0E8;">🍔</div>
           <div>
             <div class="h-c-name">Burger Shack</div>
@@ -107,7 +107,7 @@
           </div>
           <button class="h-c-btn">Order</button>
         </a>
-        <a href="#" class="h-card">
+        <a href="order.html" class="h-card">
           <div class="h-c-ico" style="background:#EDF7EE;">🍕</div>
           <div>
             <div class="h-c-name">Napoli Express</div>
@@ -118,7 +118,7 @@
           </div>
           <button class="h-c-btn">Order</button>
         </a>
-        <a href="#" class="h-card">
+        <a href="order.html" class="h-card">
           <div class="h-c-ico" style="background:#EEF3FF;">🍣</div>
           <div>
             <div class="h-c-name">Tokyo Bay</div>
@@ -129,7 +129,7 @@
           </div>
           <button class="h-c-btn">Order</button>
         </a>
-        <a href="#" class="h-card">
+        <a href="order.html" class="h-card">
           <div class="h-c-ico" style="background:#F8EDFF;">🌮</div>
           <div>
             <div class="h-c-name">Taco Loco</div>
@@ -181,7 +181,6 @@
         <div class="section-title">What are you craving?</div>
         <div class="section-sub">Hundreds of options available near you</div>
       </div>
-      <a href="#" class="link-or">View all categories <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M2 7h10M8 3l4 4-4 4"/></svg></a>
     </div>
     <div class="cats-grid">
       <a href="#" class="cat-card active"><div class="cat-emoji">🍔</div><div class="cat-name">Burgers</div></a>
@@ -197,73 +196,7 @@
 </section>
 
 <!-- ── RESTAURANTS ── -->
-<section class="restos-section">
-  <div class="container">
-    <div style="display:flex;justify-content:space-between;align-items:flex-end;">
-      <div>
-        <div class="section-label">Popular</div>
-        <div class="section-title">Top restaurants near you</div>
-        <div class="section-sub">Most ordered today in your area</div>
-      </div>
-      <a href="#" class="link-or">See all <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M2 7h10M8 3l4 4-4 4"/></svg></a>
-    </div>
-    <div class="restos-grid">
-      <a href="#" class="r-card">
-        <div class="r-banner" style="background:#FFF0E8;">🍔
-          <div class="r-disc">-20%</div>
-          <div class="r-fav"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M7 11.5S2 8 2 5a2.5 2.5 0 0 1 5 0 2.5 2.5 0 0 1 5 0c0 3-5 6.5-5 6.5z"/></svg></div>
-        </div>
-        <div class="r-body">
-          <div class="r-top">
-            <div class="r-name">Burger Shack</div>
-            <div class="r-rating"><svg viewBox="0 0 14 14" fill="#F59E0B"><path d="M7 1.5l1.3 3h3l-2.5 2 1 3L7 8 4.2 9.5l1-3L2.7 4.5h3z"/></svg>4.8</div>
-          </div>
-          <div class="r-meta">
-            <span class="rmeta"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="7" cy="7" r="5"/><path d="M7 4.5v2.5l1.5 1.5"/></svg>20–28 min</span>
-            <span class="rmeta"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M2 8.5h10M4 8.5V5.5a2 2 0 0 1 6 0v3"/></svg>Free delivery</span>
-            <span class="rmeta">Min. $5</span>
-          </div>
-          <div class="r-tags"><span class="r-tag">Burgers</span><span class="r-tag">Fries</span><span class="r-tag">Fast food</span></div>
-        </div>
-      </a>
-      <a href="#" class="r-card">
-        <div class="r-banner" style="background:#EDF7EE;">🍕
-          <div class="r-fav"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M7 11.5S2 8 2 5a2.5 2.5 0 0 1 5 0 2.5 2.5 0 0 1 5 0c0 3-5 6.5-5 6.5z"/></svg></div>
-        </div>
-        <div class="r-body">
-          <div class="r-top">
-            <div class="r-name">Napoli Express</div>
-            <div class="r-rating"><svg viewBox="0 0 14 14" fill="#F59E0B"><path d="M7 1.5l1.3 3h3l-2.5 2 1 3L7 8 4.2 9.5l1-3L2.7 4.5h3z"/></svg>4.6</div>
-          </div>
-          <div class="r-meta">
-            <span class="rmeta"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="7" cy="7" r="5"/><path d="M7 4.5v2.5l1.5 1.5"/></svg>25–35 min</span>
-            <span class="rmeta"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M2 8.5h10M4 8.5V5.5a2 2 0 0 1 6 0v3"/></svg>$1.50</span>
-            <span class="rmeta">Min. $8</span>
-          </div>
-          <div class="r-tags"><span class="r-tag">Pizza</span><span class="r-tag">Pasta</span><span class="r-tag">Italian</span></div>
-        </div>
-      </a>
-      <a href="#" class="r-card">
-        <div class="r-banner" style="background:#EEF3FF;">🍣
-          <div class="r-disc">Top rated</div>
-          <div class="r-fav"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M7 11.5S2 8 2 5a2.5 2.5 0 0 1 5 0 2.5 2.5 0 0 1 5 0c0 3-5 6.5-5 6.5z"/></svg></div>
-        </div>
-        <div class="r-body">
-          <div class="r-top">
-            <div class="r-name">Tokyo Bay</div>
-            <div class="r-rating"><svg viewBox="0 0 14 14" fill="#F59E0B"><path d="M7 1.5l1.3 3h3l-2.5 2 1 3L7 8 4.2 9.5l1-3L2.7 4.5h3z"/></svg>4.9</div>
-          </div>
-          <div class="r-meta">
-            <span class="rmeta"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="7" cy="7" r="5"/><path d="M7 4.5v2.5l1.5 1.5"/></svg>30–45 min</span>
-            <span class="rmeta"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M2 8.5h10M4 8.5V5.5a2 2 0 0 1 6 0v3"/></svg>$2.00</span>
-            <span class="rmeta">Min. $12</span>
-          </div>
-          <div class="r-tags"><span class="r-tag">Sushi</span><span class="r-tag">Ramen</span><span class="r-tag">Japanese</span></div>
-        </div>
-      </a>
-    </div>
-  </div>
-</section>
+
 
 <!-- ── HOW IT WORKS ── -->
 <section class="how-section">

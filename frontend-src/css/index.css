@@ -1,7 +1,7 @@
 /* ─── RESET & BASE ─── */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-html{scroll-behavior:smooth; height:100%;}
-body{font-family:'Plus Jakarta Sans',sans-serif;background:#FAFAF7;color:#0E0C0A;overflow-x:hidden; height:100%;}
+html{scroll-behavior:smooth;}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:#FAFAF7;color:#0E0C0A;overflow-x:hidden;}
 img{max-width:100%;display:block;}
 a{text-decoration:none;color:inherit;}
 
@@ -87,8 +87,8 @@ a{text-decoration:none;color:inherit;}
 .hero-pill:hover{border-color:var(--or);color:var(--or);background:var(--or-lt);}
 
 /* HERO CARDS */
-.hero-right{display:flex;flex-direction:column;gap:12px;padding:10px 0;}
-.h-card{height: 100px; background:white;border-radius:var(--r20);border:1px solid var(--lt2);padding:14px 16px;display:flex;align-items:center;gap:14px;box-shadow:var(--shadow);cursor:pointer;transition:box-shadow .2s,transform .2s;}
+.hero-right{display:flex;flex-direction:column;gap:12px;padding-bottom:0;}
+.h-card{background:white;border-radius:var(--r20);border:1px solid var(--lt2);padding:14px 16px;display:flex;align-items:center;gap:14px;box-shadow:var(--shadow);cursor:pointer;transition:box-shadow .2s,transform .2s;}
 .h-card:hover{box-shadow:var(--shadow-lg);transform:translateY(-2px);}
 .h-c-ico{width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0;}
 .h-c-name{font-size:14px;font-weight:700;color:var(--dk);margin-bottom:4px;}
@@ -123,9 +123,9 @@ a{text-decoration:none;color:inherit;}
 .link-or:hover svg{transform:translateX(3px);}
 
 /* ─── RESTAURANTS ─── */
-.restos-section{padding:40px 0; background:var(--lt); height:100%; }
+.restos-section{padding:80px 0;background:var(--lt);}
 .restos-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;margin-top:36px;}
-.r-card{margin-bottom: 20px;background:white;border-radius:var(--r20);border:1px solid var(--lt2);overflow:hidden;cursor:pointer;transition:box-shadow .2s,transform .2s;}
+.r-card{background:white;border-radius:var(--r20);border:1px solid var(--lt2);overflow:hidden;cursor:pointer;transition:box-shadow .2s,transform .2s;}
 .r-card:hover{box-shadow:var(--shadow-lg);transform:translateY(-4px);}
 .r-banner{height:160px;display:flex;align-items:center;justify-content:center;font-size:64px;position:relative;}
 .r-disc{position:absolute;top:14px;left:14px;background:var(--or);color:white;font-size:11px;font-weight:700;padding:4px 10px;border-radius:var(--r6);}
@@ -291,28 +291,3 @@ a{text-decoration:none;color:inherit;}
   .hs-btn{border-radius:0 0 var(--r20) var(--r20);padding:14px;text-align:center;justify-content:center;}
   .store-btns{flex-direction:column;}
 }
-  /* Skeleton shimmer */
-  .r-skeleton {
-    min-height: 260px;
-    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-    background-size: 200% 100%;
-    animation: shimmer 1.4s infinite;
-    border-radius: var(--r12, 12px);
-    pointer-events: none;
-  }
-  @keyframes shimmer {
-    0%   { background-position: 200% 0; }
-    100% { background-position: -200% 0; }
-  }
-  .restos-offline-banner {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    background: #FFF7ED;
-    border: 1px solid #FED7AA;
-    color: #92400E;
-    font-size: 13px;
-    padding: 10px 14px;
-    border-radius: 8px;
-    margin-bottom: 16px;
-  }
