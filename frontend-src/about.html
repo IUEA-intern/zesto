@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>About Us — Zesto</title>
+<link rel="stylesheet" href="index.css">
+</head>
+<body>
+
+<!-- ── MOBILE MENU ── -->
+<div class="mobile-menu" id="mobileMenu">
+  <div class="mobile-menu-header">
+    <div class="nav-logo">
+      <div class="logo-mark">
+        <svg viewBox="0 0 24 24"><path d="M13 2L4 13h7l-1 9 10-12h-7l1-8z"/></svg>
+      </div>
+      <span class="logo-text">Zes<span>to</span></span>
+    </div>
+    <button class="mobile-close" onclick="document.getElementById('mobileMenu').classList.remove('open')">✕</button>
+  </div>
+  <div class="mobile-links">
+    <a class="mobile-link" href="#">Restaurants</a>
+    <a class="mobile-link" href="#">For Business</a>
+    <a class="mobile-link" href="#">About Us</a>
+  </div>
+  <div class="mobile-actions">
+    <a href="#" class="btn btn-ghost" style="justify-content:center;padding:14px;">Sign in</a>
+    <a href="#" class="btn btn-primary" style="justify-content:center;padding:14px;border-radius:var(--r12);">Get started</a>
+  </div>
+</div>
+
+<!-- ── NAV ── -->
+<header class="nav">
+  <div class="container">
+    <nav class="nav-inner">
+      <a href="#" class="nav-logo">
+        <div class="logo-mark">
+          <svg viewBox="0 0 24 24"><path d="M13 2L4 13h7l-1 9 10-12h-7l1-8z"/></svg>
+        </div>
+        <span class="logo-text">Zes<span>to</span></span>
+      </a>
+      <div class="nav-links">
+        <a href="#" class="nav-link">Restaurants</a>
+        <a href="#" class="nav-link">For Business</a>
+        <a href="#" class="nav-link active">About Us</a>
+      </div>
+      <a href="#" class="nav-loc">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M8 1.5A4.5 4.5 0 0 1 12.5 6c0 3.2-4.5 8.5-4.5 8.5S3.5 9.2 3.5 6A4.5 4.5 0 0 1 8 1.5z"/><circle cx="8" cy="6" r="1.6"/></svg>
+        Kampala, UG
+        <svg viewBox="0 0 10 6" fill="none" stroke="currentColor" stroke-width="1.5" style="width:10px;height:10px;"><path d="M1 1l4 4 4-4"/></svg>
+      </a>
+      <div class="nav-actions">
+        <a href="#" class="btn btn-ghost">Sign in</a>
+        <a href="#" class="btn btn-primary">Get started</a>
+      </div>
+      <button class="nav-hamburger" onclick="document.getElementById('mobileMenu').classList.add('open')" aria-label="Open menu">
+        <span></span><span></span><span></span>
+      </button>
+    </nav>
+  </div>
+</header>
+
+<!-- ── PAGE HERO ── -->
+<section class="page-hero">
+  <div class="container">
+    <div class="page-hero-inner">
+      <div class="ph-eyebrow">
+        <svg viewBox="0 0 16 16" fill="currentColor" style="width:12px;height:12px;"><path d="M8 1l1.4 3.4L13 4.8l-2.6 2.5.6 3.7L8 9.3 5 11l.6-3.7L3 4.8l3.6-.4z"/></svg>
+        Our Story
+      </div>
+      <h1 class="ph-h1">Feeding <span>Africa,</span><br>one delivery<br>at a time</h1>
+      <p class="ph-sub">We started with a single rider and a big dream. Today, Zesto connects hundreds of thousands of people across Africa with the food they love — fast, reliably, and with a smile.</p>
+    </div>
+  </div>
+  <div class="page-hero-deco">⚡</div>
+</section>
+
+<!-- ── TRUST BAR ── -->
+<div class="trust-bar">
+  <div class="container">
+    <div class="trust-items">
+      <div class="trust-item">
+        <svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 1l1.4 3.4L13 4.8l-2.6 2.5.6 3.7L8 9.3 5 11l.6-3.7L3 4.8l3.6-.4z"/></svg>
+        <span>Founded in <strong>2021</strong></span>
+      </div>
+      <div class="trust-item">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M8 1.5A4.5 4.5 0 0 1 12.5 6c0 3.2-4.5 8.5-4.5 8.5S3.5 9.2 3.5 6A4.5 4.5 0 0 1 8 1.5z"/></svg>
+        <span><strong>12 cities</strong> and growing</span>
+      </div>
+      <div class="trust-item">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="8" cy="8" r="6"/><path d="M8 5v3.5l2 2" stroke-linecap="round"/></svg>
+        <span><strong>500K+</strong> happy customers</span>
+      </div>
+      <div class="trust-item">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="2" y="4" width="12" height="9" rx="1.5"/><path d="M5 4V3a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1"/></svg>
+        <span><strong>1,200+</strong> restaurant partners</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── STORY SECTION ── -->
+<section class="story-section">
+  <div class="container">
+    <div class="story-inner">
+      <div class="story-visual">
+        <div class="story-img-main">🍔</div>
+        <div class="story-badge">
+          <div class="story-badge-num">3+</div>
+          <div class="story-badge-lbl">Years delivering</div>
+        </div>
+      </div>
+      <div class="story-content">
+        <div class="section-label">How it started</div>
+        <div class="section-title">Born in Kampala,<br>built for Africa</div>
+        <p class="story-body">In 2021, our founders — three university friends sitting in a Kampala apartment — got tired of waiting over an hour for food that sometimes never arrived. They saw a massive gap: Africa's food scene was vibrant and world-class, but the delivery infrastructure was broken.</p>
+        <p class="story-body">So they built Zesto. Starting with just four restaurant partners and a fleet of two motorbike riders, the first week brought in 38 orders. By the end of month three, they had crossed 5,000.</p>
+        <div class="story-highlight">"We didn't set out to build a tech company. We set out to make sure no one in Africa ever had to eat bad food, slowly." — Amara Diallo, Co-founder & CEO</div>
+        <p class="story-body">Today, Zesto operates in 12 cities across East and West Africa, partnering with everything from street food legends to fine-dining restaurants — and we're just getting started.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── MISSION SECTION ── -->
+<section class="mission-section">
+  <div class="container">
+    <div style="text-align:center;max-width:540px;margin:0 auto;">
+      <div class="section-label">What drives us</div>
+      <div class="section-title">Our mission & values</div>
+      <div class="section-sub">Three principles that guide every decision we make, every rider we hire, and every partner we welcome.</div>
+    </div>
+    <div class="mission-grid">
+      <div class="mission-card">
+        <div class="mc-ico" style="background:var(--or-lt);">
+          <svg viewBox="0 0 24 24" fill="none" stroke="var(--or)" stroke-width="1.7"><path d="M13 2L4 13h7l-1 9 10-12h-7l1-8z" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="mc-title">Speed without sacrifice</div>
+        <div class="mc-body">We obsess over delivery time, but never at the cost of food quality or rider safety. Our routing technology ensures the fastest path while keeping everyone safe on the road.</div>
+      </div>
+      <div class="mission-card">
+        <div class="mc-ico" style="background:#EDF7EE;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#3B6D11" stroke-width="1.7"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/><path d="M8 12l2.5 2.5L16 9" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="mc-title">Local first, always</div>
+        <div class="mc-body">We actively champion local restaurants, helping them reach new customers and compete in a digital-first world. 80% of our partner restaurants are independently owned businesses.</div>
+      </div>
+      <div class="mission-card">
+        <div class="mc-ico" style="background:#EEF3FF;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#185FA5" stroke-width="1.7"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        </div>
+        <div class="mc-title">Riders are partners</div>
+        <div class="mc-body">Our riders are the backbone of Zesto. We offer competitive pay, health coverage, flexible hours, and a pathway to business ownership through our rider accelerator program.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── TEAM SECTION ── -->
+<section class="team-section">
+  <div class="container">
+    <div style="display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:16px;">
+      <div>
+        <div class="section-label">The people</div>
+        <div class="section-title">Meet our team</div>
+        <div class="section-sub">A diverse group of builders, dreamers, and food lovers.</div>
+      </div>
+      <a href="#" class="link-or">View all team members <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M2 7h10M8 3l4 4-4 4"/></svg></a>
+    </div>
+    <div class="team-grid">
+      <div class="team-card">
+        <div class="team-photo" style="background:#FFF0E8;">👨🏾‍💼</div>
+        <div class="team-info">
+          <div class="team-name">Amara Diallo</div>
+          <div class="team-role">Co-founder & CEO</div>
+          <div class="team-bio">Former logistics engineer. Believes Africa's biggest challenge is also its biggest opportunity.</div>
+        </div>
+      </div>
+      <div class="team-card">
+        <div class="team-photo" style="background:#EDF7EE;">👩🏽‍💻</div>
+        <div class="team-info">
+          <div class="team-name">Nadia Osei</div>
+          <div class="team-role">Co-founder & CTO</div>
+          <div class="team-bio">Built Zesto's entire platform from scratch. Passionate about infrastructure that scales across Africa.</div>
+        </div>
+      </div>
+      <div class="team-card">
+        <div class="team-photo" style="background:#EEF3FF;">👨🏿‍🎨</div>
+        <div class="team-info">
+          <div class="team-name">Kofi Mensah</div>
+          <div class="team-role">Head of Product</div>
+          <div class="team-bio">Ex-Andela. Obsessed with removing friction from the ordering experience, one tap at a time.</div>
+        </div>
+      </div>
+      <div class="team-card">
+        <div class="team-photo" style="background:#F8EDFF;">👩🏾‍🔬</div>
+        <div class="team-info">
+          <div class="team-name">Fatima Nkosi</div>
+          <div class="team-role">Head of Operations</div>
+          <div class="team-bio">Coordinates 3,000+ riders across 12 cities with military precision and genuine care for people.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── VALUES ── -->
+<section class="values-section">
+  <div class="container">
+    <div class="values-header">
+      <div class="section-label">Our principles</div>
+      <div class="section-title">What we stand for</div>
+      <div class="section-sub">These aren't just words on a wall. They're the lens through which we make every decision.</div>
+    </div>
+    <div class="values-grid">
+      <div class="value-card">
+        <div class="value-num">01</div>
+        <div>
+          <div class="value-title">Obsess over the customer</div>
+          <div class="value-body">Every feature, every policy, every rider hire starts with one question: does this make the customer experience better? We read every review, respond to every complaint, and celebrate every 5-star moment.</div>
+        </div>
+      </div>
+      <div class="value-card">
+        <div class="value-num">02</div>
+        <div>
+          <div class="value-title">Move fast, stay careful</div>
+          <div class="value-body">Speed is in our name and our DNA. But we never rush decisions that affect safety, fairness, or trust. We ship quickly and iterate constantly — but we think deeply before we act.</div>
+        </div>
+      </div>
+      <div class="value-card">
+        <div class="value-num">03</div>
+        <div>
+          <div class="value-title">Lift the community</div>
+          <div class="value-body">Zesto exists because Africa's communities are extraordinary. We invest 5% of every delivery fee into local food entrepreneurship programs, school meal initiatives, and rider welfare funds.</div>
+        </div>
+      </div>
+      <div class="value-card">
+        <div class="value-num">04</div>
+        <div>
+          <div class="value-title">Radical transparency</div>
+          <div class="value-body">We publish our delivery data, our rider pay structure, and our environmental impact reports quarterly. If something goes wrong, we say so publicly and explain how we're fixing it.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── TIMELINE ── -->
+<section class="timeline-section">
+  <div class="container">
+    <div style="text-align:center;max-width:540px;margin:0 auto;">
+      <div class="section-label">Our journey</div>
+      <div class="section-title">From apartment to Africa</div>
+      <div class="section-sub">Three years of growth, challenges, and a lot of delivered meals.</div>
+    </div>
+    <div class="timeline-inner">
+      <div class="tl-item">
+        <div class="tl-year">2021</div>
+        <div style="position:relative;">
+          <div class="tl-dot"></div>
+          <div class="tl-content">
+            <div class="tl-title">Zesto is born 🚀</div>
+            <div class="tl-body">Three friends launch Zesto in Kampala with 4 restaurant partners and 2 riders. First 38 orders in week one. They sleep on the office floor to handle the night shift.</div>
+          </div>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-year">2022</div>
+        <div style="position:relative;">
+          <div class="tl-dot"></div>
+          <div class="tl-content">
+            <div class="tl-title">First million orders 🎉</div>
+            <div class="tl-body">Expanded to Nairobi and Accra. Crossed 1 million orders delivered. Launched the Zesto rider app with live GPS tracking. Raised Series A funding of $4.2M.</div>
+          </div>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-year">2023</div>
+        <div style="position:relative;">
+          <div class="tl-dot"></div>
+          <div class="tl-content">
+            <div class="tl-title">West Africa expansion 🌍</div>
+            <div class="tl-body">Launched in Lagos, Abidjan, and Dakar. Introduced mobile money payments, grocery delivery, and the Zesto Pro loyalty program. Hit 500,000 registered users.</div>
+          </div>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-year">2024</div>
+        <div style="position:relative;">
+          <div class="tl-dot"></div>
+          <div class="tl-content">
+            <div class="tl-title">12 cities, 1,200+ partners 🤝</div>
+            <div class="tl-body">Operating in 12 cities with over 1,200 restaurant partners. Launched the Rider Accelerator Program, helping 200 riders start their own small businesses. Rated #1 food delivery app in East Africa.</div>
+          </div>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-year">2025</div>
+        <div style="position:relative;">
+          <div class="tl-dot"></div>
+          <div class="tl-content">
+            <div class="tl-title">The journey continues ⚡</div>
+            <div class="tl-body">We're building toward 25 cities by end of year, launching Zesto for Business, and investing in electric rider vehicles to reduce our carbon footprint across every city we serve.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── CTA ── -->
+<section class="cta-section">
+  <div class="container">
+    <div class="cta-inner">
+      <div class="cta-title">Ready to order?</div>
+      <div class="cta-sub">Join over 500,000 customers across Africa who trust Zesto to bring them great food, fast. Your first delivery is on us.</div>
+      <div class="cta-btns">
+        <a href="#" class="btn-w">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:16px;height:16px;"><path d="M13 2L4 13h7l-1 9 10-12h-7l1-8z" stroke-linejoin="round"/></svg>
+          Start ordering →
+        </a>
+        <a href="#" class="btn-wg">Become a partner</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── FOOTER ── -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <div class="f-brand">Zes<span>to</span></div>
+        <div class="f-tagline">Fast, reliable delivery across West Africa. Restaurants, groceries, and more — delivered to your door.</div>
+        <div class="f-badge">
+          <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M7 1.5A4.5 4.5 0 0 1 11.5 6c0 3-4.5 7.5-4.5 7.5S2.5 9 2.5 6A4.5 4.5 0 0 1 7 1.5z"/></svg>
+          Available in 12 cities
+        </div>
+      </div>
+      <div>
+        <div class="fc-title">Company</div>
+        <div class="f-links">
+          <a href="#" class="f-link">About us</a>
+          <a href="#" class="f-link">Careers</a>
+          <a href="#" class="f-link">Press</a>
+          <a href="#" class="f-link">Blog</a>
+          <a href="#" class="f-link">Investors</a>
+        </div>
+      </div>
+      <div>
+        <div class="fc-title">Partners</div>
+        <div class="f-links">
+          <a href="#" class="f-link">List your restaurant</a>
+          <a href="#" class="f-link">Become a rider</a>
+          <a href="#" class="f-link">Zesto Pro</a>
+          <a href="#" class="f-link">Enterprise</a>
+        </div>
+      </div>
+      <div>
+        <div class="fc-title">Help</div>
+        <div class="f-links">
+          <a href="#" class="f-link">Help center</a>
+          <a href="#" class="f-link">Privacy policy</a>
+          <a href="#" class="f-link">Terms of service</a>
+          <a href="#" class="f-link">Contact us</a>
+        </div>
+      </div>
+      <div>
+        <div class="fc-title">Cities</div>
+        <div class="f-links">
+          <a href="#" class="f-link">Abidjan</a>
+          <a href="#" class="f-link">Accra</a>
+          <a href="#" class="f-link">Dakar</a>
+          <a href="#" class="f-link">Lagos</a>
+          <a href="#" class="f-link">Nairobi</a>
+          <a href="#" class="f-link">Kampala</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bot">
+      <span class="footer-copy">© 2026 Zesto Technologies Inc. All rights reserved.</span>
+      <div class="socials">
+        <a href="#" class="soc-icon" aria-label="Instagram">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="2" y="2" width="12" height="12" rx="3.5"/><circle cx="8" cy="8" r="3"/><circle cx="11.5" cy="4.5" r=".8" fill="currentColor" stroke="none"/></svg>
+        </a>
+        <a href="#" class="soc-icon" aria-label="X / Twitter">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M2 3h12L9.5 8.5V13l-3-1.5V8.5z" stroke-linejoin="round"/></svg>
+        </a>
+        <a href="#" class="soc-icon" aria-label="Facebook">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="2" y="2" width="12" height="12" rx="2"/><path d="M9 8H7v5M7 8V6a2 2 0 0 1 2-2h1" stroke-linecap="round"/></svg>
+        </a>
+        <a href="#" class="soc-icon" aria-label="LinkedIn">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="2" y="2" width="12" height="12" rx="2"/><path d="M5 7v4M5 5v.5M8 11V8.5A1.5 1.5 0 0 1 11 8.5V11" stroke-linecap="round"/></svg>
+        </a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
