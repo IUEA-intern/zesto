@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+<hea
+ 
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Zesto — Order Food</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Knewave&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="css/order.css">
+
+</head>
+<body>
+
+<header class="nav">
+  <div class="container">
+    <div class="nav-inner">
+
+      <div class="nav-left">
+
+        <a href="index.html"><button class="back-btn"> ←</button></a>
+
+        <div class="logo">
+          <div class="logo-mark">⚡</div>
+          <div class="logo-text">
+            Zes<span>to</span>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="nav-right">
+
+        <div class="location-pill">
+          📍 Kampala, Uganda
+        </div>
+
+        <a href="cart.html" class="cart-nav-btn">
+          🛒 <span id="navCartCount">0</span>
+        </a>
+
+        <button class="profile-btn">
+          AK
+        </button>
+
+      </div>
+
+    </div>
+  </div>
+</header>
+
+<div class="container">
+
+<main class="order-layout">
+
+<section>
+
+<!-- HERO -->
+<section class="restaurant-banner">
+
+  <div class="restaurant-cover">
+    <img src="https://images.unsplash.com/photo-1568901346375-23c9450c58cd?q=80&w=1200&auto=format&fit=crop" alt="">
+  </div>
+
+  <div class="restaurant-info">
+
+    <h1 class="restaurant-name">
+      Burger Shack
+    </h1>
+
+    <div class="restaurant-meta">
+
+      <div class="meta-pill">⭐ 4.8 Rating</div>
+      <div class="meta-pill">⏱ 20–30 min</div>
+      <div class="meta-pill">🛵 Free Delivery</div>
+      <div class="meta-pill">🔥 Top Rated</div>
+
+    </div>
+
+    <p class="restaurant-desc">
+      Fresh smash burgers, loaded fries, wraps, wings, desserts,
+      milkshakes and cold drinks prepared daily using premium ingredients.
+    </p>
+
+  </div>
+
+</section>
+
+<!-- TABS -->
+<div class="menu-tabs">
+  <a href="#food" class="menu-tab active">Food</a>
+  <a href="#drinks" class="menu-tab">Drinks</a>
+  <a href="#desserts" class="menu-tab">Desserts</a>
+  <a href="#other" class="menu-tab">Other</a>
+</div>
+
+<!-- FOOD -->
+<section class="menu-section" id="food">
+
+<h2 class="section-title">Food</h2>
+
+<div class="menu-grid">
+
+<!-- FOOD 1 -->
+<article class="menu-card">
+
+<div class="menu-image">
+<img src="https://images.unsplash.com/photo-1568901346375-23c9450c58cd?q=80&w=1200&auto=format&fit=crop">
+</div>
+
+<div class="menu-content">
+
+<div class="menu-item-category">Burger</div>
+
+<div class="menu-item-name">
+Double Smash Burger
+</div>
+
+<div class="menu-item-desc">
+Two juicy beef patties layered with cheddar cheese,
+pickles, lettuce, onions and signature shack sauce.
+Served with crispy fries.
+</div>
+
+<div class="menu-item-bottom">
+
+<div class="menu-price">
+UGX 28,000
+</div>
+
+<button class="add-btn"
+data-action="add"
+data-id="burger1"
+data-name="Double Smash Burger"
+data-price="28000">
+Add to Cart
+</button>
+
+</div>
+
+</div>
+</article>
+
+<!-- FOOD 2 -->
+<article class="menu-card">
+
+<div class="menu-image">
+<img src="https://images.unsplash.com/photo-1606755962773-d324e0a13086?q=80&w=1200&auto=format&fit=crop">
+</div>
+
+<div class="menu-content">
+
+<div class="menu-item-category">Wrap</div>
+
+<div class="menu-item-name">
+Crispy Chicken Wrap
+</div>
+
+<div class="menu-item-desc">
+Golden crispy chicken strips wrapped with fresh lettuce,
+cheese and creamy ranch sauce in a toasted tortilla.
+</div>
+
+<div class="menu-item-bottom">
+
+<div class="menu-price">
+UGX 24,000
+</div>
+
+<button class="add-btn"
+data-action="add"
+data-id="wrap1"
+data-name="Crispy Chicken Wrap"
+data-price="24000">
+Add to Cart
+</button>
+
+</div>
+
+</div>
+</article>
+
+</div>
+
+</section>
+
+<!-- DRINKS -->
+<section class="menu-section" id="drinks">
+
+<h2 class="section-title">Drinks</h2>
+
+<div class="menu-grid">
+
+<!-- DRINK 1 -->
+<article class="menu-card">
+
+<div class="menu-image">
+<img src="https://images.unsplash.com/photo-1577805947697-89e18249d767?q=80&w=1200&auto=format&fit=crop">
+</div>
+
+<div class="menu-content">
+
+<div class="menu-item-category">Milkshake</div>
+
+<div class="menu-item-name">
+Vanilla Milkshake
+</div>
+
+<div class="menu-item-desc">
+Rich creamy vanilla milkshake blended fresh and topped
+with whipped cream for the perfect sweet finish.
+</div>
+
+<div class="menu-item-bottom">
+
+<div class="menu-price">
+UGX 12,000
+</div>
+
+<button class="add-btn"
+data-action="add"
+data-id="drink1"
+data-name="Vanilla Milkshake"
+data-price="12000">
+Add to Cart
+</button>
+
+</div>
+
+</div>
+</article>
+
+<!-- DRINK 2 -->
+<article class="menu-card">
+
+<div class="menu-image">
+<img src="https://images.unsplash.com/photo-1581636625402-29b2a704ef13?q=80&w=1200&auto=format&fit=crop">
+</div>
+
+<div class="menu-content">
+
+<div class="menu-item-category">Soft Drink</div>
+
+<div class="menu-item-name">
+Coca-Cola
+</div>
+
+<div class="menu-item-desc">
+Refreshing ice-cold Coca-Cola served chilled to pair
+perfectly with burgers, fries and wings.
+</div>
+
+<div class="menu-item-bottom">
+
+<div class="menu-price">
+UGX 5,000
+</div>
+
+<button class="add-btn"
+data-action="add"
+data-id="drink2"
+data-name="Coca-Cola"
+data-price="5000">
+Add to Cart
+</button>
+
+</div>
+
+</div>
+</article>
+
+</div>
+
+</section>
+
+<!-- DESSERTS -->
+<section class="menu-section" id="desserts">
+
+<h2 class="section-title">Desserts</h2>
+
+<div class="menu-grid">
+
+<!-- DESSERT 1 -->
+<article class="menu-card">
+
+<div class="menu-image">
+<img src="https://images.unsplash.com/photo-1563805042-7684c019e1cb?q=80&w=1200&auto=format&fit=crop">
+</div>
+
+<div class="menu-content">
+
+<div class="menu-item-category">Ice Cream</div>
+
+<div class="menu-item-name">
+Chocolate Sundae
+</div>
+
+<div class="menu-item-desc">
+Creamy chocolate ice cream topped with rich syrup,
+cookie crumbs and whipped cream.
+</div>
+
+<div class="menu-item-bottom">
+
+<div class="menu-price">
+UGX 14,000
+</div>
+
+<button class="add-btn"
+data-action="add"
+data-id="dessert1"
+data-name="Chocolate Sundae"
+data-price="14000">
+Add to Cart
+</button>
+
+</div>
+
+</div>
+</article>
+
+<!-- DESSERT 2 -->
+<article class="menu-card">
+
+<div class="menu-image">
+<img src="https://images.unsplash.com/photo-1551024601-bec78aea704b?q=80&w=1200&auto=format&fit=crop">
+</div>
+
+<div class="menu-content">
+
+<div class="menu-item-category">Cake</div>
+
+<div class="menu-item-name">
+Red Velvet Cake
+</div>
+
+<div class="menu-item-desc">
+Soft layered red velvet cake with smooth cream cheese
+frosting and chocolate drizzle.
+</div>
+
+<div class="menu-item-bottom">
+
+<div class="menu-price">
+UGX 16,000
+</div>
+
+<button class="add-btn"
+data-action="add"
+data-id="dessert2"
+data-name="Red Velvet Cake"
+data-price="16000">
+Add to Cart
+</button>
+
+</div>
+
+</div>
+</article>
+
+</div>
+
+</section>
+
+<!-- OTHER -->
+<section class="menu-section" id="other">
+
+<h2 class="section-title">Other</h2>
+
+<div class="menu-grid">
+
+<!-- OTHER 1 -->
+<article class="menu-card">
+
+<div class="menu-image">
+<img src="https://images.unsplash.com/photo-1601050690597-df0568f70950?q=80&w=1200&auto=format&fit=crop">
+</div>
+
+<div class="menu-content">
+
+<div class="menu-item-category">Sauce</div>
+
+<div class="menu-item-name">
+Garlic Mayo Dip
+</div>
+
+<div class="menu-item-desc">
+Creamy signature garlic mayo dip made fresh daily
+to pair with fries, wings and wraps.
+</div>
+
+<div class="menu-item-bottom">
+
+<div class="menu-price">
+UGX 3,000
+</div>
+
+<button class="add-btn"
+data-action="add"
+data-id="other1"
+data-name="Garlic Mayo Dip"
+data-price="3000">
+Add to Cart
+</button>
+
+</div>
+
+</div>
+</article>
+
+<!-- OTHER 2 -->
+<article class="menu-card">
+
+<div class="menu-image">
+<img src="https://images.unsplash.com/photo-1482049016688-2d3e1b311543?q=80&w=1200&auto=format&fit=crop">
+</div>
+
+<div class="menu-content">
+
+<div class="menu-item-category">Add-on</div>
+
+<div class="menu-item-name">
+Extra Cheese
+</div>
+
+<div class="menu-item-desc">
+Melted cheddar cheese topping added to burgers,
+fries or wraps for extra flavor.
+</div>
+
+<div class="menu-item-bottom">
+
+<div class="menu-price">
+UGX 4,000
+</div>
+
+<button class="add-btn"
+data-action="add"
+data-id="other2"
+data-name="Extra Cheese"
+data-price="4000">
+Add to Cart
+</button>
+
+</div>
+
+</div>
+</article>
+
+</div>
+
+</section>
+
+</section>
+
+</main>
+
+</div>
+
+<script src="script/order&cart.js"></script>
+
+</body>
+</html>
