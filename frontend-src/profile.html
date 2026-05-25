@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Zesto — Profile</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
+<link href="https://fonts.googleapis.com/css2?family=Knewave&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="./css/index.css" />
+<style>
+.profile-hero {background:linear-gradient(180deg, #fff4eb 0%, #fff9f5 100%);padding:64px 0 48px;}
+.profile-wrap {border-radius:32px;background:white;box-shadow:var(--shadow);overflow:hidden;}
+.profile-top {display:flex;justify-content:space-between;align-items:flex-start;gap:24px;flex-wrap:wrap;padding:32px;}
+.profile-avatar {width:72px;height:72px;border-radius:50%;background:#FFEDD9;color:var(--or);display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:800;}
+.profile-title {display:flex;flex-direction:column;gap:10px;}
+.profile-title h1 {font-size:clamp(32px,4vw,44px);margin:0;}
+.profile-summary {font-size:15px;color:var(--mid);max-width:560px;line-height:1.75;}
+.profile-help {display:inline-flex;align-items:center;gap:10px;background:var(--or);color:white;padding:12px 22px;border-radius:999px;font-size:14px;font-weight:700;}
+.profile-help svg {width:18px;height:18px;}
+.profile-panel {display:grid;grid-template-columns:1fr 1fr;gap:20px;padding:0 32px 32px;}
+.profile-card {background:white;border:1px solid var(--lt2);border-radius:24px;padding:24px;display:flex;align-items:center;gap:16px;cursor:pointer;transition:transform .18s,box-shadow .18s;}
+.profile-card:hover {transform:translateY(-2px);box-shadow:var(--shadow-lg);}
+.profile-card-icon {width:54px;height:54px;border-radius:18px;background:var(--lt);display:flex;align-items:center;justify-content:center;font-size:28px;}
+.profile-card-info {display:flex;flex-direction:column;gap:6px;}
+.profile-card-info .title {font-size:16px;font-weight:700;color:var(--dk);}
+.profile-card-info .meta {font-size:13px;color:var(--mid);}
+.profile-list-wrapper {padding:0 32px 32px;}
+.profile-list {background:white;border:1px solid var(--lt2);border-radius:24px;overflow:hidden;}
+.profile-item {display:flex;align-items:center;justify-content:space-between;gap:16px;padding:18px 24px;border-bottom:1px solid var(--lt2);cursor:pointer;transition:background .18s;}
+.profile-item:last-child {border-bottom:none;}
+.profile-item:hover {background:var(--lt);}
+.profile-item-left {display:flex;align-items:center;gap:14px;}
+.profile-item-icon {width:40px;height:40px;border-radius:14px;background:var(--wh);display:flex;align-items:center;justify-content:center;font-size:18px;}
+.profile-item-label {font-size:15px;font-weight:600;color:var(--dk);}
+.profile-item-sub {font-size:13px;color:var(--mid);}
+.profile-detail {display:grid;grid-template-columns:1fr 1fr;gap:20px;padding:32px;background:#fffdf8;}
+.detail-card {background:white;border:1px solid var(--lt2);border-radius:24px;padding:24px;}
+.detail-card h3 {margin-bottom:14px;font-size:16px;font-weight:700;color:var(--dk);}
+.detail-field {display:flex;justify-content:space-between;gap:12px;padding:12px 0;border-top:1px solid #F5F0EB;}
+.detail-field:first-child {border-top:none;}
+.detail-field label {color:var(--mid);font-size:13px;}
+.detail-field strong {color:var(--dk);}
+.detail-actions {margin-top:16px;display:flex;gap:12px;flex-wrap:wrap;}
+.action-button {background:var(--or);color:white;border:none;padding:10px 18px;border-radius:999px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;}
+.delete-button {background:transparent;color:#B91C1C;border:1px solid #FCA5A5;}
+@media(max-width:900px){
+  .profile-hero{padding:32px 0 24px;}
+  .profile-top{flex-direction:column;align-items:flex-start;padding:24px;gap:20px;}
+  .profile-intro{display:flex;align-items:center;gap:18px;width:100%;}
+  .profile-avatar{flex-shrink:0;}
+  .profile-title{width:100%;}
+  .profile-help{width:100%;justify-content:center;}
+  .profile-panel{grid-template-columns:1fr;gap:18px;padding:0 24px 24px;}
+  .profile-card{padding:20px;}
+  .profile-list-wrapper{padding:0 24px 24px;}
+  .profile-item{padding:16px 20px;}
+  .profile-detail{grid-template-columns:1fr;gap:18px;padding:24px;background:#fffdf8;}
+}
+
+@media(max-width:640px){
+  .profile-hero{padding:24px 0 20px;}
+  .profile-wrap{border-radius:24px;}
+  .profile-top{padding:20px;gap:18px;}
+  .profile-avatar{width:64px;height:64px;font-size:24px;}
+  .profile-help{padding:12px 16px;font-size:13px;}
+  .profile-panel{padding:0 20px 20px;gap:16px;}
+  .profile-card{padding:18px;}
+  .profile-card-icon{width:48px;height:48px;font-size:24px;}
+  .profile-summary{font-size:14px;max-width:100%;}
+  .profile-list-wrapper{padding:0 20px 20px;}
+  .profile-item{padding:14px 18px;}
+  .profile-detail{padding:20px;gap:16px;}
+  .detail-card{padding:20px;}
+  .detail-field{flex-direction:column;align-items:flex-start;}
+  .detail-field label{margin-bottom:6px;}
+}
+</style>
+</head>
+<body>
+
+<div class="mobile-menu" id="mobileMenu">
+  <div class="mobile-menu-header">
+    <div class="nav-logo">
+      <div class="logo-mark">
+        <svg viewBox="0 0 24 24"><path d="M13 2L4 13h7l-1 9 10-12h-7l1-8z"/></svg>
+      </div>
+      <span class="logo-text">Zes<span>to</span></span>
+    </div>
+    <button class="mobile-close" onclick="document.getElementById('mobileMenu').classList.remove('open')">✕</button>
+  </div>
+  <div class="mobile-links">
+    <a class="mobile-link" href="restaurant.html">Restaurants</a>
+    <a class="mobile-link" href="for-busines.html">For Business</a>
+    <a class="mobile-link" href="about.html">about us</a>
+  </div>
+  <div class="mobile-actions" style="margin-top:24px;">
+    <a href="login.html" class="btn btn-ghost" style="justify-content:center;padding:14px;">Sign in</a>
+    <a href="signin.html" class="btn btn-primary" style="justify-content:center;padding:14px;border-radius:var(--r12);">Get started</a>
+  </div>
+</div>
+
+<header class="nav">
+  <div class="container">
+    <nav class="nav-inner">
+      <a href="index.html" class="nav-logo">
+        <div class="logo-mark">
+          <svg viewBox="0 0 24 24"><path d="M13 2L4 13h7l-1 9 10-12h-7l1-8z"/></svg>
+        </div>
+        <span class="logo-text">Zes<span>to</span></span>
+      </a>
+      <div class="nav-links">
+        <a href="restaurant.html" class="nav-link">Restaurants</a>
+        <a href="for-busines.html" class="nav-link">For Business</a>
+        <a href="about.html" class="nav-link">about us</a>
+      </div>
+      <a href="search.html" class="nav-loc">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M8 1.5A4.5 4.5 0 0 1 12.5 6c0 3.2-4.5 8.5-4.5 8.5S3.5 9.2 3.5 6A4.5 4.5 0 0 1 8 1.5z"/><circle cx="8" cy="6" r="1.6"/></svg>
+        Kampala, UG
+        <svg viewBox="0 0 10 6" fill="none" stroke="currentColor" stroke-width="1.5" style="width:10px;height:10px;"><path d="M1 1l4 4 4-4"/></svg>
+      </a>
+      <div class="nav-actions">
+        <a href="login.html" class="btn btn-ghost">Sign in</a>
+        <a href="signin.html" class="btn btn-primary">Get started</a>
+      </div>
+      <button class="nav-hamburger" onclick="document.getElementById('mobileMenu').classList.add('open')" aria-label="Open menu">
+        <span></span><span></span><span></span>
+      </button>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <section class="profile-hero">
+    <div class="container profile-wrap">
+      <div class="profile-top">
+        <div class="profile-intro">
+          <div class="profile-avatar">J</div>
+          <div class="profile-title">
+            <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+              <h1>John Doe</h1>
+              <span style="background:var(--or);color:white;padding:6px 14px;border-radius:999px;font-size:12px;font-weight:700;">Gold Member</span>
+            </div>
+            <p class="profile-summary">This is your account hub. Manage orders, saved locations, payment methods, and security settings all in one place.</p>
+          </div>
+        </div>
+        <a href="#help" class="profile-help">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-4-7.75"/><path d="M22 4L12 14.01l-3-3"/></svg>
+          Help
+        </a>
+      </div>
+      <div class="profile-panel">
+        <a href="order.html" class="profile-card">
+          <div class="profile-card-icon">📦</div>
+          <div class="profile-card-info">
+            <span class="title">Orders</span>
+            <span class="meta">4 active orders</span>
+          </div>
+        </a>
+        <a href="#settings" class="profile-card">
+          <div class="profile-card-icon">👤</div>
+          <div class="profile-card-info">
+            <span class="title">Account</span>
+            <span class="meta">Profile and security</span>
+          </div>
+        </a>
+      </div>
+      <div class="profile-list-wrapper">
+        <div class="profile-list">
+          <div class="profile-item">
+            <div class="profile-item-left">
+              <div class="profile-item-icon">🎁</div>
+              <div>
+                <div class="profile-item-label">Share and earn</div>
+                <div class="profile-item-sub">Invite friends and earn rewards.</div>
+              </div>
+            </div>
+            <span style="color:var(--or);">›</span>
+          </div>
+          <div class="profile-item">
+            <div class="profile-item-left">
+              <div class="profile-item-icon">⭐</div>
+              <div>
+                <div class="profile-item-label">Zesto Prime</div>
+                <div class="profile-item-sub">Unlock faster delivery benefits.</div>
+              </div>
+            </div>
+            <span style="color:var(--or);">›</span>
+          </div>
+          <div class="profile-item">
+            <div class="profile-item-left">
+              <div class="profile-item-icon">🏷️</div>
+              <div>
+                <div class="profile-item-label">Promo codes</div>
+                <div class="profile-item-sub">View your available offers.</div>
+              </div>
+            </div>
+            <span style="color:var(--or);">›</span>
+          </div>
+          <div class="profile-item">
+            <div class="profile-item-left">
+              <div class="profile-item-icon">🌍</div>
+              <div>
+                <div class="profile-item-label">Language</div>
+                <div class="profile-item-sub">Change app language.</div>
+              </div>
+            </div>
+            <span style="color:var(--or);">›</span>
+          </div>
+          <div class="profile-item">
+            <div class="profile-item-left">
+              <div class="profile-item-icon">❓</div>
+              <div>
+                <div class="profile-item-label">FAQ</div>
+                <div class="profile-item-sub">Get answers to common questions.</div>
+              </div>
+            </div>
+            <span style="color:var(--or);">›</span>
+          </div>
+          <div class="profile-item">
+            <div class="profile-item-left">
+              <div class="profile-item-icon">🚪</div>
+              <div>
+                <div class="profile-item-label">Log out</div>
+                <div class="profile-item-sub">Sign out of your account.</div>
+              </div>
+            </div>
+            <span style="color:var(--or);">›</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="settings" class="profile-detail">
+    <div class="detail-card">
+      <h3>Account and password</h3>
+      <div class="detail-field"><label>Username</label><strong>johndoe@gmail.com</strong></div>
+      <div class="detail-field"><label>Display name</label><strong>John</strong></div>
+      <div class="detail-field"><label>Password</label><button class="action-button">Change password</button></div>
+      <div class="detail-field"><label>Two-factor auth</label><strong style="color:var(--mid);">Off</strong></div>
+    </div>
+    <div class="detail-card">
+      <h3>Security actions</h3>
+      <div class="detail-field"><label>Phone</label><strong>+256 770 000 000</strong></div>
+      <div class="detail-field"><label>Saved cards</label><strong>3 methods</strong></div>
+      <div class="detail-field"><label>Saved addresses</label><strong>2 locations</strong></div>
+      <div class="detail-actions">
+        <button class="action-button">Manage settings</button>
+        <button class="action-button delete-button">Delete account</button>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="footer" style="padding:40px 0 20px;">
+  <div class="container">
+    <div class="footer-grid" style="grid-template-columns:1fr 1fr 1fr;gap:24px;padding-bottom:24px;border-bottom:none;">
+      <div>
+        <div class="f-brand">Zes<span>to</span></div>
+        <div class="f-tagline">Manage your profile and get back to great food in just a few taps.</div>
+      </div>
+      <div>
+        <div class="fc-title">Help</div>
+        <div class="f-links"><a href="#" class="f-link">Support</a><a href="#" class="f-link">FAQs</a></div>
+      </div>
+      <div>
+        <div class="fc-title">Account</div>
+        <div class="f-links"><a href="#" class="f-link">Settings</a><a href="#" class="f-link">Privacy</a></div>
+      </div>
+    </div>
+    <div class="footer-bot" style="justify-content:center;padding-top:20px;">
+      <span class="footer-copy">© 2026 Zesto. All rights reserved.</span>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

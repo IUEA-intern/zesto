@@ -152,6 +152,11 @@ button{
   color:white;
   font-weight:700;
   cursor:pointer;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:14px;
+  line-height:1;
 }
 
 .cart-nav-btn{

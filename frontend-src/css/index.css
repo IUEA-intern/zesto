@@ -80,6 +80,8 @@ a{text-decoration:none;color:inherit;}
 .hs-q{flex:1;display:flex;align-items:center;gap:8px;padding:0 16px;}
 .hs-q svg{width:16px;height:16px;flex-shrink:0;color:#C0B8B0;}
 .hs-q span{font-size:13px;color:#C0B8B0;}
+.hs-q input{border:0;outline:none;font-size:14px;color:var(--dk);width:100%;background:transparent;padding:8px 0;}
+.hs-q input::placeholder{color:#C0B8B0;font-weight:500;}
 .hs-btn{background:var(--or);color:white;border:none;padding:0 28px;font-size:14px;font-weight:700;cursor:pointer;white-space:nowrap;font-family:'Plus Jakarta Sans',sans-serif;border-radius:0 var(--r50) var(--r50) 0;transition:background .18s;}
 .hs-btn:hover{background:var(--or-dk);}
 .hero-pills{display:flex;gap:8px;flex-wrap:wrap;margin-top:20px;}
