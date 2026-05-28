@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Investors — Zesto</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Knewave&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="./css/index.css"/>
+<style>
+/* ── PAGE HERO ── */
+.page-hero{background:var(--dk);padding:80px 0 72px;position:relative;overflow:hidden;}
+.page-hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 50% 90% at 30% 60%,rgba(255,85,0,.12) 0%,transparent 70%);}
+.page-hero-inner{position:relative;z-index:1;display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center;}
+.page-tag{display:inline-flex;align-items:center;gap:8px;background:rgba(255,85,0,.15);border:1px solid rgba(255,85,0,.3);color:var(--or);font-size:12px;font-weight:700;padding:5px 14px;border-radius:var(--r50);margin-bottom:20px;letter-spacing:.08em;text-transform:uppercase;}
+.page-h1{font-family:'Plus Jakarta Sans',sans-serif;font-size:clamp(38px,5vw,64px);color:white;line-height:1.05;letter-spacing:-.5px;font-weight:800;margin-bottom:18px;}
+.page-h1 span{color:var(--or);}
+.page-sub{font-size:16px;color:rgba(255,255,255,.5);line-height:1.65;max-width:460px;margin-bottom:28px;}
+.hero-cta-row{display:flex;gap:12px;flex-wrap:wrap;}
+.btn-or{background:var(--or);color:white;font-size:14px;font-weight:700;padding:13px 28px;border-radius:var(--r12);cursor:pointer;border:none;font-family:'Plus Jakarta Sans',sans-serif;transition:all .18s;display:inline-flex;align-items:center;gap:8px;}
+.btn-or:hover{background:var(--or-dk);}
+.btn-outline-w{background:transparent;border:1.5px solid rgba(255,255,255,.2);color:white;font-size:14px;font-weight:700;padding:13px 28px;border-radius:var(--r12);cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all .18s;display:inline-flex;align-items:center;gap:8px;}
+.btn-outline-w:hover{border-color:white;background:rgba(255,255,255,.06);}
+/* HERO STAT CARDS */
+.hero-stat-cards{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.hsc{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:var(--r20);padding:24px;}
+.hsc-num{font-family:'Knewave',cursive;font-size:36px;color:white;margin-bottom:4px;}
+.hsc-lbl{font-size:11px;color:rgba(255,255,255,.4);font-weight:500;margin-bottom:4px;}
+.hsc-delta{font-size:11px;color:#4ADE80;font-weight:600;}
+
+/* ── METRICS ── */
+.metrics-section{padding:0;background:white;}
+.metrics-bar{background:white;border-bottom:1px solid var(--lt2);}
+.metrics-inner{display:grid;grid-template-columns:repeat(4,1fr);border-left:1px solid var(--lt2);}
+.metric-item{padding:36px 32px;border-right:1px solid var(--lt2);}
+.metric-num{font-family:'Knewave',cursive;font-size:40px;color:var(--dk);margin-bottom:4px;}
+.metric-lbl{font-size:12px;color:var(--mid);font-weight:500;margin-bottom:6px;}
+.metric-delta{font-size:12px;font-weight:700;color:#16A34A;background:#F0FDF4;padding:2px 8px;border-radius:var(--r50);display:inline-block;}
+
+/* ── OPPORTUNITY ── */
+.opportunity-section{padding:80px 0;background:var(--wh);}
+.opp-grid{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center;margin-top:48px;}
+.opp-left{}
+.opp-title{font-size:clamp(24px,3vw,36px);font-weight:800;color:var(--dk);line-height:1.2;margin-bottom:16px;}
+.opp-para{font-size:14px;color:var(--mid);line-height:1.75;margin-bottom:14px;}
+.opp-items{display:flex;flex-direction:column;gap:12px;}
+.opp-item{display:flex;align-items:flex-start;gap:14px;background:white;border:1.5px solid var(--lt2);border-radius:var(--r12);padding:18px;}
+.opp-ico{font-size:24px;flex-shrink:0;margin-top:2px;}
+.opp-item-title{font-size:14px;font-weight:700;color:var(--dk);margin-bottom:4px;}
+.opp-item-desc{font-size:12px;color:var(--mid);line-height:1.6;}
+
+/* ── TRACTION ── */
+.traction-section{padding:80px 0;background:var(--dk);}
+.traction-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:48px;}
+.tr-card{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);border-radius:var(--r20);padding:28px;}
+.tr-ico{font-size:32px;margin-bottom:16px;}
+.tr-num{font-family:'Knewave',cursive;font-size:36px;color:white;margin-bottom:4px;}
+.tr-lbl{font-size:13px;font-weight:600;color:rgba(255,255,255,.5);margin-bottom:8px;}
+.tr-desc{font-size:12px;color:rgba(255,255,255,.3);line-height:1.6;}
+.tr-badge{display:inline-flex;background:rgba(74,222,128,.15);color:#4ADE80;font-size:11px;font-weight:700;padding:3px 10px;border-radius:var(--r50);margin-top:10px;}
+
+/* ── ROUND ── */
+.round-section{padding:80px 0;background:white;}
+.round-inner{display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:start;}
+.round-title{font-size:clamp(24px,3vw,36px);font-weight:800;color:var(--dk);margin-bottom:8px;}
+.round-sub{font-size:14px;color:var(--mid);margin-bottom:32px;line-height:1.65;}
+.round-row{display:flex;flex-direction:column;gap:14px;}
+.round-item{display:flex;justify-content:space-between;align-items:center;padding:16px 0;border-bottom:1px solid var(--lt2);}
+.round-item:last-child{border-bottom:none;}
+.round-key{font-size:13px;color:var(--mid);}
+.round-val{font-size:14px;font-weight:700;color:var(--dk);}
+.round-form{background:var(--lt);border-radius:var(--r20);padding:32px;}
+.form-title{font-size:18px;font-weight:700;color:var(--dk);margin-bottom:4px;}
+.form-sub{font-size:13px;color:var(--mid);margin-bottom:24px;}
+.form-row{margin-bottom:14px;}
+.form-label{font-size:12px;font-weight:600;color:var(--dk);margin-bottom:6px;display:block;}
+.form-input{width:100%;border:1.5px solid var(--lt2);border-radius:var(--r12);padding:11px 14px;font-size:14px;color:var(--dk);font-family:'Plus Jakarta Sans',sans-serif;outline:none;background:white;transition:border .18s;}
+.form-input:focus{border-color:var(--or);}
+.form-submit{width:100%;background:var(--or);color:white;border:none;border-radius:var(--r12);padding:13px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:background .18s;margin-top:4px;}
+.form-submit:hover{background:var(--or-dk);}
+.nda-note{font-size:11px;color:var(--mid);text-align:center;margin-top:12px;}
+
+/* ── CURRENT INVESTORS ── */
+.investors-section{padding:80px 0;background:var(--wh);}
+.investors-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:48px;}
+.inv-card{background:white;border:1.5px solid var(--lt2);border-radius:var(--r20);padding:24px;text-align:center;cursor:default;transition:all .2s;}
+.inv-card:hover{border-color:var(--or-mid);box-shadow:var(--shadow);}
+.inv-logo{font-size:32px;margin-bottom:12px;}
+.inv-name{font-size:13px;font-weight:700;color:var(--dk);margin-bottom:4px;}
+.inv-type{font-size:11px;color:var(--mid);}
+
+/* ── TIMELINE ── */
+.timeline-section{padding:80px 0;background:var(--lt);}
+.timeline{position:relative;margin-top:48px;padding-left:24px;}
+.timeline::before{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;background:var(--lt2);}
+.tl-item{position:relative;padding-left:28px;padding-bottom:36px;}
+.tl-item:last-child{padding-bottom:0;}
+.tl-dot{position:absolute;left:-7px;top:4px;width:16px;height:16px;border-radius:50%;background:var(--or);border:3px solid var(--lt);}
+.tl-date{font-size:11px;font-weight:700;color:var(--or);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;}
+.tl-title{font-size:15px;font-weight:700;color:var(--dk);margin-bottom:4px;}
+.tl-desc{font-size:13px;color:var(--mid);line-height:1.6;}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(24px);}to{opacity:1;transform:translateY(0);}}
+.page-hero-inner>*{animation:fadeUp .6s ease both;}
+.page-hero-inner>*:nth-child(2){animation-delay:.15s;}
+
+@media(max-width:1024px){
+  .page-hero-inner{grid-template-columns:1fr;}
+  .hero-stat-cards{grid-template-columns:repeat(4,1fr);}
+  .opp-grid{grid-template-columns:1fr;}
+  .round-inner{grid-template-columns:1fr;}
+  .metrics-inner{grid-template-columns:repeat(2,1fr);}
+  .investors-grid{grid-template-columns:repeat(2,1fr);}
+}
+@media(max-width:768px){
+  .hero-stat-cards{grid-template-columns:1fr 1fr;}
+  .traction-grid{grid-template-columns:1fr;}
+  .metrics-inner{grid-template-columns:1fr 1fr;}
+}
+@media(max-width:480px){
+  .metrics-inner{grid-template-columns:1fr;}
+  .investors-grid{grid-template-columns:1fr 1fr;}
+}
+</style>
+</head>
+<body>
+
+<!-- MOBILE MENU -->
+<div class="mobile-menu" id="mobileMenu">
+  <div class="mobile-menu-header">
+    <div class="nav-logo">
+      <div class="logo-mark"><svg viewBox="0 0 24 24"><path d="M13 2L4 13h7l-1 9 10-12h-7l1-8z"/></svg></div>
+      <span class="logo-text">Zes<span>to</span></span>
+    </div>
+    <button class="mobile-close" onclick="document.getElementById('mobileMenu').classList.remove('open')">✕</button>
+  </div>
+  <div class="mobile-links">
+    <a class="mobile-link" href="restaurant.html">Restaurants</a>
+    <a class="mobile-link" href="for-busines.html">For Business</a>
+    <a class="mobile-link" href="about.html">About us</a>
+    <a class="mobile-link" href="Blog.html">Blog</a>
+  </div>
+  <div class="mobile-actions" style="margin-top:24px;">
+    <a href="login.html" class="btn btn-ghost" style="justify-content:center;padding:14px;">Sign in</a>
+    <a href="Get_Started.html" class="btn btn-primary" style="justify-content:center;padding:14px;border-radius:var(--r12);">Get started</a>
+  </div>
+</div>
+
+<!-- NAV -->
+<header class="nav">
+  <div class="container">
+    <nav class="nav-inner">
+      <a href="index.html" class="nav-logo">
+        <div class="logo-mark"><svg viewBox="0 0 24 24"><path d="M13 2L4 13h7l-1 9 10-12h-7l1-8z"/></svg></div>
+        <span class="logo-text">Zes<span>to</span></span>
+      </a>
+  <div class="mobile-links">
+    <a class="mobile-link" href="restaurant.html">Restaurants</a>
+    <a class="mobile-link" href="for-busines.html">For Business</a>
+    <a class="mobile-link" href="about.html">about us</a>
+    <a class="mobile-link" href="Blog.html">Blog</a>
+  </div>
+      <a href="#" class="nav-loc">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M8 1.5A4.5 4.5 0 0 1 12.5 6c0 3.2-4.5 8.5-4.5 8.5S3.5 9.2 3.5 6A4.5 4.5 0 0 1 8 1.5z"/><circle cx="8" cy="6" r="1.6"/></svg>
+        Kampala, UG
+        <svg viewBox="0 0 10 6" fill="none" stroke="currentColor" stroke-width="1.5" style="width:10px;height:10px;"><path d="M1 1l4 4 4-4"/></svg>
+      </a>
+      <div class="nav-actions">
+        <a href="login.html" class="btn btn-ghost">Sign in</a>
+        <a href="Get_Started.html" class="btn btn-primary">Get started</a>
+      </div>
+      <button class="nav-hamburger" onclick="document.getElementById('mobileMenu').classList.add('open')" aria-label="Open menu">
+        <span></span><span></span><span></span>
+      </button>
+    </nav>
+  </div>
+</header>
+
+<!-- PAGE HERO -->
+<section class="page-hero">
+  <div class="container">
+    <div class="page-hero-inner">
+      <div>
+        <div class="page-tag">📈 Investor relations</div>
+        <h1 class="page-h1">Africa's fastest-growing<br><span>food delivery</span> company</h1>
+        <p class="page-sub">We're building the logistics infrastructure for the next generation of African consumers. Join the journey.</p>
+        <div class="hero-cta-row">
+          <a href="#invest" class="btn-or">Request investor deck →</a>
+          <a href="#metrics" class="btn-outline-w">View key metrics</a>
+        </div>
+      </div>
+      <div class="hero-stat-cards">
+        <div class="hsc">
+          <div class="hsc-num">$28M</div>
+          <div class="hsc-lbl">Total raised (Series B)</div>
+          <div class="hsc-delta">↑ May 2026</div>
+        </div>
+        <div class="hsc">
+          <div class="hsc-num">3.2×</div>
+          <div class="hsc-lbl">YoY revenue growth</div>
+          <div class="hsc-delta">↑ FY 2025</div>
+        </div>
+        <div class="hsc">
+          <div class="hsc-num">500K+</div>
+          <div class="hsc-lbl">Active users</div>
+          <div class="hsc-delta">↑ 86% YoY</div>
+        </div>
+        <div class="hsc">
+          <div class="hsc-num">3</div>
+          <div class="hsc-lbl">Cities live today</div>
+          <div class="hsc-delta">↑ 6 by Q4 2026</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- KEY METRICS BAR -->
+<section class="metrics-section" id="metrics">
+  <div class="metrics-bar">
+    <div class="container" style="padding:0;">
+      <div class="metrics-inner">
+        <div class="metric-item">
+          <div class="metric-num">12.4K</div>
+          <div class="metric-lbl">Daily active orders</div>
+          <div class="metric-delta">+62% MoM</div>
+        </div>
+        <div class="metric-item">
+          <div class="metric-num">28 min</div>
+          <div class="metric-lbl">Avg. delivery time</div>
+          <div class="metric-delta">↓ 4 min YoY</div>
+        </div>
+        <div class="metric-item">
+          <div class="metric-num">4.8★</div>
+          <div class="metric-lbl">Customer rating</div>
+          <div class="metric-delta">+0.3 YoY</div>
+        </div>
+        <div class="metric-item">
+          <div class="metric-num">1,800+</div>
+          <div class="metric-lbl">Restaurant partners</div>
+          <div class="metric-delta">+94% YoY</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- OPPORTUNITY -->
+<section class="opportunity-section">
+  <div class="container">
+    <div class="section-label">The opportunity</div>
+    <div class="section-title">Why Africa, why now</div>
+    <div class="opp-grid">
+      <div class="opp-left">
+        <div class="opp-title">A $40B market with<br>no clear winner yet</div>
+        <div class="opp-para">Africa's food delivery market is at the same inflection point that Southeast Asia was in 2015. The fundamentals are converging — rising smartphone penetration, a growing middle class, and the rapid adoption of mobile payments.</div>
+        <div class="opp-para">Unlike Western markets, Africa's delivery landscape is fragmented, underserved, and ripe for a mobile-first, locally-adapted platform. Zesto was built from the ground up for this context.</div>
+      </div>
+      <div class="opp-items">
+        <div class="opp-item">
+          <div class="opp-ico">📱</div>
+          <div>
+            <div class="opp-item-title">600M+ smartphone users by 2027</div>
+            <div class="opp-item-desc">Africa has the world's fastest-growing mobile internet adoption. Our mobile-first platform captures this wave directly.</div>
+          </div>
+        </div>
+        <div class="opp-item">
+          <div class="opp-ico">💳</div>
+          <div>
+            <div class="opp-item-title">Mobile money as payment rail</div>
+            <div class="opp-item-desc">MTN Mobile Money, M-Pesa, and Orange Money give us access to millions of unbanked consumers traditional platforms miss.</div>
+          </div>
+        </div>
+        <div class="opp-item">
+          <div class="opp-ico">🏙️</div>
+          <div>
+            <div class="opp-item-title">Rapid urbanisation</div>
+            <div class="opp-item-desc">17 of the world's 30 fastest-growing cities are in Africa. Dense urban populations are the perfect environment for on-demand delivery.</div>
+          </div>
+        </div>
+        <div class="opp-item">
+          <div class="opp-ico">🍽️</div>
+          <div>
+            <div class="opp-item-title">Informal restaurant sector is massive</div>
+            <div class="opp-item-desc">90% of Africa's food sector is informal. We're the first platform built to onboard and digitise these restaurants at scale.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TRACTION -->
+<section class="traction-section">
+  <div class="container">
+    <div class="section-label" style="color:var(--or);">Traction</div>
+    <div class="section-title" style="color:white;">Built on strong fundamentals</div>
+    <div class="traction-grid">
+      <div class="tr-card">
+        <div class="tr-ico">🚀</div>
+        <div class="tr-num">3.2×</div>
+        <div class="tr-lbl">Revenue growth YoY</div>
+        <div class="tr-desc">We've tripled revenue two years in a row, with improving unit economics as we scale in each city.</div>
+        <div class="tr-badge">↑ 220% 2-year CAGR</div>
+      </div>
+      <div class="tr-card">
+        <div class="tr-ico">💰</div>
+        <div class="tr-num">62%</div>
+        <div class="tr-lbl">Gross margin (Q1 2026)</div>
+        <div class="tr-desc">Industry-leading margins driven by our proprietary routing algorithm and dynamic pricing system.</div>
+        <div class="tr-badge">↑ 14pp vs last year</div>
+      </div>
+      <div class="tr-card">
+        <div class="tr-ico">🔁</div>
+        <div class="tr-num">78%</div>
+        <div class="tr-lbl">30-day retention</div>
+        <div class="tr-desc">Best-in-class retention driven by hyper-local relevance and loyalty rewards, not paid promotion.</div>
+        <div class="tr-badge">↑ top decile globally</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CURRENT INVESTORS -->
+<section class="investors-section">
+  <div class="container">
+    <div class="section-label">Our backers</div>
+    <div class="section-title">Backed by the best</div>
+    <div class="section-sub">Zesto is supported by leading global and African investors who share our conviction.</div>
+    <div class="investors-grid">
+      <div class="inv-card">
+        <div class="inv-logo">🌍</div>
+        <div class="inv-name">Africa Ventures</div>
+        <div class="inv-type">Lead · Series B</div>
+      </div>
+      <div class="inv-card">
+        <div class="inv-logo">⚡</div>
+        <div class="inv-name">Partech Africa</div>
+        <div class="inv-type">Series A & B</div>
+      </div>
+      <div class="inv-card">
+        <div class="inv-logo">🔥</div>
+        <div class="inv-name">Y Combinator</div>
+        <div class="inv-type">Seed · W23</div>
+      </div>
+      <div class="inv-card">
+        <div class="inv-logo">💡</div>
+        <div class="inv-name">Acumen Capital</div>
+        <div class="inv-type">Series A</div>
+      </div>
+      <div class="inv-card">
+        <div class="inv-logo">🦁</div>
+        <div class="inv-name">Lagos Ventures</div>
+        <div class="inv-type">Seed</div>
+      </div>
+      <div class="inv-card">
+        <div class="inv-logo">🌱</div>
+        <div class="inv-name">Savannah Fund</div>
+        <div class="inv-type">Pre-Seed</div>
+      </div>
+      <div class="inv-card">
+        <div class="inv-logo">🏦</div>
+        <div class="inv-name">IFC Ventures</div>
+        <div class="inv-type">Series B</div>
+      </div>
+      <div class="inv-card">
+        <div class="inv-logo">🎯</div>
+        <div class="inv-name">Consonance</div>
+        <div class="inv-type">Series A</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TIMELINE -->
+<section class="timeline-section">
+  <div class="container">
+    <div class="section-label">Our journey</div>
+    <div class="section-title">Key milestones</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:48px;margin-top:0;">
+      <div class="timeline">
+        <div class="tl-item">
+          <div class="tl-dot"></div>
+          <div class="tl-date">Q1 2023</div>
+          <div class="tl-title">Founded in Kampala</div>
+          <div class="tl-desc">Zesto launched with 12 restaurant partners and a team of 8, focused on delivering in Kampala CBD.</div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot"></div>
+          <div class="tl-date">Q3 2023</div>
+          <div class="tl-title">Y Combinator W23</div>
+          <div class="tl-desc">Selected for Y Combinator's winter batch. Raised $500K pre-seed and grew to 200 restaurant partners.</div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot"></div>
+          <div class="tl-date">Q2 2024</div>
+          <div class="tl-title">Series A — $6M</div>
+          <div class="tl-desc">Closed $6M Series A led by Partech Africa. Launched in Accra, Ghana and hit 50,000 monthly active users.</div>
+        </div>
+      </div>
+      <div class="timeline">
+        <div class="tl-item">
+          <div class="tl-dot"></div>
+          <div class="tl-date">Q1 2025</div>
+          <div class="tl-title">Launched in Abidjan</div>
+          <div class="tl-desc">Third city launch. Crossed 200,000 monthly active users across all markets. Rider network hit 1,200.</div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot"></div>
+          <div class="tl-date">Q4 2025</div>
+          <div class="tl-title">500K downloads & profitability in Kampala</div>
+          <div class="tl-desc">Reached 500,000 total app downloads. Kampala became our first city-level profitable market.</div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot"></div>
+          <div class="tl-date">May 2026</div>
+          <div class="tl-title">Series B — $28M</div>
+          <div class="tl-desc">Closed $28M Series B led by Africa Ventures. Planning expansion to 6 cities by Q4 2026.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- INVEST FORM -->
+<section class="round-section" id="invest">
+  <div class="container">
+    <div class="round-inner">
+      <div>
+        <div class="section-label">Current round</div>
+        <div class="round-title">Series B — $28M<br>Strategic round</div>
+        <div class="round-sub">We're welcoming strategic co-investors alongside our lead. If you're an investor aligned with our mission, we'd like to hear from you.</div>
+        <div class="round-row">
+          <div class="round-item"><span class="round-key">Round type</span><span class="round-val">Series B — Strategic</span></div>
+          <div class="round-item"><span class="round-key">Round size</span><span class="round-val">$28,000,000</span></div>
+          <div class="round-item"><span class="round-key">Lead investor</span><span class="round-val">Africa Ventures</span></div>
+          <div class="round-item"><span class="round-key">Use of funds</span><span class="round-val">City expansion + engineering</span></div>
+          <div class="round-item"><span class="round-key">Target cities by EOY</span><span class="round-val">Lagos, Nairobi, Dakar</span></div>
+          <div class="round-item"><span class="round-key">Data room access</span><span class="round-val">NDA required</span></div>
+        </div>
+      </div>
+      <div class="round-form">
+        <div class="form-title">Request investor deck</div>
+        <div class="form-sub">Fill out the form and we'll reach out within 48 hours.</div>
+        <div class="form-row"><label class="form-label">Full name</label><input type="text" class="form-input" placeholder="Your name"/></div>
+        <div class="form-row"><label class="form-label">Fund / Organisation</label><input type="text" class="form-input" placeholder="e.g. Sequoia Capital"/></div>
+        <div class="form-row"><label class="form-label">Email</label><input type="email" class="form-input" placeholder="you@fund.com"/></div>
+        <div class="form-row"><label class="form-label">Typical cheque size</label>
+          <select class="form-input" style="cursor:pointer;">
+            <option>Under $500K</option>
+            <option>$500K – $2M</option>
+            <option>$2M – $5M</option>
+            <option>$5M+</option>
+          </select>
+        </div>
+        <button class="form-submit">Request deck →</button>
+        <div class="nda-note">🔒 NDA will be sent before data room access is granted.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <div class="f-brand">Zes<span>to</span></div>
+        <div class="f-tagline">Fast, reliable delivery across West Africa. Restaurants, groceries, and more — delivered to your door.</div>
+        <div class="f-badge"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M7 1.5A4.5 4.5 0 0 1 11.5 6c0 3-4.5 7.5-4.5 7.5S2.5 9 2.5 6A4.5 4.5 0 0 1 7 1.5z"/></svg> Available in 3 cities</div>
+      </div>
+      <div>
+        <div class="fc-title">Company</div>
+        <div class="f-links">
+          <a href="about.html" class="f-link">About us</a>
+          <a href="Careers.html" class="f-link">Careers</a>
+          <a href="Press.html" class="f-link">Press</a>
+          <a href="Blog.html" class="f-link">Blog</a>
+          <a href="Investors.html" class="f-link" style="color:white;">Investors</a>
+        </div>
+      </div>
+      <div>
+        <div class="fc-title">Partners</div>
+        <div class="f-links">
+          <a href="#" class="f-link">List your restaurant</a>
+          <a href="#" class="f-link">Become a rider</a>
+          <a href="#" class="f-link">Zesto Pro</a>
+          <a href="#" class="f-link">Enterprise</a>
+        </div>
+      </div>
+      <div>
+        <div class="fc-title">Help</div>
+        <div class="f-links">
+          <a href="Help-center.html" class="f-link">Help center</a>
+          <a href="privacy-policy.html" class="f-link">Privacy policy</a>
+          <a href="terms-of-service.html" class="f-link">Terms of service</a>
+          <a href="contact-us.html" class="f-link">Contact us</a>
+        </div>
+      </div>
+      <div>
+        <div class="fc-title">Cities</div>
+        <div class="f-links">
+          <a href="#" class="f-link">Zanzibar</a>
+          <a href="#" class="f-link">Nairobi</a>
+          <a href="#" class="f-link">Kampala</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bot">
+      <span class="footer-copy">© 2026 Zesto Technologies Inc. All rights reserved.</span>
+      <div class="socials">
+        <a href="#" class="soc-icon"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="2" y="2" width="12" height="12" rx="3.5"/><circle cx="8" cy="8" r="3"/><circle cx="11.5" cy="4.5" r=".8" fill="currentColor" stroke="none"/></svg></a>
+        <a href="#" class="soc-icon"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M2 3h12L9.5 8.5V13l-3-1.5V8.5z" stroke-linejoin="round"/></svg></a>
+        <a href="#" class="soc-icon"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="2" y="2" width="12" height="12" rx="2"/><path d="M9 8H7v5M7 8V6a2 2 0 0 1 2-2h1" stroke-linecap="round"/></svg></a>
+        <a href="#" class="soc-icon"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="2" y="2" width="12" height="12" rx="2"/><path d="M5 7v4M5 5v.5M8 11V8.5A1.5 1.5 0 0 1 11 8.5V11" stroke-linecap="round"/></svg></a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

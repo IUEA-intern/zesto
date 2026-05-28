@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Privacy Policy — Zesto</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Knewave&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="./css/index.css"/>
+<style>
+.page-hero{background:var(--dk);padding:72px 0 64px;text-align:center;}
+.page-hero-label{display:inline-flex;align-items:center;gap:8px;background:rgba(255,85,0,.15);border:1px solid rgba(255,85,0,.3);color:var(--or);font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:5px 16px;border-radius:var(--r50);margin-bottom:20px;}
+.page-hero-h1{font-family:'Plus Jakarta Sans',sans-serif;font-size:clamp(32px,5vw,60px);color:white;line-height:1.1;letter-spacing:-.5px;margin-bottom:14px;}
+.page-hero-h1 span{color:var(--or);}
+.page-hero-meta{font-size:13px;color:rgba(255,255,255,.35);display:flex;align-items:center;justify-content:center;gap:16px;}
+.page-hero-meta span{display:flex;align-items:center;gap:5px;}
+
+/* Doc layout */
+.doc-layout{display:grid;grid-template-columns:240px 1fr;gap:56px;align-items:start;padding:72px 0;}
+.doc-sidebar{position:sticky;top:80px;}
+.doc-nav-title{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--mid);margin-bottom:14px;}
+.doc-nav{display:flex;flex-direction:column;gap:4px;}
+.doc-nav a{font-size:13px;color:var(--mid);padding:6px 12px;border-radius:var(--r6);transition:all .18s;border-left:2px solid transparent;}
+.doc-nav a:hover{color:var(--dk);background:var(--lt);}
+.doc-nav a.active{color:var(--or);border-left-color:var(--or);background:var(--or-lt);font-weight:600;}
+
+/* Doc content */
+.doc-content{max-width:720px;}
+.doc-section{margin-bottom:52px;scroll-margin-top:88px;}
+.doc-section-n{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;background:var(--or-lt);border:1.5px solid var(--or-mid);border-radius:8px;font-size:12px;font-weight:800;color:var(--or);margin-bottom:14px;}
+.doc-h2{font-size:22px;font-weight:800;color:var(--dk);margin-bottom:12px;line-height:1.2;}
+.doc-p{font-size:14px;color:var(--mid);line-height:1.8;margin-bottom:14px;}
+.doc-ul{margin:10px 0 16px 0;padding-left:0;list-style:none;display:flex;flex-direction:column;gap:8px;}
+.doc-ul li{display:flex;align-items:flex-start;gap:10px;font-size:14px;color:var(--mid);line-height:1.7;}
+.doc-ul li::before{content:"";width:6px;height:6px;background:var(--or);border-radius:50%;flex-shrink:0;margin-top:7px;}
+.doc-highlight{background:var(--or-lt);border:1.5px solid var(--or-mid);border-radius:var(--r12);padding:18px 22px;margin:20px 0;}
+.doc-highlight p{font-size:13px;color:var(--or-dk);line-height:1.7;margin:0;font-weight:500;}
+.doc-divider{border:none;border-top:1px solid var(--lt2);margin:52px 0;}
+
+@media(max-width:900px){
+  .doc-layout{grid-template-columns:1fr;}
+  .doc-sidebar{display:none;}
+  .doc-content{max-width:100%;}
+}
+</style>
+</head>
+<body>
+
+<!-- ── MOBILE MENU ── -->
+<div class="mobile-menu" id="mobileMenu">
+  <div class="mobile-menu-header">
+    <div class="nav-logo">
+      <div class="logo-mark"><svg viewBox="0 0 24 24"><path d="M13 2L4 13h7l-1 9 10-12h-7l1-8z"/></svg></div>
+      <span class="logo-text">Zes<span>to</span></span>
+    </div>
+    <button class="mobile-close" onclick="document.getElementById('mobileMenu').classList.remove('open')">✕</button>
+  </div>
+  <div class="mobile-links">
+    <a class="mobile-link" href="restaurant.html">Restaurants</a>
+    <a class="mobile-link" href="for-busines.html">For Business</a>
+    <a class="mobile-link" href="about.html">About us</a>
+  </div>
+  <div class="mobile-actions" style="margin-top:24px;">
+    <a href="login.html" class="btn btn-ghost" style="justify-content:center;padding:14px;">Sign in</a>
+    <a href="signin.html" class="btn btn-primary" style="justify-content:center;padding:14px;border-radius:var(--r12);">Get started</a>
+  </div>
+</div>
+
+<!-- ── NAV ── -->
+<header class="nav">
+  <div class="container">
+    <nav class="nav-inner">
+      <a href="index.html" class="nav-logo">
+        <div class="logo-mark"><svg viewBox="0 0 24 24"><path d="M13 2L4 13h7l-1 9 10-12h-7l1-8z"/></svg></div>
+        <span class="logo-text">Zes<span>to</span></span>
+      </a>
+  <div class="mobile-links">
+    <a class="mobile-link" href="restaurant.html">Restaurants</a>
+    <a class="mobile-link" href="for-busines.html">For Business</a>
+    <a class="mobile-link" href="about.html">about us</a>
+    <a class="mobile-link" href="Blog.html">Blog</a>
+  </div>
+      <a href="#" class="nav-loc">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M8 1.5A4.5 4.5 0 0 1 12.5 6c0 3.2-4.5 8.5-4.5 8.5S3.5 9.2 3.5 6A4.5 4.5 0 0 1 8 1.5z"/><circle cx="8" cy="6" r="1.6"/></svg>
+        Kampala, UG
+        <svg viewBox="0 0 10 6" fill="none" stroke="currentColor" stroke-width="1.5" style="width:10px;height:10px;"><path d="M1 1l4 4 4-4"/></svg>
+      </a>
+      <div class="nav-actions">
+        <a href="login.html" class="btn btn-ghost">Sign in</a>
+        <a href="signin.html" class="btn btn-primary">Get started</a>
+      </div>
+      <button class="nav-hamburger" onclick="document.getElementById('mobileMenu').classList.add('open')" aria-label="Open menu">
+        <span></span><span></span><span></span>
+      </button>
+    </nav>
+  </div>
+</header>
+
+<!-- ── PAGE HERO ── -->
+<section class="page-hero">
+  <div class="container">
+    <div class="page-hero-label">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M8 2a4 4 0 0 1 4 4v2H4V6a4 4 0 0 1 4-4z"/><rect x="3" y="8" width="10" height="6" rx="2"/></svg>
+      Legal
+    </div>
+    <h1 class="page-hero-h1">Privacy <span>Policy</span></h1>
+    <div class="page-hero-meta">
+      <span>
+        <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3" style="width:13px;height:13px;"><circle cx="7" cy="7" r="5.5"/><path d="M7 4v3l2 2"/></svg>
+        Last updated: January 15, 2026
+      </span>
+      <span>·</span>
+      <span>Effective: February 1, 2026</span>
+    </div>
+  </div>
+</section>
+
+<!-- ── DOCUMENT ── -->
+<div style="background:white;">
+  <div class="container">
+    <div class="doc-layout">
+
+      <!-- Sidebar nav -->
+      <aside class="doc-sidebar">
+        <div class="doc-nav-title">On this page</div>
+        <nav class="doc-nav">
+          <a href="#intro" class="active">Introduction</a>
+          <a href="#collect">Information We Collect</a>
+          <a href="#use">How We Use It</a>
+          <a href="#share">Sharing Your Data</a>
+          <a href="#cookies">Cookies</a>
+          <a href="#retention">Data Retention</a>
+          <a href="#rights">Your Rights</a>
+          <a href="#security">Security</a>
+          <a href="#children">Children</a>
+          <a href="#contact">Contact Us</a>
+        </nav>
+      </aside>
+
+      <!-- Content -->
+      <article class="doc-content">
+
+        <div class="doc-section" id="intro">
+          <div class="doc-section-n">1</div>
+          <h2 class="doc-h2">Introduction</h2>
+          <p class="doc-p">Zesto Technologies Inc. ("Zesto", "we", "us", or "our") is committed to protecting your personal information. This Privacy Policy explains how we collect, use, disclose, and safeguard your data when you use the Zesto app, website, or any of our services.</p>
+          <p class="doc-p">By creating an account or placing an order, you agree to the practices described in this policy. If you do not agree, please discontinue use of our services.</p>
+          <div class="doc-highlight">
+            <p>We never sell your personal data to third parties for their own marketing purposes. Full stop.</p>
+          </div>
+        </div>
+
+        <hr class="doc-divider"/>
+
+        <div class="doc-section" id="collect">
+          <div class="doc-section-n">2</div>
+          <h2 class="doc-h2">Information We Collect</h2>
+          <p class="doc-p">We collect information you provide directly, data generated by your use of our services, and information from third parties where you've granted permission.</p>
+          <ul class="doc-ul">
+            <li><strong style="color:var(--dk);margin-right:4px;">Account data:</strong> name, email address, phone number, and profile photo.</li>
+            <li><strong style="color:var(--dk);margin-right:4px;">Delivery data:</strong> saved addresses, delivery notes, and GPS location (only when the app is in use).</li>
+            <li><strong style="color:var(--dk);margin-right:4px;">Payment data:</strong> tokenised card details or mobile money references — we never store raw card numbers.</li>
+            <li><strong style="color:var(--dk);margin-right:4px;">Order history:</strong> items ordered, restaurants visited, delivery times, and feedback ratings.</li>
+            <li><strong style="color:var(--dk);margin-right:4px;">Device data:</strong> device model, OS version, app version, and crash logs used for debugging.</li>
+            <li><strong style="color:var(--dk);margin-right:4px;">Communications:</strong> messages sent to our support team and responses we provide.</li>
+          </ul>
+        </div>
+
+        <hr class="doc-divider"/>
+
+        <div class="doc-section" id="use">
+          <div class="doc-section-n">3</div>
+          <h2 class="doc-h2">How We Use Your Information</h2>
+          <p class="doc-p">Your data is used solely to operate and improve Zesto's services. Specifically, we use it to:</p>
+          <ul class="doc-ul">
+            <li>Process and fulfil your orders and communicate order status.</li>
+            <li>Connect you with restaurants and delivery riders in your area.</li>
+            <li>Personalise your app experience and surface relevant recommendations.</li>
+            <li>Send transactional notifications (order confirmed, rider on the way, delivered).</li>
+            <li>Detect and prevent fraud, chargebacks, and policy violations.</li>
+            <li>Comply with applicable laws and respond to lawful requests.</li>
+          </ul>
+          <p class="doc-p">We will only send you marketing communications if you've explicitly opted in. You can unsubscribe at any time from your account settings or via the unsubscribe link in any email.</p>
+        </div>
+
+        <hr class="doc-divider"/>
+
+        <div class="doc-section" id="share">
+          <div class="doc-section-n">4</div>
+          <h2 class="doc-h2">Sharing Your Data</h2>
+          <p class="doc-p">We share your data only with parties essential to providing the service:</p>
+          <ul class="doc-ul">
+            <li><strong style="color:var(--dk);margin-right:4px;">Restaurants:</strong> receive your first name, order details, and delivery address to prepare and fulfil your order.</li>
+            <li><strong style="color:var(--dk);margin-right:4px;">Riders:</strong> receive your delivery address and phone number (masked) while the order is active.</li>
+            <li><strong style="color:var(--dk);margin-right:4px;">Payment processors:</strong> securely handle payment authorisation under PCI-DSS standards.</li>
+            <li><strong style="color:var(--dk);margin-right:4px;">Cloud infrastructure providers:</strong> host our data in encrypted, access-controlled environments.</li>
+            <li><strong style="color:var(--dk);margin-right:4px;">Analytics tools:</strong> anonymised, aggregated usage data to help us improve the product.</li>
+          </ul>
+        </div>
+
+        <hr class="doc-divider"/>
+
+        <div class="doc-section" id="cookies">
+          <div class="doc-section-n">5</div>
+          <h2 class="doc-h2">Cookies & Tracking</h2>
+          <p class="doc-p">Our website uses cookies to maintain your session, remember your preferences, and understand aggregate traffic patterns. We do not use third-party advertising cookies. You can disable cookies in your browser settings, but some features may not function correctly.</p>
+        </div>
+
+        <hr class="doc-divider"/>
+
+        <div class="doc-section" id="retention">
+          <div class="doc-section-n">6</div>
+          <h2 class="doc-h2">Data Retention</h2>
+          <p class="doc-p">We retain your account data for as long as your account is active, and for up to 7 years afterward for legal and tax compliance purposes. Order history is retained for 5 years. Device logs and crash data are deleted after 90 days.</p>
+          <p class="doc-p">You can request deletion of your account and associated data at any time (see Your Rights below). Some data may be retained beyond deletion requests where required by law.</p>
+        </div>
+
+        <hr class="doc-divider"/>
+
+        <div class="doc-section" id="rights">
+          <div class="doc-section-n">7</div>
+          <h2 class="doc-h2">Your Rights</h2>
+          <p class="doc-p">Depending on your jurisdiction, you may have the right to:</p>
+          <ul class="doc-ul">
+            <li>Access a copy of all personal data we hold about you.</li>
+            <li>Correct inaccurate or outdated information.</li>
+            <li>Request deletion of your account and personal data.</li>
+            <li>Opt out of marketing communications at any time.</li>
+            <li>Port your data to another service in a machine-readable format.</li>
+            <li>Lodge a complaint with your national data protection authority.</li>
+          </ul>
+          <p class="doc-p">To exercise any of these rights, email us at <a href="mailto:privacy@zesto.com" style="color:var(--or);font-weight:600;">privacy@zesto.com</a> or use the "Data & Privacy" section in your account settings.</p>
+        </div>
+
+        <hr class="doc-divider"/>
+
+        <div class="doc-section" id="security">
+          <div class="doc-section-n">8</div>
+          <h2 class="doc-h2">Security</h2>
+          <p class="doc-p">We use industry-standard security measures including TLS encryption in transit, AES-256 encryption at rest, role-based access controls, and regular third-party security audits. No system is 100% secure; in the event of a breach affecting your personal data, we will notify you in accordance with applicable law.</p>
+        </div>
+
+        <hr class="doc-divider"/>
+
+        <div class="doc-section" id="children">
+          <div class="doc-section-n">9</div>
+          <h2 class="doc-h2">Children's Privacy</h2>
+          <p class="doc-p">Zesto is not intended for children under the age of 16. We do not knowingly collect personal data from anyone under 16. If you believe a child has provided us with personal information, please contact us immediately and we will delete it.</p>
+        </div>
+
+        <hr class="doc-divider"/>
+
+        <div class="doc-section" id="contact">
+          <div class="doc-section-n">10</div>
+          <h2 class="doc-h2">Contact Us</h2>
+          <p class="doc-p">If you have questions or concerns about this policy, please reach out:</p>
+          <ul class="doc-ul">
+            <li><strong style="color:var(--dk);margin-right:4px;">Email:</strong> privacy@zesto.com</li>
+            <li><strong style="color:var(--dk);margin-right:4px;">Address:</strong> Zesto Technologies Inc., Plot 15, Kampala Road, Kampala, Uganda</li>
+            <li><strong style="color:var(--dk);margin-right:4px;">Data Protection Officer:</strong> dpo@zesto.com</li>
+          </ul>
+          <p class="doc-p">We aim to respond to all privacy-related enquiries within 72 hours.</p>
+        </div>
+
+      </article>
+    </div>
+  </div>
+</div>
+
+<!-- ── FOOTER ── -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <div class="f-brand">Zes<span>to</span></div>
+        <div class="f-tagline">Fast, reliable delivery across West Africa. Restaurants, groceries, and more — delivered to your door.</div>
+        <div class="f-badge">
+          <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M7 1.5A4.5 4.5 0 0 1 11.5 6c0 3-4.5 7.5-4.5 7.5S2.5 9 2.5 6A4.5 4.5 0 0 1 7 1.5z"/></svg>
+          Available in 3 cities
+        </div>
+      </div>
+      <div>
+        <div class="fc-title">Company</div>
+        <div class="f-links">
+          <a href="about.html" class="f-link">About us</a>
+          <a href="Careers.html" class="f-link">Careers</a>
+          <a href="Press.html" class="f-link">Press</a>
+          <a href="Blog.html" class="f-link">Blog</a>
+        </div>
+      </div>
+      <div>
+        <div class="fc-title">Partners</div>
+        <div class="f-links">
+          <a href="list-your-restaurant.html" class="f-link">List your restaurant</a>
+          <a href="become-a-rider.html" class="f-link">Become a rider</a>
+          <a href="zesto-pro.html" class="f-link">Zesto Pro</a>
+          <a href="enterprise.html" class="f-link">Enterprise</a>
+        </div>
+      </div>
+      <div>
+        <div class="fc-title">Help</div>
+        <div class="f-links">
+          <a href="help-center.html" class="f-link">Help center</a>
+          <a href="privacy-policy.html" class="f-link" style="color:white;">Privacy policy</a>
+          <a href="terms.html" class="f-link">Terms of service</a>
+          <a href="contact.html" class="f-link">Contact us</a>
+        </div>
+      </div>
+      <div>
+        <div class="fc-title">Cities</div>
+        <div class="f-links">
+          <a href="#" class="f-link">Abidjan</a>
+          <a href="#" class="f-link">Accra</a>
+          <a href="#" class="f-link">Dakar</a>
+          <a href="#" class="f-link">Lagos</a>
+          <a href="#" class="f-link">Nairobi</a>
+          <a href="#" class="f-link">Kampala</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bot">
+      <span class="footer-copy">© 2026 Zesto Technologies Inc. All rights reserved.</span>
+      <div class="socials">
+        <a href="#" class="soc-icon"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="2" y="2" width="12" height="12" rx="3.5"/><circle cx="8" cy="8" r="3"/><circle cx="11.5" cy="4.5" r=".8" fill="currentColor" stroke="none"/></svg></a>
+        <a href="#" class="soc-icon"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M2 3h12L9.5 8.5V13l-3-1.5V8.5z" stroke-linejoin="round"/></svg></a>
+        <a href="#" class="soc-icon"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="2" y="2" width="12" height="12" rx="2"/><path d="M9 8H7v5M7 8V6a2 2 0 0 1 2-2h1" stroke-linecap="round"/></svg></a>
+        <a href="#" class="soc-icon"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="2" y="2" width="12" height="12" rx="2"/><path d="M5 7v4M5 5v.5M8 11V8.5A1.5 1.5 0 0 1 11 8.5V11" stroke-linecap="round"/></svg></a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,71 @@
+/* ── PAGE HERO ── */
+.page-hero{background:var(--dk);padding:80px 0 72px;position:relative;overflow:hidden;}
+.page-hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 60% 80% at 70% 50%,rgba(255,85,0,.15) 0%,transparent 70%);}
+.page-hero-inner{position:relative;z-index:1;}
+.page-tag{display:inline-flex;align-items:center;gap:8px;background:rgba(255,85,0,.15);border:1px solid rgba(255,85,0,.3);color:var(--or);font-size:12px;font-weight:700;padding:5px 14px;border-radius:var(--r50);margin-bottom:20px;letter-spacing:.08em;text-transform:uppercase;}
+.page-h1{font-family:'Plus Jakarta Sans',sans-serif;font-size:clamp(38px,6vw,72px);color:white;line-height:1.05;letter-spacing:-.5px;margin-bottom:18px;}
+.page-h1 span{color:var(--or);}
+.page-sub{font-size:17px;color:rgba(255,255,255,.5);line-height:1.65;max-width:520px;}
+
+/* ── FILTERS ── */
+.jobs-filters{background:white;border-bottom:1px solid var(--lt2);padding:0;}
+.filters-inner{display:flex;gap:0;overflow-x:auto;scrollbar-width:none;}
+.filters-inner::-webkit-scrollbar{display:none;}
+.filter-tab{padding:18px 24px;font-size:13px;font-weight:600;color:var(--mid);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:all .18s;background:transparent;border-top:none;border-left:none;border-right:none;font-family:'Plus Jakarta Sans',sans-serif;}
+.filter-tab.active,.filter-tab:hover{color:var(--or);border-bottom-color:var(--or);}
+
+/* ── JOB LISTINGS ── */
+.jobs-section{padding:60px 0 80px;background:var(--wh);}
+.jobs-grid{display:flex;flex-direction:column;gap:12px;}
+.job-card{background:white;border:1.5px solid var(--lt2);border-radius:var(--r20);padding:24px 28px;display:flex;align-items:center;gap:20px;cursor:pointer;transition:all .2s;}
+.job-card:hover{border-color:var(--or);box-shadow:0 6px 24px rgba(255,85,0,.1);transform:translateY(-2px);}
+.job-dept-ico{width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0;}
+.job-info{flex:1;}
+.job-title{font-size:16px;font-weight:700;color:var(--dk);margin-bottom:6px;}
+.job-meta{display:flex;gap:10px;flex-wrap:wrap;}
+.job-tag{font-size:11px;font-weight:600;color:var(--mid);background:var(--lt);border-radius:var(--r50);padding:3px 10px;}
+.job-tag.or{color:var(--or);background:var(--or-lt);}
+.job-arrow{width:36px;height:36px;border-radius:50%;border:1.5px solid var(--lt2);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s;}
+.job-card:hover .job-arrow{background:var(--or);border-color:var(--or);}
+.job-card:hover .job-arrow svg{stroke:white;}
+.job-arrow svg{width:14px;height:14px;stroke:var(--mid);}
+
+/* ── PERKS ── */
+.perks-section{padding:80px 0;background:white;}
+.perks-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:48px;}
+.perk-card{background:var(--lt);border-radius:var(--r20);padding:28px;}
+.perk-ico{font-size:32px;margin-bottom:16px;}
+.perk-title{font-size:15px;font-weight:700;color:var(--dk);margin-bottom:8px;}
+.perk-desc{font-size:13px;color:var(--mid);line-height:1.65;}
+
+/* ── VALUES ── */
+.values-section{padding:80px 0;background:var(--dk);}
+.values-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:2px;margin-top:48px;border-radius:var(--r20);overflow:hidden;}
+.value-item{background:rgba(255,255,255,.04);padding:36px;border:1px solid rgba(255,255,255,.06);}
+.value-num{font-family:'Knewave',cursive;font-size:40px;color:var(--or);opacity:.4;margin-bottom:12px;}
+.value-title{font-size:17px;font-weight:700;color:white;margin-bottom:8px;}
+.value-desc{font-size:13px;color:rgba(255,255,255,.4);line-height:1.65;}
+
+/* ── CTA ── */
+.cta-section{padding:80px 0;background:var(--or);}
+.cta-inner{display:flex;align-items:center;justify-content:space-between;gap:32px;flex-wrap:wrap;}
+.cta-title{font-family:'Plus Jakarta Sans',sans-serif;font-size:clamp(24px,4vw,40px);color:white;line-height:1.1;font-weight:800;}
+.cta-sub{font-size:15px;color:rgba(255,255,255,.7);margin-top:8px;}
+.btn-white{background:white;color:var(--or);font-size:14px;font-weight:700;padding:14px 32px;border-radius:var(--r12);cursor:pointer;border:none;font-family:'Plus Jakarta Sans',sans-serif;transition:all .18s;display:inline-flex;align-items:center;gap:8px;text-decoration:none;}
+.btn-white:hover{background:var(--dk);color:white;}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(24px);}to{opacity:1;transform:translateY(0);}}
+.page-hero-inner>*{animation:fadeUp .6s ease both;}
+.page-tag{animation-delay:.05s;}
+.page-h1{animation-delay:.12s;}
+.page-sub{animation-delay:.2s;}
+
+@media(max-width:768px){
+  .perks-grid{grid-template-columns:1fr 1fr;}
+  .values-grid{grid-template-columns:1fr;}
+  .job-card{flex-wrap:wrap;}
+}
+@media(max-width:480px){
+  .perks-grid{grid-template-columns:1fr;}
+  .cta-inner{flex-direction:column;text-align:center;}
+}

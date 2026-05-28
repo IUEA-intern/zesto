@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Press — Zesto</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Knewave&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="./css/index.css"/>
+<style>
+/* ── PAGE HERO ── */
+.page-hero{background:var(--wh);padding:80px 0 72px;border-bottom:1px solid var(--lt2);}
+.page-tag{display:inline-flex;align-items:center;gap:8px;background:var(--or-lt);border:1.5px solid var(--or-mid);color:var(--or);font-size:12px;font-weight:700;padding:5px 14px;border-radius:var(--r50);margin-bottom:20px;letter-spacing:.08em;text-transform:uppercase;}
+.page-h1{font-family:'Plus Jakarta Sans',sans-serif;font-size:clamp(38px,6vw,72px);color:var(--dk);line-height:1.05;letter-spacing:-.5px;margin-bottom:18px;font-weight:800;}
+.page-h1 span{color:var(--or);}
+.page-sub{font-size:17px;color:var(--mid);line-height:1.65;max-width:520px;margin-bottom:32px;}
+.press-contact-bar{display:flex;gap:16px;flex-wrap:wrap;}
+.press-contact-btn{display:inline-flex;align-items:center;gap:8px;background:var(--dk);color:white;padding:12px 24px;border-radius:var(--r12);font-size:14px;font-weight:700;cursor:pointer;transition:all .18s;}
+.press-contact-btn:hover{background:var(--or);}
+.press-contact-btn.outline{background:transparent;border:1.5px solid var(--lt2);color:var(--dk);}
+.press-contact-btn.outline:hover{border-color:var(--dk);background:var(--lt);}
+
+/* ── COVERAGE LOGOS ── */
+.coverage-section{padding:48px 0;background:white;border-bottom:1px solid var(--lt2);}
+.coverage-label{font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--mid);text-align:center;margin-bottom:28px;}
+.logos-row{display:flex;align-items:center;justify-content:center;gap:48px;flex-wrap:wrap;}
+.press-logo{font-family:'Plus Jakarta Sans',sans-serif;font-size:18px;font-weight:800;color:var(--lt2);letter-spacing:-.3px;transition:color .2s;cursor:default;}
+.press-logo:hover{color:var(--mid);}
+
+/* ── NEWS GRID ── */
+.news-section{padding:80px 0;background:var(--wh);}
+.news-filters{display:flex;gap:8px;margin-bottom:40px;flex-wrap:wrap;}
+.news-filter{font-size:12px;font-weight:600;color:var(--mid);background:white;border:1.5px solid var(--lt2);border-radius:var(--r50);padding:6px 16px;cursor:pointer;transition:all .18s;}
+.news-filter.active,.news-filter:hover{background:var(--or);border-color:var(--or);color:white;}
+.news-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;}
+.news-card{background:white;border:1.5px solid var(--lt2);border-radius:var(--r20);overflow:hidden;cursor:pointer;transition:all .2s;}
+.news-card:hover{border-color:var(--or);box-shadow:0 6px 24px rgba(255,85,0,.1);transform:translateY(-3px);}
+.news-card.featured{grid-column:span 2;}
+.news-thumb{height:200px;display:flex;align-items:center;justify-content:center;font-size:64px;position:relative;}
+.news-thumb-badge{position:absolute;top:14px;left:14px;background:var(--or);color:white;font-size:10px;font-weight:700;padding:4px 10px;border-radius:var(--r50);letter-spacing:.06em;text-transform:uppercase;}
+.news-body{padding:20px 22px 22px;}
+.news-outlet{font-size:11px;font-weight:700;color:var(--or);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px;}
+.news-title{font-size:15px;font-weight:700;color:var(--dk);line-height:1.4;margin-bottom:8px;}
+.news-card.featured .news-title{font-size:18px;}
+.news-date{font-size:11px;color:var(--mid);}
+
+/* ── AWARDS ── */
+.awards-section{padding:80px 0;background:var(--dk);}
+.awards-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:48px;}
+.award-card{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);border-radius:var(--r20);padding:24px;text-align:center;transition:all .2s;}
+.award-card:hover{background:rgba(255,85,0,.1);border-color:rgba(255,85,0,.3);}
+.award-trophy{font-size:36px;margin-bottom:14px;}
+.award-title{font-size:13px;font-weight:700;color:white;margin-bottom:6px;line-height:1.4;}
+.award-org{font-size:11px;color:rgba(255,255,255,.35);}
+.award-year{font-family:'Knewave',cursive;font-size:22px;color:var(--or);margin-top:10px;}
+
+/* ── MEDIA KIT ── */
+.kit-section{padding:80px 0;background:white;}
+.kit-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:48px;}
+.kit-card{background:var(--lt);border-radius:var(--r20);padding:28px;display:flex;flex-direction:column;}
+.kit-ico{font-size:32px;margin-bottom:16px;}
+.kit-title{font-size:15px;font-weight:700;color:var(--dk);margin-bottom:6px;}
+.kit-desc{font-size:13px;color:var(--mid);line-height:1.6;flex:1;margin-bottom:20px;}
+.kit-dl{display:inline-flex;align-items:center;gap:6px;background:var(--dk);color:white;font-size:12px;font-weight:700;padding:8px 16px;border-radius:var(--r6);cursor:pointer;transition:background .18s;align-self:flex-start;}
+.kit-dl:hover{background:var(--or);}
+
+/* ── CONTACT ── */
+.contact-section{padding:80px 0;background:var(--lt);}
+.contact-inner{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center;}
+.contact-form{background:white;border-radius:var(--r20);padding:36px;border:1.5px solid var(--lt2);}
+.form-title{font-size:20px;font-weight:700;color:var(--dk);margin-bottom:6px;}
+.form-sub{font-size:13px;color:var(--mid);margin-bottom:24px;}
+.form-row{margin-bottom:16px;}
+.form-label{font-size:12px;font-weight:600;color:var(--dk);margin-bottom:6px;display:block;}
+.form-input{width:100%;border:1.5px solid var(--lt2);border-radius:var(--r12);padding:11px 14px;font-size:14px;color:var(--dk);font-family:'Plus Jakarta Sans',sans-serif;outline:none;background:var(--wh);transition:border .18s;}
+.form-input:focus{border-color:var(--or);}
+textarea.form-input{resize:vertical;min-height:100px;}
+.form-submit{width:100%;background:var(--or);color:white;border:none;border-radius:var(--r12);padding:13px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:background .18s;margin-top:4px;}
+.form-submit:hover{background:var(--or-dk);}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(24px);}to{opacity:1;transform:translateY(0);}}
+.page-hero>div>*{animation:fadeUp .6s ease both;}
+
+@media(max-width:1024px){
+  .news-grid{grid-template-columns:1fr 1fr;}
+  .news-card.featured{grid-column:span 1;}
+  .awards-grid{grid-template-columns:repeat(2,1fr);}
+  .contact-inner{grid-template-columns:1fr;}
+}
+@media(max-width:768px){
+  .news-grid{grid-template-columns:1fr;}
+  .kit-grid{grid-template-columns:1fr 1fr;}
+}
+@media(max-width:480px){
+  .kit-grid{grid-template-columns:1fr;}
+  .logos-row{gap:24px;}
+  .awards-grid{grid-template-columns:1fr 1fr;}
+}
+</style>
+</head>
+<body>
+
+<!-- MOBILE MENU -->
+<div class="mobile-menu" id="mobileMenu">
+  <div class="mobile-menu-header">
+    <div class="nav-logo">
+      <div class="logo-mark"><svg viewBox="0 0 24 24"><path d="M13 2L4 13h7l-1 9 10-12h-7l1-8z"/></svg></div>
+      <span class="logo-text">Zes<span>to</span></span>
+    </div>
+    <button class="mobile-close" onclick="document.getElementById('mobileMenu').classList.remove('open')">✕</button>
+  </div>
+  <div class="mobile-links">
+    <a class="mobile-link" href="restaurant.html">Restaurants</a>
+    <a class="mobile-link" href="for-busines.html">For Business</a>
+    <a class="mobile-link" href="about.html">About us</a>
+  </div>
+  <div class="mobile-actions" style="margin-top:24px;">
+    <a href="login.html" class="btn btn-ghost" style="justify-content:center;padding:14px;">Sign in</a>
+    <a href="signin.html" class="btn btn-primary" style="justify-content:center;padding:14px;border-radius:var(--r12);">Get started</a>
+  </div>
+</div>
+
+<!-- NAV -->
+<header class="nav">
+  <div class="container">
+    <nav class="nav-inner">
+      <a href="index.html" class="nav-logo">
+        <div class="logo-mark"><svg viewBox="0 0 24 24"><path d="M13 2L4 13h7l-1 9 10-12h-7l1-8z"/></svg></div>
+        <span class="logo-text">Zes<span>to</span></span>
+      </a>
+  <div class="mobile-links">
+    <a class="mobile-link" href="restaurant.html">Restaurants</a>
+    <a class="mobile-link" href="for-busines.html">For Business</a>
+    <a class="mobile-link" href="about.html">about us</a>
+    <a class="mobile-link" href="Blog.html">Blog</a>
+  </div>
+      <a href="#" class="nav-loc">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M8 1.5A4.5 4.5 0 0 1 12.5 6c0 3.2-4.5 8.5-4.5 8.5S3.5 9.2 3.5 6A4.5 4.5 0 0 1 8 1.5z"/><circle cx="8" cy="6" r="1.6"/></svg>
+        Kampala, UG
+        <svg viewBox="0 0 10 6" fill="none" stroke="currentColor" stroke-width="1.5" style="width:10px;height:10px;"><path d="M1 1l4 4 4-4"/></svg>
+      </a>
+      <div class="nav-actions">
+        <a href="login.html" class="btn btn-ghost">Sign in</a>
+        <a href="signin.html" class="btn btn-primary">Get started</a>
+      </div>
+      <button class="nav-hamburger" onclick="document.getElementById('mobileMenu').classList.add('open')" aria-label="Open menu">
+        <span></span><span></span><span></span>
+      </button>
+    </nav>
+  </div>
+</header>
+
+<!-- PAGE HERO -->
+<section class="page-hero">
+  <div class="container">
+    <div class="page-tag">📰 Newsroom</div>
+    <h1 class="page-h1">Zesto in the<br><span>news</span></h1>
+    <p class="page-sub">The latest press coverage, announcements, and media resources. For press enquiries, reach out to our communications team.</p>
+    <div class="press-contact-bar">
+      <a href="mailto:press@zesto.com" class="press-contact-btn">Contact press team →</a>
+      <a href="#media-kit" class="press-contact-btn outline">Download media kit</a>
+    </div>
+  </div>
+</section>
+
+<!-- COVERAGE LOGOS -->
+<section class="coverage-section">
+  <div class="container">
+    <div class="coverage-label">As featured in</div>
+    <div class="logos-row">
+      <div class="press-logo">TechCrunch</div>
+      <div class="press-logo">Forbes Africa</div>
+      <div class="press-logo">Quartz Africa</div>
+      <div class="press-logo">Disrupt Africa</div>
+      <div class="press-logo">The Guardian</div>
+      <div class="press-logo">Bloomberg</div>
+    </div>
+  </div>
+</section>
+
+<!-- NEWS GRID -->
+<section class="news-section">
+  <div class="container">
+    <div class="section-label">Latest coverage</div>
+    <div class="section-title">Recent press</div>
+    <div class="news-filters" style="margin-top:20px;">
+      <button class="news-filter active">All</button>
+      <button class="news-filter">Funding</button>
+      <button class="news-filter">Product</button>
+      <button class="news-filter">Expansion</button>
+      <button class="news-filter">Awards</button>
+    </div>
+    <div class="news-grid">
+
+      <div class="news-card featured">
+        <div class="news-thumb" style="background:linear-gradient(135deg,#FF5500 0%,#FF8C00 100%);">
+          <div class="news-thumb-badge">Featured</div>
+          ⚡
+        </div>
+        <div class="news-body">
+          <div class="news-outlet">TechCrunch</div>
+          <div class="news-title">Zesto raises $28M Series B to accelerate food delivery across francophone Africa</div>
+          <div class="news-date">May 12, 2026</div>
+        </div>
+      </div>
+
+      <div class="news-card">
+        <div class="news-thumb" style="background:#EDF7EE;">🚀</div>
+        <div class="news-body">
+          <div class="news-outlet">Forbes Africa</div>
+          <div class="news-title">How Zesto is rewriting the food delivery playbook for African cities</div>
+          <div class="news-date">April 28, 2026</div>
+        </div>
+      </div>
+
+      <div class="news-card">
+        <div class="news-thumb" style="background:#EEF3FF;">🗺️</div>
+        <div class="news-body">
+          <div class="news-outlet">Quartz Africa</div>
+          <div class="news-title">Zesto launches in Abidjan, bringing 30-minute delivery to Côte d'Ivoire</div>
+          <div class="news-date">March 10, 2026</div>
+        </div>
+      </div>
+
+      <div class="news-card">
+        <div class="news-thumb" style="background:#F8EDFF;">🏆</div>
+        <div class="news-body">
+          <div class="news-outlet">Disrupt Africa</div>
+          <div class="news-title">Zesto named 2025's most innovative startup in Sub-Saharan Africa</div>
+          <div class="news-date">February 5, 2026</div>
+        </div>
+      </div>
+
+      <div class="news-card">
+        <div class="news-thumb" style="background:#FFF0E8;">📱</div>
+        <div class="news-body">
+          <div class="news-outlet">Bloomberg</div>
+          <div class="news-title">Mobile-first delivery: why Zesto skipped desktop from day one</div>
+          <div class="news-date">January 22, 2026</div>
+        </div>
+      </div>
+
+      <div class="news-card">
+        <div class="news-thumb" style="background:#EDF7EE;">🤝</div>
+        <div class="news-body">
+          <div class="news-outlet">The Guardian</div>
+          <div class="news-title">Zesto partners with 1,200 local restaurants across West Africa</div>
+          <div class="news-date">December 14, 2025</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- AWARDS -->
+<section class="awards-section">
+  <div class="container">
+    <div class="section-label" style="color:var(--or);">Recognition</div>
+    <div class="section-title" style="color:white;">Awards & honours</div>
+    <div class="awards-grid">
+      <div class="award-card">
+        <div class="award-trophy">🏆</div>
+        <div class="award-title">Best Startup — Sub-Saharan Africa</div>
+        <div class="award-org">Disrupt Africa</div>
+        <div class="award-year">2025</div>
+      </div>
+      <div class="award-card">
+        <div class="award-trophy">⭐</div>
+        <div class="award-title">Top 10 African Tech Companies to Watch</div>
+        <div class="award-org">Forbes Africa</div>
+        <div class="award-year">2025</div>
+      </div>
+      <div class="award-card">
+        <div class="award-trophy">🌍</div>
+        <div class="award-title">Africa Innovator of the Year</div>
+        <div class="award-org">Tech in Africa Summit</div>
+        <div class="award-year">2024</div>
+      </div>
+      <div class="award-card">
+        <div class="award-trophy">🚀</div>
+        <div class="award-title">Best Consumer App — West Africa</div>
+        <div class="award-org">Mobile World Congress</div>
+        <div class="award-year">2024</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- MEDIA KIT -->
+<section class="kit-section" id="media-kit">
+  <div class="container">
+    <div class="section-label">Resources</div>
+    <div class="section-title">Media kit</div>
+    <div class="section-sub">Everything you need to cover Zesto — logos, brand assets, executive bios, and more.</div>
+    <div class="kit-grid">
+      <div class="kit-card">
+        <div class="kit-ico">🎨</div>
+        <div class="kit-title">Brand assets</div>
+        <div class="kit-desc">Official logos in all formats (SVG, PNG, PDF), colour palettes, typography guidelines, and usage rules.</div>
+        <a href="#" class="kit-dl">↓ Download .zip</a>
+      </div>
+      <div class="kit-card">
+        <div class="kit-ico">👤</div>
+        <div class="kit-title">Executive bios & photos</div>
+        <div class="kit-desc">High-resolution headshots and official bios for our CEO, CTO, and leadership team — ready for print.</div>
+        <a href="#" class="kit-dl">↓ Download .zip</a>
+      </div>
+      <div class="kit-card">
+        <div class="kit-ico">📊</div>
+        <div class="kit-title">Company fact sheet</div>
+        <div class="kit-desc">Key stats, milestones, market coverage, and company background in one concise document.</div>
+        <a href="#" class="kit-dl">↓ Download PDF</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRESS CONTACT FORM -->
+<section class="contact-section">
+  <div class="container">
+    <div class="contact-inner">
+      <div>
+        <div class="section-label">Get in touch</div>
+        <div class="section-title">Press enquiries</div>
+        <div class="section-sub">We respond to media requests within 24 hours. For urgent matters, include "URGENT" in your subject line.</div>
+        <div style="margin-top:32px;display:flex;flex-direction:column;gap:16px;">
+          <div style="display:flex;align-items:center;gap:12px;font-size:14px;color:var(--mid);">
+            <div style="width:36px;height:36px;background:var(--or-lt);border-radius:var(--r6);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">📧</div>
+            press@zesto.com
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;font-size:14px;color:var(--mid);">
+            <div style="width:36px;height:36px;background:var(--or-lt);border-radius:var(--r6);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">🕐</div>
+            Response within 24 hours
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;font-size:14px;color:var(--mid);">
+            <div style="width:36px;height:36px;background:var(--or-lt);border-radius:var(--r6);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">🌍</div>
+            Available in English & French
+          </div>
+        </div>
+      </div>
+      <div class="contact-form">
+        <div class="form-title">Send us a message</div>
+        <div class="form-sub">Tell us about your publication and what you're working on.</div>
+        <div class="form-row"><label class="form-label">Your name</label><input type="text" class="form-input" placeholder="Jane Smith"/></div>
+        <div class="form-row"><label class="form-label">Publication</label><input type="text" class="form-input" placeholder="e.g. Forbes Africa"/></div>
+        <div class="form-row"><label class="form-label">Email</label><input type="email" class="form-input" placeholder="jane@forbes.com"/></div>
+        <div class="form-row"><label class="form-label">Message</label><textarea class="form-input" placeholder="What are you working on?"></textarea></div>
+        <button class="form-submit">Send message →</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <div class="f-brand">Zes<span>to</span></div>
+        <div class="f-tagline">Fast, reliable delivery across West Africa. Restaurants, groceries, and more — delivered to your door.</div>
+        <div class="f-badge"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M7 1.5A4.5 4.5 0 0 1 11.5 6c0 3-4.5 7.5-4.5 7.5S2.5 9 2.5 6A4.5 4.5 0 0 1 7 1.5z"/></svg> Available in 3 cities</div>
+      </div>
+      <div>
+        <div class="fc-title">Company</div>
+        <div class="f-links">
+          <a href="about.html" class="f-link">About us</a>
+          <a href="Careers.html" class="f-link">Careers</a>
+          <a href="Press.html" class="f-link" style="color:white;">Press</a>
+          <a href="Blog.html" class="f-link">Blog</a>
+          <a href="Investors.html" class="f-link">Investors</a>
+        </div>
+      </div>
+      <div>
+        <div class="fc-title">Partners</div>
+        <div class="f-links">
+          <a href="#" class="f-link">List your restaurant</a>
+          <a href="#" class="f-link">Become a rider</a>
+          <a href="#" class="f-link">Zesto Pro</a>
+          <a href="#" class="f-link">Enterprise</a>
+        </div>
+      </div>
+      <div>
+        <div class="fc-title">Help</div>
+        <div class="f-links">
+          <a href="Help-center.html" class="f-link">Help center</a>
+          <a href="privacy-policy.html" class="f-link">Privacy policy</a>
+          <a href="terms-of-service.html" class="f-link">Terms of service</a>
+          <a href="contact-us.html" class="f-link">Contact us</a>
+        </div>
+      </div>
+      <div>
+        <div class="fc-title">Cities</div>
+        <div class="f-links">
+          <a href="#" class="f-link">Abidjan</a>
+          <a href="#" class="f-link">Accra</a>
+          <a href="#" class="f-link">Dakar</a>
+          <a href="#" class="f-link">Lagos</a>
+          <a href="#" class="f-link">Nairobi</a>
+          <a href="#" class="f-link">Kampala</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bot">
+      <span class="footer-copy">© 2026 Zesto Technologies Inc. All rights reserved.</span>
+      <div class="socials">
+        <a href="#" class="soc-icon"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="2" y="2" width="12" height="12" rx="3.5"/><circle cx="8" cy="8" r="3"/><circle cx="11.5" cy="4.5" r=".8" fill="currentColor" stroke="none"/></svg></a>
+        <a href="#" class="soc-icon"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M2 3h12L9.5 8.5V13l-3-1.5V8.5z" stroke-linejoin="round"/></svg></a>
+        <a href="#" class="soc-icon"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="2" y="2" width="12" height="12" rx="2"/><path d="M9 8H7v5M7 8V6a2 2 0 0 1 2-2h1" stroke-linecap="round"/></svg></a>
+        <a href="#" class="soc-icon"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="2" y="2" width="12" height="12" rx="2"/><path d="M5 7v4M5 5v.5M8 11V8.5A1.5 1.5 0 0 1 11 8.5V11" stroke-linecap="round"/></svg></a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script>
+  document.querySelectorAll('.news-filter').forEach(f => {
+    f.addEventListener('click', function(){
+      document.querySelectorAll('.news-filter').forEach(x => x.classList.remove('active'));
+      this.classList.add('active');
+    });
+  });
+</script>
+</body>
+</html>
