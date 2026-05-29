@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Terms of Service — Zesto</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Knewave&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="./css/index.css"/>
+<style>
+
+/* ── PAGE HERO ── */
+.legal-hero {
+  background: var(--wh);
+  padding: 64px 0 56px;
+  border-bottom: 1px solid var(--lt2);
+}
+.breadcrumb {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 12px; color: var(--mid); margin-bottom: 20px;
+}
+.breadcrumb a { color: var(--mid); transition: color .18s; }
+.breadcrumb a:hover { color: var(--or); }
+.breadcrumb svg { width: 12px; height: 12px; flex-shrink: 0; }
+.legal-hero-title {
+  font-family: 'Knewave', cursive;
+  font-size: clamp(32px, 5vw, 60px);
+  color: var(--dk);
+  line-height: 1.05;
+  letter-spacing: -.5px;
+  margin-bottom: 12px;
+}
+.legal-hero-title span { color: var(--or); }
+.legal-hero-sub {
+  font-size: 15px; color: var(--mid); line-height: 1.65; max-width: 560px;
+}
+.legal-meta {
+  display: flex; align-items: center; gap: 20px;
+  margin-top: 24px; flex-wrap: wrap;
+}
+.legal-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--or-lt); border: 1px solid var(--or-mid);
+  border-radius: var(--r50); padding: 5px 14px;
+  font-size: 12px; font-weight: 600; color: var(--or);
+}
+.legal-badge svg { width: 13px; height: 13px; }
+.legal-date { font-size: 12px; color: var(--mid); }
+
+/* ── LAYOUT ── */
+.legal-layout {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: 56px;
+  padding: 64px 0 80px;
+  align-items: flex-start;
+}
+
+/* ── SIDEBAR TOC ── */
+.toc {
+  position: sticky;
+  top: 84px;
+  background: var(--lt);
+  border-radius: var(--r20);
+  border: 1px solid var(--lt2);
+  padding: 24px;
+}
+.toc-title {
+  font-size: 11px; font-weight: 700; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--mid); margin-bottom: 16px;
+}
+.toc-list { display: flex; flex-direction: column; gap: 2px; }
+.toc-item {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 13px; color: var(--mid); font-weight: 500;
+  padding: 8px 10px; border-radius: var(--r6);
+  text-decoration: none; transition: all .18s;
+  border-left: 2px solid transparent;
+}
+.toc-item:hover { color: var(--or); background: var(--or-lt); border-left-color: var(--or); }
+.toc-item.active { color: var(--or); background: var(--or-lt); border-left-color: var(--or); font-weight: 700; }
+.toc-num {
+  width: 20px; height: 20px; border-radius: 6px;
+  background: white; border: 1px solid var(--lt2);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; font-weight: 700; color: var(--mid);
+  flex-shrink: 0;
+}
+.toc-item.active .toc-num, .toc-item:hover .toc-num {
+  background: var(--or); border-color: var(--or); color: white;
+}
+.toc-divider { height: 1px; background: var(--lt2); margin: 12px 0; }
+.toc-dl-btn {
+  display: flex; align-items: center; justify-content: center; gap: 7px;
+  width: 100%; background: var(--dk); color: white;
+  border: none; border-radius: var(--r12);
+  padding: 10px; font-size: 12px; font-weight: 600;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  cursor: pointer; margin-top: 16px; text-decoration: none;
+  transition: opacity .18s;
+}
+.toc-dl-btn:hover { opacity: .85; }
+.toc-dl-btn svg { width: 14px; height: 14px; }
+
+/* ── CONTENT ── */
+.legal-content { max-width: 720px; }
+
+.legal-section {
+  margin-bottom: 56px;
+  padding-bottom: 56px;
+  border-bottom: 1px solid var(--lt2);
+  scroll-margin-top: 90px;
+}
+.legal-section:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+
+.ls-header {
+  display: flex; align-items: center; gap: 14px;
+  margin-bottom: 24px;
+}
+.ls-num {
+  width: 36px; height: 36px; border-radius: 10px;
+  background: var(--or-lt); border: 1.5px solid var(--or-mid);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 800; color: var(--or);
+  flex-shrink: 0;
+}
+.ls-title {
+  font-size: 20px; font-weight: 700; color: var(--dk);
+  letter-spacing: -.3px;
+}
+
+.legal-p {
+  font-size: 14px; color: var(--mid); line-height: 1.8;
+  margin-bottom: 16px;
+}
+.legal-p:last-child { margin-bottom: 0; }
+
+.legal-p a { color: var(--or); font-weight: 600; }
+.legal-p a:hover { text-decoration: underline; }
+
+.legal-p strong { color: var(--dk); font-weight: 700; }
+
+.legal-ul {
+  margin: 12px 0 16px 0;
+  padding-left: 0;
+  display: flex; flex-direction: column; gap: 8px;
+  list-style: none;
+}
+.legal-ul li {
+  display: flex; align-items: flex-start; gap: 10px;
+  font-size: 14px; color: var(--mid); line-height: 1.7;
+}
+.legal-ul li::before {
+  content: '';
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--or); flex-shrink: 0; margin-top: 8px;
+}
+
+.legal-callout {
+  background: var(--or-lt); border: 1.5px solid var(--or-mid);
+  border-radius: var(--r12); padding: 16px 20px;
+  margin: 20px 0;
+  display: flex; gap: 12px; align-items: flex-start;
+}
+.legal-callout-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+.legal-callout p { font-size: 13px; color: var(--dk); line-height: 1.65; margin: 0; }
+.legal-callout p strong { color: var(--or); }
+
+.legal-callout.info {
+  background: #EFF6FF; border-color: #BFDBFE;
+}
+.legal-callout.info p { color: #1E40AF; }
+.legal-callout.warn {
+  background: #FFFBEB; border-color: #FDE68A;
+}
+.legal-callout.warn p { color: #92400E; }
+
+.legal-table-wrap { overflow-x: auto; margin: 20px 0; }
+.legal-table {
+  width: 100%; border-collapse: collapse;
+  font-size: 13px;
+}
+.legal-table th {
+  background: var(--lt); color: var(--dk);
+  font-weight: 700; font-size: 11px;
+  text-transform: uppercase; letter-spacing: .06em;
+  padding: 10px 16px; text-align: left;
+  border-bottom: 2px solid var(--lt2);
+}
+.legal-table td {
+  padding: 10px 16px; border-bottom: 1px solid var(--lt2);
+  color: var(--mid); vertical-align: top;
+}
+.legal-table tr:last-child td { border-bottom: none; }
+.legal-table tr:hover td { background: var(--lt); }
+
+/* ── ACCEPT BANNER ── */
+.accept-banner {
+  background: var(--dk);
+  border-radius: var(--r20);
+  padding: 28px 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  margin-top: 48px;
+  flex-wrap: wrap;
+}
+.ab-text {}
+.ab-title { font-size: 16px; font-weight: 700; color: white; margin-bottom: 4px; }
+.ab-sub { font-size: 13px; color: rgba(255,255,255,.45); }
+.ab-btns { display: flex; gap: 10px; flex-shrink: 0; }
+.ab-btn-primary {
+  background: var(--or); color: white;
+  font-size: 13px; font-weight: 700;
+  border: none; border-radius: var(--r12);
+  padding: 10px 22px; cursor: pointer;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  transition: background .18s; text-decoration: none;
+  display: inline-flex; align-items: center;
+}
+.ab-btn-primary:hover { background: var(--or-dk); }
+.ab-btn-ghost {
+  background: rgba(255,255,255,.08);
+  color: rgba(255,255,255,.7);
+  font-size: 13px; font-weight: 600;
+  border: 1px solid rgba(255,255,255,.15);
+  border-radius: var(--r12);
+  padding: 10px 22px; cursor: pointer;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  transition: background .18s; text-decoration: none;
+  display: inline-flex; align-items: center;
+}
+.ab-btn-ghost:hover { background: rgba(255,255,255,.14); }
+
+/* ── RESPONSIVE ── */
+@media(max-width: 900px) {
+  .legal-layout { grid-template-columns: 1fr; gap: 32px; }
+  .toc { position: static; }
+}
+@media(max-width: 768px) {
+  .nav-links,.nav-loc,.nav-actions { display: none; }
+  .nav-hamburger { display: flex; flex-direction: column; }
+  .accept-banner { flex-direction: column; align-items: flex-start; }
+}
+</style>
+</head>
+<body>
+
+<!-- MOBILE MENU -->
+<div class="mobile-menu" id="mobileMenu">
+  <div class="mobile-menu-header">
+    <div class="nav-logo">
+      <div class="logo-mark"><svg viewBox="0 0 24 24"><path d="M13 2L4 13h7l-1 9 10-12h-7l1-8z"/></svg></div>
+      <span class="logo-text">Zes<span>to</span></span>
+    </div>
+    <button class="mobile-close" onclick="document.getElementById('mobileMenu').classList.remove('open')">✕</button>
+  </div>
+  <div class="mobile-links">
+    <a class="mobile-link" href="restaurant.html">Restaurants</a>
+    <a class="mobile-link" href="for-busines.html">For Business</a>
+    <a class="mobile-link" href="about.html">About us</a>
+  </div>
+  <div class="mobile-actions" style="margin-top:24px;">
+    <a href="login.html"  class="btn btn-ghost"   style="justify-content:center;padding:14px;">Sign in</a>
+    <a href="signin.html" class="btn btn-primary"  style="justify-content:center;padding:14px;border-radius:var(--r12);">Get started</a>
+  </div>
+</div>
+
+<!-- NAV -->
+<header class="nav">
+  <div class="container">
+    <nav class="nav-inner">
+      <a href="index.html" class="nav-logo">
+        <div class="logo-mark"><svg viewBox="0 0 24 24"><path d="M13 2L4 13h7l-1 9 10-12h-7l1-8z"/></svg></div>
+        <span class="logo-text">Zes<span>to</span></span>
+      </a>
+      <div class="nav-links">
+        <a href="restaurant.html"  class="nav-link">Restaurants</a>
+        <a href="for-busines.html" class="nav-link">For Business</a>
+        <a href="about.html"       class="nav-link">About us</a>
+      </div>
+      <a href="#" class="nav-loc">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M8 1.5A4.5 4.5 0 0 1 12.5 6c0 3.2-4.5 8.5-4.5 8.5S3.5 9.2 3.5 6A4.5 4.5 0 0 1 8 1.5z"/><circle cx="8" cy="6" r="1.6"/></svg>
+        Kampala, UG
+        <svg viewBox="0 0 10 6" fill="none" stroke="currentColor" stroke-width="1.5" style="width:10px;height:10px;"><path d="M1 1l4 4 4-4"/></svg>
+      </a>
+      <div class="nav-actions">
+        <a href="login.html"  class="btn btn-ghost">Sign in</a>
+        <a href="signin.html" class="btn btn-primary">Get started</a>
+      </div>
+      <button class="nav-hamburger" onclick="document.getElementById('mobileMenu').classList.add('open')" aria-label="Open menu">
+        <span></span><span></span><span></span>
+      </button>
+    </nav>
+  </div>
+</header>
+
+<!-- HERO -->
+<section class="legal-hero">
+  <div class="container">
+    <div class="breadcrumb">
+      <a href="index.html">Home</a>
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 3l6 5-6 5"/></svg>
+      <span>Terms of Service</span>
+    </div>
+    <div class="section-label">Legal</div>
+    <h1 class="legal-hero-title">Terms of <span>Service</span></h1>
+    <p class="legal-hero-sub">Please read these terms carefully before using Zesto. By accessing or using our platform, you agree to be bound by these Terms of Service.</p>
+    <div class="legal-meta">
+      <div class="legal-badge">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="8" cy="8" r="6"/><path d="M8 5v3.5l2 2" stroke-linecap="round"/></svg>
+        Version 2.1
+      </div>
+      <span class="legal-date">Last updated: May 26, 2026</span>
+      <span class="legal-date">Effective: June 1, 2026</span>
+    </div>
+  </div>
+</section>
+
+<!-- MAIN LAYOUT -->
+<div style="background: white;">
+  <div class="container">
+    <div class="legal-layout">
+
+      <!-- SIDEBAR TOC -->
+      <aside class="toc">
+        <div class="toc-title">Table of Contents</div>
+        <nav class="toc-list">
+          <a href="#s1"  class="toc-item active"><div class="toc-num">1</div>Acceptance of Terms</a>
+          <a href="#s2"  class="toc-item"><div class="toc-num">2</div>Our Services</a>
+          <a href="#s3"  class="toc-item"><div class="toc-num">3</div>Account Registration</a>
+          <a href="#s4"  class="toc-item"><div class="toc-num">4</div>Orders & Payments</a>
+          <a href="#s5"  class="toc-item"><div class="toc-num">5</div>Delivery Policy</a>
+          <a href="#s6"  class="toc-item"><div class="toc-num">6</div>Refunds & Cancellations</a>
+          <a href="#s7"  class="toc-item"><div class="toc-num">7</div>User Conduct</a>
+          <a href="#s8"  class="toc-item"><div class="toc-num">8</div>Intellectual Property</a>
+          <a href="#s9"  class="toc-item"><div class="toc-num">9</div>Privacy & Data</a>
+          <a href="#s10" class="toc-item"><div class="toc-num">10</div>Limitation of Liability</a>
+          <a href="#s11" class="toc-item"><div class="toc-num">11</div>Termination</a>
+          <a href="#s12" class="toc-item"><div class="toc-num">12</div>Governing Law</a>
+          <a href="#s13" class="toc-item"><div class="toc-num">13</div>Contact & Disputes</a>
+        </nav>
+        <div class="toc-divider"></div>
+        <a href="#" class="toc-dl-btn">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M8 2v8M5 7l3 3 3-3M3 12h10" stroke-linecap="round"/></svg>
+          Download PDF
+        </a>
+      </aside>
+
+      <!-- CONTENT -->
+      <main class="legal-content">
+
+        <!-- 1 -->
+        <section class="legal-section" id="s1">
+          <div class="ls-header">
+            <div class="ls-num">1</div>
+            <h2 class="ls-title">Acceptance of Terms</h2>
+          </div>
+          <p class="legal-p">Welcome to Zesto. These Terms of Service ("Terms") govern your access to and use of the Zesto website, mobile application, and all related services (collectively, the "Platform") operated by <strong>Zesto Technologies Inc.</strong>, a company incorporated in Uganda.</p>
+          <p class="legal-p">By creating an account, placing an order, or otherwise accessing the Platform, you confirm that you are at least 18 years old (or have parental consent if younger), that you have read and understood these Terms, and that you agree to be legally bound by them.</p>
+          <div class="legal-callout">
+            <div class="legal-callout-icon">⚠️</div>
+            <p><strong>If you do not agree to these Terms, you must not use our Platform.</strong> Your continued use of Zesto following any changes to these Terms constitutes your acceptance of the revised Terms.</p>
+          </div>
+          <p class="legal-p">These Terms apply to all users of the Platform, including customers, restaurant partners, and delivery riders.</p>
+        </section>
+
+        <!-- 2 -->
+        <section class="legal-section" id="s2">
+          <div class="ls-header">
+            <div class="ls-num">2</div>
+            <h2 class="ls-title">Our Services</h2>
+          </div>
+          <p class="legal-p">Zesto is an online food delivery platform that connects customers with local restaurants, grocery stores, and pharmacies. We act as an intermediary technology platform and are <strong>not a restaurant or food producer</strong>.</p>
+          <p class="legal-p">Our services include:</p>
+          <ul class="legal-ul">
+            <li>A digital marketplace for browsing menus, placing food and grocery orders.</li>
+            <li>A logistics network connecting delivery riders with customers.</li>
+            <li>Payment processing services for order transactions.</li>
+            <li>Real-time order tracking via our mobile and web applications.</li>
+            <li>Customer support for order-related inquiries.</li>
+          </ul>
+          <div class="legal-callout info">
+            <div class="legal-callout-icon">ℹ️</div>
+            <p>Zesto reserves the right to modify, suspend, or discontinue any aspect of the Service at any time, with or without notice. We are not liable to you or any third party for any modification, suspension, or discontinuation of the Service.</p>
+          </div>
+        </section>
+
+        <!-- 3 -->
+        <section class="legal-section" id="s3">
+          <div class="ls-header">
+            <div class="ls-num">3</div>
+            <h2 class="ls-title">Account Registration</h2>
+          </div>
+          <p class="legal-p">To use most features of Zesto, you must register for an account. When you register, you agree to:</p>
+          <ul class="legal-ul">
+            <li>Provide accurate, current, and complete information during registration.</li>
+            <li>Maintain and promptly update your account information.</li>
+            <li>Keep your password confidential and not share it with any third party.</li>
+            <li>Notify us immediately at <a href="mailto:security@zesto.app">security@zesto.app</a> of any unauthorized use of your account.</li>
+            <li>Accept full responsibility for all activities that occur under your account.</li>
+          </ul>
+          <p class="legal-p">Zesto reserves the right to refuse registration, cancel accounts, or remove content at its sole discretion. You may not create more than one personal account. Corporate or business accounts are subject to separate Partner Terms.</p>
+        </section>
+
+        <!-- 4 -->
+        <section class="legal-section" id="s4">
+          <div class="ls-header">
+            <div class="ls-num">4</div>
+            <h2 class="ls-title">Orders & Payments</h2>
+          </div>
+          <p class="legal-p">When you place an order through Zesto, you are making an offer to purchase items from the relevant restaurant or store. The contract for the sale of items is between you and the merchant; Zesto acts as the merchant's agent to conclude that contract.</p>
+          <p class="legal-p"><strong>Accepted payment methods:</strong></p>
+          <div class="legal-table-wrap">
+            <table class="legal-table">
+              <thead><tr><th>Method</th><th>Processing Time</th><th>Notes</th></tr></thead>
+              <tbody>
+                <tr><td>MTN Mobile Money</td><td>Instant</td><td>UGX only</td></tr>
+                <tr><td>Airtel Money</td><td>Instant</td><td>UGX only</td></tr>
+                <tr><td>Visa / Mastercard</td><td>Instant</td><td>3D Secure required</td></tr>
+                <tr><td>Cash on Delivery</td><td>At delivery</td><td>Exact change preferred</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="legal-p">All prices displayed on the Platform are in Ugandan Shillings (UGX) unless otherwise stated. Prices include applicable VAT where required by law. Delivery fees and service charges are shown separately at checkout before you confirm your order.</p>
+          <div class="legal-callout warn">
+            <div class="legal-callout-icon">💳</div>
+            <p>By submitting payment information, you confirm you are authorized to use the payment method provided. Zesto reserves the right to cancel orders suspected of fraud without prior notice.</p>
+          </div>
+        </section>
+
+        <!-- 5 -->
+        <section class="legal-section" id="s5">
+          <div class="ls-header">
+            <div class="ls-num">5</div>
+            <h2 class="ls-title">Delivery Policy</h2>
+          </div>
+          <p class="legal-p">Delivery times are <strong>estimates only</strong> and are not guaranteed. They may be affected by factors outside our control including traffic, weather, restaurant preparation times, and rider availability.</p>
+          <ul class="legal-ul">
+            <li>You are responsible for providing a correct and accessible delivery address.</li>
+            <li>Someone must be available to receive the order at the delivery address.</li>
+            <li>If a delivery attempt fails because no one is available, you may be charged for the order.</li>
+            <li>Zesto is not liable for orders delivered to an incorrect address provided by the customer.</li>
+            <li>Deliveries are only available within our serviced geographic zones.</li>
+          </ul>
+          <p class="legal-p">Our riders are independent contractors, not employees of Zesto. Zesto provides tools and support but is not responsible for the conduct of individual riders beyond the obligations set out in our Rider Agreement.</p>
+        </section>
+
+        <!-- 6 -->
+        <section class="legal-section" id="s6">
+          <div class="ls-header">
+            <div class="ls-num">6</div>
+            <h2 class="ls-title">Refunds & Cancellations</h2>
+          </div>
+          <p class="legal-p">You may cancel an order free of charge within <strong>2 minutes</strong> of placing it, before the restaurant has confirmed and started preparing your order. After that window, cancellations may not be possible or may incur a fee.</p>
+          <p class="legal-p">You may be eligible for a refund if:</p>
+          <ul class="legal-ul">
+            <li>Your order was significantly incorrect (wrong items, missing items).</li>
+            <li>Your order was never delivered and you reported it within 24 hours.</li>
+            <li>Food quality was substantially different from what was described.</li>
+            <li>A technical error caused a duplicate charge.</li>
+          </ul>
+          <p class="legal-p">Refunds are processed within <strong>3–5 business days</strong> to the original payment method. Mobile money refunds are typically processed within 24 hours. To request a refund, contact us at <a href="mailto:support@zesto.app">support@zesto.app</a> or via live chat within 24 hours of delivery.</p>
+          <div class="legal-callout">
+            <div class="legal-callout-icon">🎁</div>
+            <p>Promotional credits and discount codes are non-refundable, non-transferable, and cannot be exchanged for cash.</p>
+          </div>
+        </section>
+
+        <!-- 7 -->
+        <section class="legal-section" id="s7">
+          <div class="ls-header">
+            <div class="ls-num">7</div>
+            <h2 class="ls-title">User Conduct</h2>
+          </div>
+          <p class="legal-p">You agree to use the Platform only for lawful purposes. You must not:</p>
+          <ul class="legal-ul">
+            <li>Use the Platform to engage in any fraudulent, abusive, or illegal activity.</li>
+            <li>Post false, misleading, or defamatory reviews or content.</li>
+            <li>Attempt to gain unauthorized access to any part of the Platform or its systems.</li>
+            <li>Use automated tools, bots, or scrapers to access the Platform.</li>
+            <li>Harass, threaten, or abuse Zesto staff, restaurant partners, or delivery riders.</li>
+            <li>Resell or commercially exploit any part of the Platform without our written consent.</li>
+            <li>Impersonate another person or entity.</li>
+          </ul>
+          <p class="legal-p">Violation of these conduct rules may result in immediate account suspension or termination, and may be reported to law enforcement where applicable.</p>
+        </section>
+
+        <!-- 8 -->
+        <section class="legal-section" id="s8">
+          <div class="ls-header">
+            <div class="ls-num">8</div>
+            <h2 class="ls-title">Intellectual Property</h2>
+          </div>
+          <p class="legal-p">All content on the Zesto Platform — including but not limited to logos, trademarks, designs, text, graphics, images, software, and the "Zesto" name — is owned by or licensed to Zesto Technologies Inc. and is protected by applicable intellectual property laws.</p>
+          <p class="legal-p">You are granted a limited, non-exclusive, non-transferable, revocable licence to access and use the Platform solely for personal, non-commercial purposes. You may not copy, modify, distribute, sell, or lease any part of our Platform or its content without prior written permission from Zesto.</p>
+          <p class="legal-p">By submitting reviews, photos, or other content to the Platform, you grant Zesto a worldwide, royalty-free licence to use, display, and distribute that content in connection with our services.</p>
+        </section>
+
+        <!-- 9 -->
+        <section class="legal-section" id="s9">
+          <div class="ls-header">
+            <div class="ls-num">9</div>
+            <h2 class="ls-title">Privacy & Data</h2>
+          </div>
+          <p class="legal-p">Your privacy is important to us. Our <a href="privacy.html">Privacy Policy</a> explains how we collect, use, and protect your personal information when you use our Platform. By using Zesto, you consent to our data practices as described in that policy.</p>
+          <p class="legal-p">Key data practices include:</p>
+          <ul class="legal-ul">
+            <li>We collect location data to provide delivery services and show nearby restaurants.</li>
+            <li>We use payment data solely to process transactions and prevent fraud.</li>
+            <li>We do not sell your personal data to third parties for marketing purposes.</li>
+            <li>You may request deletion of your account and associated data at any time.</li>
+          </ul>
+        </section>
+
+        <!-- 10 -->
+        <section class="legal-section" id="s10">
+          <div class="ls-header">
+            <div class="ls-num">10</div>
+            <h2 class="ls-title">Limitation of Liability</h2>
+          </div>
+          <p class="legal-p">To the maximum extent permitted by applicable law, Zesto and its affiliates, officers, employees, and partners shall not be liable for any indirect, incidental, special, or consequential damages arising out of or in connection with your use of the Platform.</p>
+          <p class="legal-p">Our total liability to you for any claim arising under these Terms shall not exceed the total amount you paid to Zesto in the <strong>three months preceding the event giving rise to the claim</strong>.</p>
+          <div class="legal-callout info">
+            <div class="legal-callout-icon">⚖️</div>
+            <p>Nothing in these Terms limits or excludes our liability for death or personal injury caused by our negligence, fraud, or any other liability that cannot be excluded by law.</p>
+          </div>
+        </section>
+
+        <!-- 11 -->
+        <section class="legal-section" id="s11">
+          <div class="ls-header">
+            <div class="ls-num">11</div>
+            <h2 class="ls-title">Termination</h2>
+          </div>
+          <p class="legal-p">You may close your account at any time by visiting your account settings or contacting us at <a href="mailto:support@zesto.app">support@zesto.app</a>.</p>
+          <p class="legal-p">Zesto may suspend or terminate your account immediately, without prior notice or liability, if:</p>
+          <ul class="legal-ul">
+            <li>You breach any provision of these Terms.</li>
+            <li>We suspect fraudulent, abusive, or illegal activity.</li>
+            <li>Continued access poses a risk to other users, partners, or Zesto.</li>
+            <li>We are required to do so by law or regulatory authority.</li>
+          </ul>
+          <p class="legal-p">Upon termination, your right to use the Platform ceases immediately. Provisions that by their nature should survive termination (including intellectual property rights, payment obligations, and limitation of liability) shall continue to apply.</p>
+        </section>
+
+        <!-- 12 -->
+        <section class="legal-section" id="s12">
+          <div class="ls-header">
+            <div class="ls-num">12</div>
+            <h2 class="ls-title">Governing Law</h2>
+          </div>
+          <p class="legal-p">These Terms are governed by and construed in accordance with the laws of the <strong>Republic of Uganda</strong>, without regard to its conflict of law provisions.</p>
+          <p class="legal-p">Any dispute arising from these Terms that cannot be resolved amicably shall be submitted to the exclusive jurisdiction of the courts of Kampala, Uganda, except where mandatory consumer protection laws in your country of residence require otherwise.</p>
+        </section>
+
+        <!-- 13 -->
+        <section class="legal-section" id="s13">
+          <div class="ls-header">
+            <div class="ls-num">13</div>
+            <h2 class="ls-title">Contact & Disputes</h2>
+          </div>
+          <p class="legal-p">If you have questions about these Terms, wish to report a violation, or have a dispute, please contact our Legal team:</p>
+          <ul class="legal-ul">
+            <li><strong>Email:</strong> <a href="mailto:legal@zesto.app">legal@zesto.app</a></li>
+            <li><strong>General support:</strong> <a href="mailto:support@zesto.app">support@zesto.app</a></li>
+            <li><strong>Address:</strong> Plot 14, Nakasero Road, Kampala, Uganda</li>
+            <li><strong>Phone:</strong> +256 000 000 000 (Mon–Sat, 8am–9pm EAT)</li>
+          </ul>
+          <p class="legal-p">We will endeavour to resolve any complaint within <strong>14 business days</strong>. For formal disputes, we encourage mediation before litigation and are committed to resolving issues fairly and promptly.</p>
+
+          <!-- Accept banner -->
+          <div class="accept-banner">
+            <div class="ab-text">
+              <div class="ab-title">Ready to get started with Zesto?</div>
+              <div class="ab-sub">By using our platform you agree to these Terms of Service.</div>
+            </div>
+            <div class="ab-btns">
+              <a href="signin.html" class="ab-btn-primary">Create account →</a>
+              <a href="contact.html" class="ab-btn-ghost">Contact us</a>
+            </div>
+          </div>
+        </section>
+
+      </main>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <div class="f-brand">Zes<span>to</span></div>
+        <div class="f-tagline">Fast, reliable delivery across West Africa. Restaurants, groceries, and more — delivered to your door.</div>
+        <div class="f-badge">
+          <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M7 1.5A4.5 4.5 0 0 1 11.5 6c0 3-4.5 7.5-4.5 7.5S2.5 9 2.5 6A4.5 4.5 0 0 1 7 1.5z"/></svg>
+          Available in 3 cities
+        </div>
+      </div>
+      <div>
+        <div class="fc-title">Company</div>
+        <div class="f-links">
+          <a href="about.html"     class="f-link">About us</a>
+          <a href="Careers.html"   class="f-link">Careers</a>
+          <a href="Press.html"     class="f-link">Press</a>
+          <a href="Blog.html"      class="f-link">Blog</a>
+          <a href="Investors.html" class="f-link">Investors</a>
+        </div>
+      </div>
+      <div>
+        <div class="fc-title">Partners</div>
+        <div class="f-links">
+          <a href="#" class="f-link">List your restaurant</a>
+          <a href="#" class="f-link">Become a rider</a>
+          <a href="#" class="f-link">Zesto Pro</a>
+          <a href="#" class="f-link">Enterprise</a>
+        </div>
+      </div>
+      <div>
+        <div class="fc-title">Help</div>
+        <div class="f-links">
+          <a href="Help-center.html" class="f-link">Help center</a>
+          <a href="privacy-policy.html" class="f-link">Privacy policy</a>
+          <a href="terms-of-service.html"  class="f-link" style="color:var(--or);">Terms of service</a>
+          <a href="contact.html" class="f-link">Contact us</a>
+        </div>
+      </div>
+      <div>
+        <div class="fc-title">Cities</div>
+        <div class="f-links">
+          <a href="#" class="f-link">Abidjan</a>
+          <a href="#" class="f-link">Accra</a>
+          <a href="#" class="f-link">Dakar</a>
+          <a href="#" class="f-link">Lagos</a>
+          <a href="#" class="f-link">Nairobi</a>
+          <a href="#" class="f-link">Kampala</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bot">
+      <span class="footer-copy">© 2026 Zesto Technologies Inc. All rights reserved.</span>
+      <div class="socials">
+        <a href="#" class="soc-icon" aria-label="Instagram"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="2" y="2" width="12" height="12" rx="3.5"/><circle cx="8" cy="8" r="3"/><circle cx="11.5" cy="4.5" r=".8" fill="currentColor" stroke="none"/></svg></a>
+        <a href="#" class="soc-icon" aria-label="X"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M2 3h12L9.5 8.5V13l-3-1.5V8.5z" stroke-linejoin="round"/></svg></a>
+        <a href="#" class="soc-icon" aria-label="Facebook"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="2" y="2" width="12" height="12" rx="2"/><path d="M9 8H7v5M7 8V6a2 2 0 0 1 2-2h1" stroke-linecap="round"/></svg></a>
+        <a href="#" class="soc-icon" aria-label="LinkedIn"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="2" y="2" width="12" height="12" rx="2"/><path d="M5 7v4M5 5v.5M8 11V8.5A1.5 1.5 0 0 1 11 8.5V11" stroke-linecap="round"/></svg></a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script>
+// Highlight active TOC item on scroll
+const sections = document.querySelectorAll('.legal-section');
+const tocItems  = document.querySelectorAll('.toc-item');
+const observer  = new IntersectionObserver(entries => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      tocItems.forEach(t => t.classList.remove('active'));
+      const active = document.querySelector('.toc-item[href="#' + entry.target.id + '"]');
+      if (active) active.classList.add('active');
+    }
+  });
+}, { rootMargin: '-20% 0px -70% 0px' });
+sections.forEach(s => observer.observe(s));
+</script>
+
+</body>
+</html>

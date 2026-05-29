@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Contact Us — Zesto</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Knewave&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="./css/index.css"/>
+<style>
+
+/* ── PAGE HERO ── */
+.contact-hero {
+  background: var(--wh);
+  padding: 64px 0 56px;
+  border-bottom: 1px solid var(--lt2);
+}
+.breadcrumb {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 12px; color: var(--mid); margin-bottom: 20px;
+}
+.breadcrumb a { color: var(--mid); transition: color .18s; }
+.breadcrumb a:hover { color: var(--or); }
+.breadcrumb svg { width: 12px; height: 12px; flex-shrink: 0; }
+.contact-hero-title {
+  font-family: 'Knewave', cursive;
+  font-size: clamp(32px, 5vw, 60px);
+  color: var(--dk); line-height: 1.05;
+  letter-spacing: -.5px; margin-bottom: 12px;
+}
+.contact-hero-title span { color: var(--or); }
+.contact-hero-sub {
+  font-size: 15px; color: var(--mid);
+  line-height: 1.65; max-width: 520px;
+}
+
+/* ── CHANNEL CARDS ── */
+.channels-section { background: var(--lt); padding: 56px 0; border-bottom: 1px solid var(--lt2); }
+.channels-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; }
+.ch-card {
+  background: white; border-radius: var(--r20);
+  border: 1.5px solid var(--lt2); padding: 24px;
+  cursor: pointer; transition: all .2s;
+  text-decoration: none; color: inherit;
+  display: flex; flex-direction: column; gap: 14px;
+}
+.ch-card:hover {
+  border-color: var(--or-mid);
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-4px);
+}
+.ch-ico {
+  width: 46px; height: 46px; border-radius: 12px;
+  background: var(--or-lt); display: flex;
+  align-items: center; justify-content: center;
+}
+.ch-ico svg { width: 20px; height: 20px; color: var(--or); }
+.ch-title { font-size: 15px; font-weight: 700; color: var(--dk); }
+.ch-desc { font-size: 13px; color: var(--mid); line-height: 1.6; flex: 1; }
+.ch-cta {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 12px; font-weight: 700; color: var(--or);
+}
+.ch-cta svg { width: 12px; height: 12px; transition: transform .18s; }
+.ch-card:hover .ch-cta svg { transform: translateX(3px); }
+.online-dot {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: #ECFDF5; color: #15803D;
+  font-size: 11px; font-weight: 600;
+  padding: 3px 10px; border-radius: var(--r50);
+  width: fit-content; margin-top: 4px;
+}
+.online-dot::before {
+  content: ''; width: 6px; height: 6px;
+  border-radius: 50%; background: #16A34A;
+}
+
+/* ── MAIN LAYOUT ── */
+.contact-layout {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 56px;
+  padding: 64px 0 80px;
+  align-items: flex-start;
+  background: white;
+}
+
+/* ── FORM ── */
+.form-eyebrow { font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--or); margin-bottom: 8px; }
+.form-title { font-family: 'Knewave', cursive; font-size: 32px; color: var(--dk); letter-spacing: -.3px; margin-bottom: 6px; }
+.form-sub { font-size: 14px; color: var(--mid); line-height: 1.65; margin-bottom: 32px; }
+
+.form-row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+.form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 20px; }
+.form-group:last-of-type { margin-bottom: 0; }
+.form-label { font-size: 13px; font-weight: 600; color: var(--dk); }
+.form-label span { color: var(--or); }
+.form-input, .form-select {
+  width: 100%; height: 48px;
+  background: var(--lt); border: 1.5px solid var(--lt2);
+  border-radius: var(--r12); padding: 0 16px;
+  font-size: 14px; color: var(--dk);
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  transition: border-color .18s, box-shadow .18s, background .18s;
+  outline: none;
+}
+.form-input:focus, .form-select:focus {
+  border-color: var(--or); background: white;
+  box-shadow: 0 0 0 3px rgba(255,85,0,.08);
+}
+.form-input::placeholder { color: #C0B8B0; }
+.form-select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%236B6560' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 16px center;
+  background-size: 12px;
+  cursor: pointer;
+}
+.form-select:focus { background-color: white; }
+.form-textarea {
+  width: 100%; min-height: 140px;
+  background: var(--lt); border: 1.5px solid var(--lt2);
+  border-radius: var(--r12); padding: 14px 16px;
+  font-size: 14px; color: var(--dk);
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  resize: vertical; outline: none; line-height: 1.6;
+  transition: border-color .18s, box-shadow .18s, background .18s;
+}
+.form-textarea:focus {
+  border-color: var(--or); background: white;
+  box-shadow: 0 0 0 3px rgba(255,85,0,.08);
+}
+.form-textarea::placeholder { color: #C0B8B0; }
+.form-hint { font-size: 11px; color: var(--mid); margin-top: 4px; }
+
+.form-check {
+  display: flex; align-items: flex-start; gap: 10px;
+  font-size: 13px; color: var(--mid); cursor: pointer;
+  margin-bottom: 12px; line-height: 1.5;
+}
+.form-check input[type="checkbox"] {
+  width: 16px; height: 16px; accent-color: var(--or);
+  flex-shrink: 0; margin-top: 2px; cursor: pointer;
+}
+.form-check a { color: var(--or); font-weight: 600; }
+
+.submit-btn {
+  width: 100%; height: 52px;
+  background: var(--or); color: white;
+  font-size: 15px; font-weight: 700;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  border: none; border-radius: var(--r12);
+  cursor: pointer; transition: background .18s, transform .18s;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  margin-top: 8px;
+}
+.submit-btn:hover { background: var(--or-dk); transform: translateY(-1px); }
+.submit-btn svg { width: 18px; height: 18px; }
+
+/* Success */
+.form-success {
+  display: none;
+  background: #ECFDF5; border: 1.5px solid #BBF7D0;
+  border-radius: var(--r20); padding: 36px 28px;
+  text-align: center; margin-top: 0;
+}
+.form-success.show { display: block; }
+.success-ico {
+  width: 60px; height: 60px; background: #16A34A;
+  border-radius: 50%; display: flex; align-items: center;
+  justify-content: center; margin: 0 auto 16px;
+}
+.success-ico svg { width: 28px; height: 28px; color: white; }
+.success-title { font-size: 20px; font-weight: 700; color: #14532D; margin-bottom: 6px; }
+.success-sub { font-size: 14px; color: #15803D; line-height: 1.6; }
+
+/* ── SIDEBAR ── */
+.contact-sidebar { display: flex; flex-direction: column; gap: 18px; position: sticky; top: 84px; }
+
+.sidebar-card {
+  background: var(--lt); border-radius: var(--r20);
+  border: 1px solid var(--lt2); padding: 22px;
+}
+.sidebar-card-title {
+  font-size: 13px; font-weight: 700; color: var(--dk);
+  margin-bottom: 16px; display: flex; align-items: center; gap: 8px;
+}
+.sidebar-card-title svg { width: 15px; height: 15px; color: var(--or); }
+
+.info-row {
+  display: flex; align-items: flex-start; gap: 12px;
+  padding: 12px 0; border-bottom: 1px solid var(--lt2);
+}
+.info-row:last-child { border-bottom: none; padding-bottom: 0; }
+.info-ico {
+  width: 34px; height: 34px; background: white;
+  border-radius: 10px; border: 1px solid var(--lt2);
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.info-ico svg { width: 15px; height: 15px; color: var(--or); }
+.info-lbl { font-size: 10px; color: var(--mid); font-weight: 600; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 2px; }
+.info-val { font-size: 13px; font-weight: 600; color: var(--dk); }
+.info-sub { font-size: 11px; color: var(--mid); margin-top: 2px; }
+
+.hours-row {
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 13px; padding: 7px 0; border-bottom: 1px solid var(--lt2);
+}
+.hours-row:last-child { border-bottom: none; }
+.hours-day { color: var(--mid); font-weight: 500; }
+.hours-time { color: var(--dk); font-weight: 700; }
+.hours-closed { color: #DC2626; font-weight: 600; }
+
+.status-pill {
+  display: flex; align-items: center; gap: 7px;
+  background: #ECFDF5; border: 1px solid #BBF7D0;
+  border-radius: var(--r12); padding: 10px 14px;
+  font-size: 12px; font-weight: 600; color: #15803D;
+  margin-top: 14px;
+}
+.status-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: #16A34A; animation: pulse 2s infinite;
+}
+@keyframes pulse {
+  0%,100% { opacity: 1; } 50% { opacity: .4; }
+}
+
+/* Map placeholder */
+.map-box {
+  background: var(--lt); border-radius: var(--r20);
+  border: 1px solid var(--lt2); height: 180px;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 10px; cursor: pointer; transition: border-color .18s;
+  position: relative; overflow: hidden; text-decoration: none;
+}
+.map-box:hover { border-color: var(--or); }
+.map-box::before {
+  content: '';
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(rgba(14,12,10,.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(14,12,10,.05) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+.map-box::after {
+  content: '';
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(rgba(14,12,10,.08) 3px, transparent 3px),
+    linear-gradient(90deg, rgba(14,12,10,.08) 3px, transparent 3px);
+  background-size: 72px 72px;
+}
+.map-pin-wrap { position: relative; z-index: 2; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.map-pin {
+  width: 44px; height: 44px; background: var(--or);
+  border-radius: 50% 50% 50% 0; transform: rotate(-45deg);
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 4px 16px rgba(255,85,0,.3);
+}
+.map-pin svg { width: 20px; height: 20px; color: white; transform: rotate(45deg); }
+.map-label {
+  font-size: 11px; font-weight: 600; color: var(--dk);
+  background: white; padding: 4px 12px; border-radius: var(--r50);
+  box-shadow: var(--shadow); z-index: 2; position: relative;
+}
+
+.social-row {
+  display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px;
+}
+
+/* ── FAQ ── */
+.faq-section { background: var(--lt); padding: 80px 0; }
+.faq-layout {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 56px; align-items: flex-start; margin-top: 0;
+}
+.faq-left {}
+.faq-list { display: flex; flex-direction: column; gap: 10px; margin-top: 32px; }
+.faq-item {
+  background: white; border-radius: var(--r20);
+  border: 1px solid var(--lt2); overflow: hidden;
+  transition: box-shadow .2s;
+}
+.faq-item:hover { box-shadow: var(--shadow); }
+.faq-q {
+  display: flex; justify-content: space-between;
+  align-items: center; padding: 16px 20px;
+  cursor: pointer; gap: 14px; user-select: none;
+}
+.faq-q-text { font-size: 14px; font-weight: 600; color: var(--dk); flex: 1; }
+.faq-chevron { width: 18px; height: 18px; color: var(--mid); transition: transform .25s; flex-shrink: 0; }
+.faq-item.open .faq-chevron { transform: rotate(180deg); color: var(--or); }
+.faq-item.open .faq-q-text { color: var(--or); }
+.faq-a {
+  max-height: 0; overflow: hidden;
+  transition: max-height .3s ease, padding .3s;
+  font-size: 13px; color: var(--mid);
+  line-height: 1.7; padding: 0 20px;
+}
+.faq-item.open .faq-a { max-height: 160px; padding: 0 20px 16px; }
+
+/* Quick topic buttons */
+.topics-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 28px; }
+.topic-btn {
+  background: white; border: 1.5px solid var(--lt2);
+  border-radius: var(--r12); padding: 14px;
+  display: flex; align-items: center; gap: 10px;
+  text-decoration: none; color: inherit;
+  transition: all .18s;
+}
+.topic-btn:hover {
+  border-color: var(--or); background: var(--or-lt);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(255,85,0,.1);
+}
+.topic-em { font-size: 20px; flex-shrink: 0; }
+.topic-title { font-size: 12px; font-weight: 700; color: var(--dk); }
+.topic-sub { font-size: 11px; color: var(--mid); margin-top: 2px; }
+
+/* ── RESPONSIVE ── */
+@media(max-width: 1024px) {
+  .channels-grid { grid-template-columns: repeat(2, 1fr); }
+  .contact-layout { grid-template-columns: 1fr; gap: 40px; }
+  .contact-sidebar { position: static; }
+  .faq-layout { grid-template-columns: 1fr; gap: 36px; }
+}
+@media(max-width: 768px) {
+  .nav-links,.nav-loc,.nav-actions { display: none; }
+  .nav-hamburger { display: flex; flex-direction: column; }
+  .channels-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .form-row2 { grid-template-columns: 1fr; }
+  .topics-grid { grid-template-columns: 1fr; }
+}
+@media(max-width: 480px) {
+  .channels-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- MOBILE MENU -->
+<div class="mobile-menu" id="mobileMenu">
+  <div class="mobile-menu-header">
+    <div class="nav-logo">
+      <div class="logo-mark"><svg viewBox="0 0 24 24"><path d="M13 2L4 13h7l-1 9 10-12h-7l1-8z"/></svg></div>
+      <span class="logo-text">Zes<span>to</span></span>
+    </div>
+    <button class="mobile-close" onclick="document.getElementById('mobileMenu').classList.remove('open')">✕</button>
+  </div>
+  <div class="mobile-links">
+    <a class="mobile-link" href="restaurant.html">Restaurants</a>
+    <a class="mobile-link" href="for-busines.html">For Business</a>
+    <a class="mobile-link" href="about.html">About us</a>
+  </div>
+  <div class="mobile-actions" style="margin-top:24px;">
+    <a href="login.html"  class="btn btn-ghost"  style="justify-content:center;padding:14px;">Sign in</a>
+    <a href="signin.html" class="btn btn-primary" style="justify-content:center;padding:14px;border-radius:var(--r12);">Get started</a>
+  </div>
+</div>
+
+<!-- NAV -->
+<header class="nav">
+  <div class="container">
+    <nav class="nav-inner">
+      <a href="index.html" class="nav-logo">
+        <div class="logo-mark"><svg viewBox="0 0 24 24"><path d="M13 2L4 13h7l-1 9 10-12h-7l1-8z"/></svg></div>
+        <span class="logo-text">Zes<span>to</span></span>
+      </a>
+      <div class="nav-links">
+        <a href="restaurant.html"  class="nav-link">Restaurants</a>
+        <a href="for-busines.html" class="nav-link">For Business</a>
+        <a href="about.html"       class="nav-link">About us</a>
+      </div>
+      <a href="#" class="nav-loc">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M8 1.5A4.5 4.5 0 0 1 12.5 6c0 3.2-4.5 8.5-4.5 8.5S3.5 9.2 3.5 6A4.5 4.5 0 0 1 8 1.5z"/><circle cx="8" cy="6" r="1.6"/></svg>
+        Kampala, UG
+        <svg viewBox="0 0 10 6" fill="none" stroke="currentColor" stroke-width="1.5" style="width:10px;height:10px;"><path d="M1 1l4 4 4-4"/></svg>
+      </a>
+      <div class="nav-actions">
+        <a href="login.html"  class="btn btn-ghost">Sign in</a>
+        <a href="signin.html" class="btn btn-primary">Get started</a>
+      </div>
+      <button class="nav-hamburger" onclick="document.getElementById('mobileMenu').classList.add('open')" aria-label="Open menu">
+        <span></span><span></span><span></span>
+      </button>
+    </nav>
+  </div>
+</header>
+
+<!-- HERO -->
+<section class="contact-hero">
+  <div class="container">
+    <div class="breadcrumb">
+      <a href="index.html">Home</a>
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 3l6 5-6 5"/></svg>
+      <span>Contact us</span>
+    </div>
+    <div class="section-label">Get in touch</div>
+    <h1 class="contact-hero-title">We're here to <span>help you</span></h1>
+    <p class="contact-hero-sub">Have a question, an issue with your order, or want to partner with us? Our team typically responds within 2 hours during business hours.</p>
+  </div>
+</section>
+
+<!-- CHANNEL CARDS -->
+<section class="channels-section">
+  <div class="container">
+    <div class="channels-grid">
+
+      <a href="#contact-form" class="ch-card">
+        <div class="ch-ico">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 8l10 7 10-7" stroke-linecap="round"/></svg>
+        </div>
+        <div class="ch-title">Send a message</div>
+        <div class="ch-desc">Fill out our form and a team member will reply within 2 hours.</div>
+        <div class="ch-cta">Write to us <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M2 7h10M8 3l4 4-4 4"/></svg></div>
+      </a>
+
+      <a href="tel:+25600000000" class="ch-card">
+        <div class="ch-ico">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1-9.4 0-17-7.6-17-17 0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1L6.6 10.8z"/></svg>
+        </div>
+        <div class="ch-title">Call us</div>
+        <div class="ch-desc">Speak directly with our support team. Mon–Sat, 8am–9pm EAT.</div>
+        <div class="ch-cta">+256 000 000 000 <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M2 7h10M8 3l4 4-4 4"/></svg></div>
+      </a>
+
+      <a href="#" class="ch-card">
+        <div class="ch-ico">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        </div>
+        <div class="ch-title">Live chat</div>
+        <div class="ch-desc">Chat with a real person right now. Average wait under 3 minutes.</div>
+        <div class="online-dot">Online now</div>
+        <div class="ch-cta">Start chat <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M2 7h10M8 3l4 4-4 4"/></svg></div>
+      </a>
+
+      <a href="#" class="ch-card">
+        <div class="ch-ico">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01" stroke-linecap="round"/></svg>
+        </div>
+        <div class="ch-title">Help center</div>
+        <div class="ch-desc">Browse our FAQs and guides for instant answers.</div>
+        <div class="ch-cta">Browse articles <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M2 7h10M8 3l4 4-4 4"/></svg></div>
+      </a>
+
+    </div>
+  </div>
+</section>
+
+<!-- FORM + SIDEBAR -->
+<div id="contact-form" style="background:white;">
+  <div class="container">
+    <div class="contact-layout">
+
+      <!-- FORM -->
+      <div>
+        <div class="form-eyebrow">Contact form</div>
+        <div class="form-title">Send us a message</div>
+        <div class="form-sub">Fields marked with <span style="color:var(--or);">*</span> are required. We'll reply within 2 hours on business days.</div>
+
+        <form id="contactForm" onsubmit="handleSubmit(event)" novalidate>
+          <div class="form-row2">
+            <div class="form-group" style="margin-bottom:0;">
+              <label class="form-label">First name <span>*</span></label>
+              <input class="form-input" type="text" placeholder="e.g. Mohamed" required/>
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+              <label class="form-label">Last name <span>*</span></label>
+              <input class="form-input" type="text" placeholder="e.g. Diallo" required/>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Email address <span>*</span></label>
+            <input class="form-input" type="email" placeholder="you@example.com" required/>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Phone number</label>
+            <input class="form-input" type="tel" placeholder="+256 700 000 000"/>
+            <div class="form-hint">Optional — useful if you'd like a callback.</div>
+          </div>
+
+          <div class="form-row2">
+            <div class="form-group" style="margin-bottom:0;">
+              <label class="form-label">Topic <span>*</span></label>
+              <select class="form-select" required>
+                <option value="" disabled selected>Select a topic…</option>
+                <option>Order issue</option>
+                <option>Delivery problem</option>
+                <option>Payment & refund</option>
+                <option>Account access</option>
+                <option>Partner with Zesto</option>
+                <option>Become a rider</option>
+                <option>Media & press</option>
+                <option>Other</option>
+              </select>
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+              <label class="form-label">Order number</label>
+              <input class="form-input" type="text" placeholder="e.g. ZST-8842"/>
+              <div class="form-hint">If your issue relates to a specific order.</div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Your message <span>*</span></label>
+            <textarea class="form-textarea" placeholder="Describe your issue or question in as much detail as possible…" required></textarea>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Preferred contact method</label>
+            <select class="form-select">
+              <option>Email</option>
+              <option>Phone call</option>
+              <option>WhatsApp</option>
+            </select>
+          </div>
+
+          <label class="form-check">
+            <input type="checkbox" required/>
+            I agree to Zesto's <a href="terms-of-service.html">Terms of Service</a> and <a href="#">Privacy Policy</a>. <span style="color:var(--or);">*</span>
+          </label>
+          <label class="form-check">
+            <input type="checkbox"/>
+            I'd like to receive updates and promotions from Zesto by email.
+          </label>
+
+          <button type="submit" class="submit-btn">
+            Send message
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13M22 2L15 22l-4-9-9-4 20-7z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+        </form>
+
+        <div class="form-success" id="formSuccess">
+          <div class="success-ico">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <div class="success-title">Message sent! 🎉</div>
+          <div class="success-sub">Thank you for reaching out. Our team will reply to you within 2 hours during business hours (Mon–Sat, 8am–9pm EAT).</div>
+        </div>
+      </div>
+
+      <!-- SIDEBAR -->
+      <aside class="contact-sidebar">
+
+        <!-- Info -->
+        <div class="sidebar-card">
+          <div class="sidebar-card-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 2A6 6 0 0 1 18 8c0 4.5-6 12-6 12S6 12.5 6 8a6 6 0 0 1 6-6z"/><circle cx="12" cy="8" r="2"/></svg>
+            Contact info
+          </div>
+          <div class="info-row">
+            <div class="info-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 8l10 7 10-7"/></svg></div>
+            <div>
+              <div class="info-lbl">Email</div>
+              <div class="info-val">hello@zesto.app</div>
+              <div class="info-sub">support@zesto.app (orders)</div>
+            </div>
+          </div>
+          <div class="info-row">
+            <div class="info-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1-9.4 0-17-7.6-17-17 0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1L6.6 10.8z"/></svg></div>
+            <div>
+              <div class="info-lbl">Phone</div>
+              <div class="info-val">+256 000 000 000</div>
+              <div class="info-sub">Mon–Sat, 8am–9pm EAT</div>
+            </div>
+          </div>
+          <div class="info-row">
+            <div class="info-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 2A6 6 0 0 1 18 8c0 4.5-6 12-6 12S6 12.5 6 8a6 6 0 0 1 6-6z"/><circle cx="12" cy="8" r="2"/></svg></div>
+            <div>
+              <div class="info-lbl">Head office</div>
+              <div class="info-val">Plot 14, Nakasero Road</div>
+              <div class="info-sub">Kampala, Uganda</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Hours -->
+        <div class="sidebar-card">
+          <div class="sidebar-card-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="10"/><path d="M12 7v5l3 3" stroke-linecap="round"/></svg>
+            Business hours
+          </div>
+          <div class="hours-row"><span class="hours-day">Monday – Friday</span><span class="hours-time">8:00 AM – 9:00 PM</span></div>
+          <div class="hours-row"><span class="hours-day">Saturday</span><span class="hours-time">9:00 AM – 7:00 PM</span></div>
+          <div class="hours-row"><span class="hours-day">Sunday</span><span class="hours-closed">Closed</span></div>
+          <div class="status-pill">
+            <div class="status-dot"></div>
+            We're open — avg. reply in 90 min
+          </div>
+        </div>
+
+        <!-- Map -->
+        <a href="https://maps.google.com" target="_blank" class="map-box">
+          <div class="map-pin-wrap">
+            <div class="map-pin">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2A6 6 0 0 1 18 8c0 4.5-6 12-6 12S6 12.5 6 8a6 6 0 0 1 6-6z"/><circle cx="12" cy="8" r="2"/></svg>
+            </div>
+          </div>
+          <div class="map-label">📍 Nakasero Road, Kampala</div>
+        </a>
+
+        <!-- Socials -->
+        <div class="sidebar-card">
+          <div class="sidebar-card-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
+            Follow us
+          </div>
+          <div class="social-row">
+            <a href="#" class="soc-icon" aria-label="Instagram"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="2" y="2" width="12" height="12" rx="3.5"/><circle cx="8" cy="8" r="3"/><circle cx="11.5" cy="4.5" r=".8" fill="currentColor" stroke="none"/></svg></a>
+            <a href="#" class="soc-icon" aria-label="X"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M2 3h12L9.5 8.5V13l-3-1.5V8.5z" stroke-linejoin="round"/></svg></a>
+            <a href="#" class="soc-icon" aria-label="Facebook"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="2" y="2" width="12" height="12" rx="2"/><path d="M9 8H7v5M7 8V6a2 2 0 0 1 2-2h1" stroke-linecap="round"/></svg></a>
+            <a href="#" class="soc-icon" aria-label="LinkedIn"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="2" y="2" width="12" height="12" rx="2"/><path d="M5 7v4M5 5v.5M8 11V8.5A1.5 1.5 0 0 1 11 8.5V11" stroke-linecap="round"/></svg></a>
+          </div>
+        </div>
+
+      </aside>
+    </div>
+  </div>
+</div>
+
+<!-- FAQ + TOPICS -->
+<section class="faq-section">
+  <div class="container">
+    <div style="margin-bottom:40px;">
+      <div class="section-label">FAQ & Quick help</div>
+      <div class="section-title">Common questions</div>
+      <div class="section-sub">Find instant answers or pick a topic to reach the right team.</div>
+    </div>
+    <div class="faq-layout">
+
+      <!-- FAQ -->
+      <div>
+        <div class="faq-list">
+          <div class="faq-item">
+            <div class="faq-q" onclick="toggleFaq(this)">
+              <span class="faq-q-text">How long does it take to get a response?</span>
+              <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+            </div>
+            <div class="faq-a">Our team typically responds within 2 hours during business hours (Mon–Sat, 8am–9pm EAT). For urgent order issues, live chat is the fastest option.</div>
+          </div>
+          <div class="faq-item">
+            <div class="faq-q" onclick="toggleFaq(this)">
+              <span class="faq-q-text">My order was wrong or missing items. What do I do?</span>
+              <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+            </div>
+            <div class="faq-a">Contact us via the form above or live chat with your order number. We'll review and process a refund or re-delivery within 24 hours.</div>
+          </div>
+          <div class="faq-item">
+            <div class="faq-q" onclick="toggleFaq(this)">
+              <span class="faq-q-text">How do I get a refund?</span>
+              <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+            </div>
+            <div class="faq-a">Refunds are processed within 3–5 business days to your original payment method. Mobile money refunds usually arrive within 24 hours. Contact us within 24 hours of your delivery.</div>
+          </div>
+          <div class="faq-item">
+            <div class="faq-q" onclick="toggleFaq(this)">
+              <span class="faq-q-text">How do I list my restaurant on Zesto?</span>
+              <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+            </div>
+            <div class="faq-a">Fill in the contact form above and select "Partner with Zesto". Our partnerships team will reach out within 24 hours with onboarding details.</div>
+          </div>
+          <div class="faq-item">
+            <div class="faq-q" onclick="toggleFaq(this)">
+              <span class="faq-q-text">Can I become a Zesto delivery rider?</span>
+              <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+            </div>
+            <div class="faq-a">Yes! You'll need a motorcycle or bicycle, a valid ID, and a smartphone. Click "Become a rider" below or contact us selecting that topic in the form.</div>
+          </div>
+          <div class="faq-item">
+            <div class="faq-q" onclick="toggleFaq(this)">
+              <span class="faq-q-text">What cities does Zesto currently serve?</span>
+              <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+            </div>
+            <div class="faq-a">Zesto currently operates in Kampala, Abidjan, and Accra. We're expanding rapidly — sign up to be the first to know when we launch in your city!</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Topics -->
+      <div>
+        <div class="section-label">Quick topics</div>
+        <div class="section-title" style="font-size:24px;">Browse by topic</div>
+        <div class="section-sub">Reach the right team in one click.</div>
+        <div class="topics-grid">
+          <a href="#" class="topic-btn">
+            <div class="topic-em">📦</div>
+            <div><div class="topic-title">Order issues</div><div class="topic-sub">Missing, wrong or late order</div></div>
+          </a>
+          <a href="#" class="topic-btn">
+            <div class="topic-em">💳</div>
+            <div><div class="topic-title">Payments & refunds</div><div class="topic-sub">Charges, refunds, promo codes</div></div>
+          </a>
+          <a href="#" class="topic-btn">
+            <div class="topic-em">🏪</div>
+            <div><div class="topic-title">Partner restaurant</div><div class="topic-sub">List your restaurant</div></div>
+          </a>
+          <a href="#" class="topic-btn">
+            <div class="topic-em">🛵</div>
+            <div><div class="topic-title">Become a rider</div><div class="topic-sub">Deliver with Zesto</div></div>
+          </a>
+          <a href="#" class="topic-btn">
+            <div class="topic-em">🔐</div>
+            <div><div class="topic-title">Account & login</div><div class="topic-sub">Password, profile issues</div></div>
+          </a>
+          <a href="#" class="topic-btn">
+            <div class="topic-em">📢</div>
+            <div><div class="topic-title">Press & media</div><div class="topic-sub">Media inquiries</div></div>
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <div class="f-brand">Zes<span>to</span></div>
+        <div class="f-tagline">Fast, reliable delivery across West Africa. Restaurants, groceries, and more — delivered to your door.</div>
+        <div class="f-badge">
+          <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M7 1.5A4.5 4.5 0 0 1 11.5 6c0 3-4.5 7.5-4.5 7.5S2.5 9 2.5 6A4.5 4.5 0 0 1 7 1.5z"/></svg>
+          Available in 3 cities
+        </div>
+      </div>
+      <div>
+        <div class="fc-title">Company</div>
+        <div class="f-links">
+          <a href="about.html"     class="f-link">About us</a>
+          <a href="Careers.html"   class="f-link">Careers</a>
+          <a href="Press.html"     class="f-link">Press</a>
+          <a href="Blog.html"      class="f-link">Blog</a>
+          <a href="Investors.html" class="f-link">Investors</a>
+        </div>
+      </div>
+      <div>
+        <div class="fc-title">Partners</div>
+        <div class="f-links">
+          <a href="#" class="f-link">List your restaurant</a>
+          <a href="#" class="f-link">Become a rider</a>
+          <a href="#" class="f-link">Zesto Pro</a>
+          <a href="#" class="f-link">Enterprise</a>
+        </div>
+      </div>
+      <div>
+        <div class="fc-title">Help</div>
+        <div class="f-links">
+          <a href="help-center.html" class="f-link">Help center</a>
+          <a href="privacy-policy.html" class="f-link">Privacy policy</a>
+          <a href="terms-of-service.html" class="f-link">Terms of service</a>
+          <a href="contact.html" class="f-link" style="color:var(--or);">Contact us</a>
+        </div>
+      </div>
+      <div>
+        <div class="fc-title">Cities</div>
+        <div class="f-links">
+          <a href="#" class="f-link">Abidjan</a>
+          <a href="#" class="f-link">Accra</a>
+          <a href="#" class="f-link">Dakar</a>
+          <a href="#" class="f-link">Lagos</a>
+          <a href="#" class="f-link">Nairobi</a>
+          <a href="#" class="f-link">Kampala</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bot">
+      <span class="footer-copy">© 2026 Zesto Technologies Inc. All rights reserved.</span>
+      <div class="socials">
+        <a href="#" class="soc-icon" aria-label="Instagram"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="2" y="2" width="12" height="12" rx="3.5"/><circle cx="8" cy="8" r="3"/><circle cx="11.5" cy="4.5" r=".8" fill="currentColor" stroke="none"/></svg></a>
+        <a href="#" class="soc-icon" aria-label="X"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M2 3h12L9.5 8.5V13l-3-1.5V8.5z" stroke-linejoin="round"/></svg></a>
+        <a href="#" class="soc-icon" aria-label="Facebook"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="2" y="2" width="12" height="12" rx="2"/><path d="M9 8H7v5M7 8V6a2 2 0 0 1 2-2h1" stroke-linecap="round"/></svg></a>
+        <a href="#" class="soc-icon" aria-label="LinkedIn"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="2" y="2" width="12" height="12" rx="2"/><path d="M5 7v4M5 5v.5M8 11V8.5A1.5 1.5 0 0 1 11 8.5V11" stroke-linecap="round"/></svg></a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script>
+function toggleFaq(btn) {
+  const item   = btn.parentElement;
+  const isOpen = item.classList.contains('open');
+  document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('open'));
+  if (!isOpen) item.classList.add('open');
+}
+
+function handleSubmit(e) {
+  e.preventDefault();
+  document.getElementById('contactForm').style.display   = 'none';
+  document.getElementById('formSuccess').classList.add('show');
+  document.getElementById('formSuccess').scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+</script>
+
+</body>
+</html>
