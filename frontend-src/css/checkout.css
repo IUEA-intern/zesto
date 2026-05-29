@@ -1,0 +1,323 @@
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:'Plus Jakarta Sans',sans-serif;
+}
+
+body{
+background:#F7F5F1;
+color:#111;
+}
+
+.container{
+width:90%;
+max-width:1400px;
+margin:auto;
+}
+
+.nav{
+background:white;
+border-bottom:1px solid #e7e2dc;
+padding:15px 0;
+}
+
+.nav-inner{
+display:flex;
+justify-content:space-between;
+align-items:center;
+}
+
+.nav-left{
+display:flex;
+align-items:center;
+gap:20px;
+}
+
+.back-btn{
+text-decoration:none;
+font-size:24px;
+color:#7A42F4;
+}
+
+.logo{
+display:flex;
+align-items:center;
+gap:12px;
+}
+
+.logo-mark{
+width:40px;
+height:40px;
+background:#FF5A00;
+color:white;
+display:flex;
+align-items:center;
+justify-content:center;
+border-radius:12px;
+}
+
+.logo-text{
+font-family:'Knewave',cursive;
+font-size:38px;
+}
+
+.logo-text span{
+color:#FF5A00;
+}
+
+.nav-right{
+display:flex;
+align-items:center;
+gap:15px;
+}
+
+.location-pill,
+.cart-nav-btn{
+background:#F7EFE9;
+padding:12px 18px;
+border-radius:15px;
+}
+
+.profile-btn{
+width:48px;
+height:48px;
+border:none;
+background:#FF5A00;
+color:white;
+border-radius:50%;
+font-weight:bold;
+}
+
+.page-title{
+font-size:52px;
+margin:40px 0;
+}
+
+.checkout-layout{
+display:grid;
+grid-template-columns:2fr 1fr;
+gap:40px;
+}
+
+.checkout-form-box,
+.summary-box{
+background:white;
+padding:35px;
+border-radius:30px;
+box-shadow:0 3px 10px rgba(0,0,0,.05);
+}
+
+.checkout-form-box h2{
+margin-bottom:25px;
+}
+
+.form-group{
+margin-bottom:20px;
+}
+
+label{
+display:block;
+margin-bottom:8px;
+font-weight:600;
+}
+
+input,
+textarea{
+width:100%;
+padding:15px;
+border:1px solid #ddd;
+border-radius:12px;
+font-size:15px;
+}
+
+.summary-title{
+font-size:30px;
+font-weight:800;
+margin-bottom:25px;
+}
+
+.order-item{
+display:flex;
+justify-content:space-between;
+margin-bottom:12px;
+}
+
+.summary-row{
+display:flex;
+justify-content:space-between;
+padding:18px 0;
+border-top:1px solid #eee;
+}
+
+.total{
+font-size:24px;
+font-weight:800;
+}
+
+.place-order-btn {
+    width: 100%;
+    margin-top: 25px;
+    padding: 18px;
+    border: none;
+    border-radius: 18px;
+    background: #F7A577;
+    color: white;
+    font-size: 20px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.place-order-btn:disabled {
+    background: #d9d9d9;
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+.place-order-btn:not(:disabled) {
+    background: #FF5500;
+}
+/* =========================
+   TABLET DEVICES
+========================= */
+@media (max-width: 1024px) {
+
+  .checkout-layout {
+    grid-template-columns: 1fr;
+    gap: 25px;
+  }
+
+  .page-title {
+    font-size: 42px;
+  }
+
+  .summary-box,
+  .checkout-form-box {
+    width: 100%;
+  }
+}
+
+
+/* =========================
+   MOBILE DEVICES
+========================= */
+@media (max-width: 768px) {
+
+  .container {
+    width: 95%;
+  }
+
+  .nav-inner {
+    flex-direction: column;
+    gap: 15px;
+    align-items: stretch;
+  }
+
+  .nav-left,
+  .nav-right {
+    justify-content: space-between;
+    width: 100%;
+  }
+
+  .logo-text {
+    font-size: 28px;
+  }
+
+  .page-title {
+    font-size: 32px;
+    margin: 25px 0;
+    text-align: center;
+  }
+
+  .checkout-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .checkout-form-box,
+  .summary-box {
+    padding: 20px;
+    border-radius: 20px;
+  }
+
+  .summary-title {
+    font-size: 24px;
+  }
+
+  .form-group input,
+  .form-group textarea {
+    font-size: 14px;
+    padding: 12px;
+  }
+
+  .place-order-btn {
+    padding: 15px;
+    font-size: 18px;
+  }
+
+  .summary-row.total {
+    font-size: 20px;
+  }
+
+  .location-pill {
+    font-size: 13px;
+    padding: 10px 14px;
+  }
+
+  .cart-nav-btn {
+    padding: 10px 14px;
+  }
+
+  .profile-btn {
+    width: 42px;
+    height: 42px;
+  }
+}
+
+
+/* =========================
+   SMALL PHONES
+========================= */
+@media (max-width: 480px) {
+
+  .logo-text {
+    font-size: 24px;
+  }
+
+  .page-title {
+    font-size: 28px;
+  }
+
+  .checkout-form-box h2 {
+    font-size: 22px;
+  }
+
+  .summary-title {
+    font-size: 22px;
+  }
+
+  .order-item {
+    flex-direction: column;
+    gap: 6px;
+    align-items: flex-start;
+  }
+
+  .summary-row {
+    font-size: 14px;
+  }
+
+  .summary-row.total {
+    font-size: 18px;
+  }
+
+  .place-order-btn {
+    font-size: 16px;
+    padding: 14px;
+  }
+
+  .location-pill {
+    display: none;
+  }
+}
