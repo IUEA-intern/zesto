@@ -253,17 +253,23 @@ function getPageFromBody() {
 document.addEventListener('DOMContentLoaded', () => {
   const page = getPageFromBody();
   initPage(page);
+
   document.body.addEventListener('click', handleGlobalActions);
 
   const checkoutBtn = document.getElementById('checkoutBtn');
+
   if (checkoutBtn) {
     checkoutBtn.addEventListener('click', () => {
+
       const cart = getCart();
-      if (cart.length === 0) return;
-      alert('Order placed successfully! 🎉');
-      saveCart([]);
-      renderCartPage();
-      updateCartCount();
+
+      if (cart.length === 0) {
+        alert("Your cart is empty.");
+        return;
+      }
+
+      window.location.href = "checkout.html";
+
     });
   }
 });
@@ -302,15 +308,22 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
+  document.body.addEventListener('click', handleGlobalActions);
+
   const checkoutBtn = document.getElementById('checkoutBtn');
+
   if (checkoutBtn) {
     checkoutBtn.addEventListener('click', () => {
+
       const cart = getCart();
-      if (cart.length === 0) return;
-      alert('Order placed successfully! 🎉');
-      saveCart([]);
-      renderCartPage();
-      updateCartCount();
+
+      if (cart.length === 0) {
+        alert("Your cart is empty.");
+        return;
+      }
+
+      window.location.href = "checkout.html";
+
     });
   }
 });
