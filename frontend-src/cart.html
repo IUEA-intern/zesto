@@ -1,105 +1,112 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Zesto — Your Cart</title>
 
-<link rel="preconnect" href="https://fonts.googleapis.com"/>
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-<link href="https://fonts.googleapis.com/css2?family=Knewave&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
-<link rel="stylesheet" href="css/cart.css">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Zesto — Your Cart</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Knewave&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="css/cart.css">
 </head>
+
 <body>
 
-<header class="nav">
-  <div class="container">
-    <div class="nav-inner">
+  <header class="nav">
+    <div class="container">
+      <div class="nav-inner">
 
-      <div class="nav-left">
-        <a href="order.html" class="back-btn">←</a>
-        <div class="logo">
-          <div class="logo-mark">⚡</div>
-          <div class="logo-text">
-            Zes<span>to</span>
+        <div class="nav-left">
+          <a href="order.html" class="back-btn">←</a>
+          <div class="logo">
+            <div class="logo-mark">⚡</div>
+            <div class="logo-text">
+              Zes<span>to</span>
+            </div>
           </div>
         </div>
-      </div>
 
-      <div class="nav-right">
-        <div class="location-pill">
-          📍 Kampala, Uganda
+        <div class="nav-right">
+          <div class="location-pill">
+            📍 Kampala, Uganda
+          </div>
+
+          <a href="cart.html" class="cart-nav-btn" style="opacity: 0.5; cursor: default; pointer-events: none;">
+            🛒 <span id="navCartCount">0</span>
+          </a>
+
+          <button class="profile-btn">
+            AK
+          </button>
         </div>
 
-        <a href="cart.html" class="cart-nav-btn" style="opacity: 0.5; cursor: default; pointer-events: none;">
-          🛒 <span id="navCartCount">0</span>
+      </div>
+    </div>
+  </header>
+
+  <div class="container">
+
+    <h1 class="cart-main-title">Your Cart</h1>
+
+    <!-- TABS -->
+    <div class="menu-tabs">
+      <a href="order.html" class="menu-tab" data-tab="food">Food</a>
+      <a href="order.html" class="menu-tab" data-tab="drinks">Drinks</a>
+      <a href="order.html" class="menu-tab" data-tab="desserts">Desserts</a>
+      <a href="order.html" class="menu-tab" data-tab="other">Other</a>
+    </div>
+
+    <div class="cart-layout">
+
+      <section class="cart-items-section">
+        <div id="cartContent">
+          <div class="empty-cart">
+            Your cart is empty. <br><br>
+            <a href="order.html" style="color:#FF5500; text-decoration:none; font-weight:700;">Continue Shopping →</a>
+          </div>
+        </div>
+      </section>
+
+      <aside class="cart-summary-box">
+        <div class="summary-title">Order Summary</div>
+
+        <div class="sum-row">
+          <span>Subtotal</span>
+          <span id="subtotal">UGX 0</span>
+        </div>
+
+        <div class="sum-row">
+          <span>Delivery</span>
+          <span>UGX 5,000</span>
+        </div>
+
+        <div class="sum-row total">
+          <span>Total</span>
+          <span id="total">UGX 5,000</span>
+        </div>
+
+        <a href="checkout.html">
+          <button class="checkout-btn" id="checkoutBtn">
+            Proceed to Checkout
+          </button>
         </a>
 
-        <a href="profile.html" class="profile-btn">
-          AK
+        <a href="order.html" class="continue-shopping-btn">
+          ← Continue Shopping
         </a>
-      </div>
+      </aside>
 
     </div>
-  </div>
-</header>
-
-<div class="container">
-
-  <h1 class="cart-main-title">Your Cart</h1>
-
-  <!-- TABS -->
-  <div class="menu-tabs">
-    <a href="order.html" class="menu-tab" data-tab="food">Food</a>
-    <a href="order.html" class="menu-tab" data-tab="drinks">Drinks</a>
-    <a href="order.html" class="menu-tab" data-tab="desserts">Desserts</a>
-    <a href="order.html" class="menu-tab" data-tab="other">Other</a>
-  </div>
-
-  <div class="cart-layout">
-
-    <section class="cart-items-section">
-      <div id="cartContent">
-        <div class="empty-cart">
-          Your cart is empty. <br><br>
-          <a href="order.html" style="color:#FF5500; text-decoration:none; font-weight:700;">Continue Shopping →</a>
-        </div>
-      </div>
-    </section>
-
-    <aside class="cart-summary-box">
-      <div class="summary-title">Order Summary</div>
-
-      <div class="sum-row">
-        <span>Subtotal</span>
-        <span id="subtotal">UGX 0</span>
-      </div>
-
-      <div class="sum-row">
-        <span>Delivery</span>
-        <span>UGX 5,000</span>
-      </div>
-
-      <div class="sum-row total">
-        <span>Total</span>
-        <span id="total">UGX 5,000</span>
-      </div>
-
-      <button class="checkout-btn" id="checkoutBtn" disabled>
-        Proceed to Checkout
-      </button>
-
-      <a href="order.html" class="continue-shopping-btn">
-        ← Continue Shopping
-      </a>
-    </aside>
 
   </div>
 
-</div>
-
-<script src="script/order&cart.js"></script>
+  <script src="script/order&cart.js"></script>
 
 
 </body>
+
 </html>
