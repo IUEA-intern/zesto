@@ -12,6 +12,7 @@ app.use(express.json())
 
 app.use('/api/register', require('./routes/register'))
 app.usr('/api/search', require('./routers/search'))
+app.use('/api/investors', require('./routes/investors')) 
 
 app.use((req, res) => {
   res.status(404).json({ error: 'Route not found' })
