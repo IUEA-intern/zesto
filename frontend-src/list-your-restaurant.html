@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>List Your Restaurant — Fork & Fame</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --cream: #f5f0e8;
+      --dark: #1a1208;
+      --ember: #c94b1e;
+      --ember-light: #e8632f;
+      --gold: #d4a843;
+      --muted: #8a7d6b;
+      --surface: #ede7d9;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--cream);
+      color: var(--dark);
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 300;
+      overflow-x: hidden;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1.4rem 5%;
+      background: rgba(245,240,232,0.85);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid rgba(201,75,30,0.12);
+    }
+    .logo {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.4rem;
+      font-weight: 900;
+      letter-spacing: -0.02em;
+      color: var(--dark);
+    }
+    .logo span { color: var(--ember); }
+    nav a {
+      text-decoration: none;
+      color: var(--muted);
+      font-size: 0.85rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      transition: color 0.2s;
+    }
+    nav a:hover { color: var(--ember); }
+    .nav-cta {
+      background: var(--ember);
+      color: var(--cream) !important;
+      padding: 0.55rem 1.3rem;
+      border-radius: 2px;
+      font-weight: 500;
+      transition: background 0.2s !important;
+    }
+    .nav-cta:hover { background: var(--ember-light) !important; color: var(--cream) !important; }
+
+    /* ── HERO ── */
+    .hero {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero-left {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 10rem 6% 6rem 8%;
+      position: relative;
+      z-index: 2;
+    }
+    .hero-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.75rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--ember);
+      font-weight: 500;
+      margin-bottom: 1.5rem;
+    }
+    .hero-tag::before {
+      content: '';
+      display: block;
+      width: 28px; height: 1px;
+      background: var(--ember);
+    }
+    h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(3rem, 5.5vw, 5.5rem);
+      font-weight: 900;
+      line-height: 1.0;
+      letter-spacing: -0.03em;
+      margin-bottom: 1.6rem;
+    }
+    h1 em {
+      font-style: italic;
+      color: var(--ember);
+    }
+    .hero-sub {
+      font-size: 1.05rem;
+      line-height: 1.75;
+      color: var(--muted);
+      max-width: 400px;
+      margin-bottom: 2.5rem;
+    }
+    .hero-actions {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+    }
+    .btn-primary {
+      background: var(--ember);
+      color: var(--cream);
+      padding: 0.9rem 2.2rem;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 500;
+      letter-spacing: 0.04em;
+      border: none;
+      border-radius: 2px;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+      transition: background 0.2s, transform 0.15s;
+    }
+    .btn-primary:hover { background: var(--ember-light); transform: translateY(-1px); }
+    .btn-secondary {
+      font-size: 0.88rem;
+      color: var(--dark);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      letter-spacing: 0.02em;
+      border-bottom: 1px solid var(--dark);
+      padding-bottom: 1px;
+      transition: color 0.2s, border-color 0.2s;
+    }
+    .btn-secondary:hover { color: var(--ember); border-color: var(--ember); }
+    .hero-stats {
+      display: flex;
+      gap: 2.5rem;
+      margin-top: 4rem;
+    }
+    .stat-num {
+      font-family: 'Playfair Display', serif;
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--dark);
+    }
+    .stat-label {
+      font-size: 0.78rem;
+      color: var(--muted);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin-top: 0.1rem;
+    }
+
+    .hero-right {
+      position: relative;
+      overflow: hidden;
+    }
+    .hero-right::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse at 30% 60%, rgba(201,75,30,0.18) 0%, transparent 65%),
+        radial-gradient(ellipse at 80% 20%, rgba(212,168,67,0.14) 0%, transparent 55%);
+    }
+    .hero-img-grid {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: 1fr 1fr;
+      gap: 4px;
+    }
+    .hero-img-grid .img-card {
+      overflow: hidden;
+      position: relative;
+    }
+    .hero-img-grid .img-card img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      transition: transform 8s ease;
+      filter: sepia(15%) contrast(1.05);
+    }
+    .hero-img-grid .img-card:hover img { transform: scale(1.06); }
+    .hero-img-grid .img-card::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(26,18,8,0.25), transparent);
+    }
+    .hero-overlay-card {
+      position: absolute;
+      bottom: 2.5rem;
+      left: -2.5rem;
+      background: var(--cream);
+      border: 1px solid rgba(201,75,30,0.2);
+      border-radius: 4px;
+      padding: 1.4rem 1.8rem;
+      box-shadow: 0 20px 60px rgba(26,18,8,0.18);
+      z-index: 10;
+    }
+    .overlay-card-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 0.25rem;
+    }
+    .overlay-card-sub {
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+    .overlay-card-stars { color: var(--gold); font-size: 0.85rem; margin-top: 0.4rem; }
+
+    /* ── SECTION BASE ── */
+    section { padding: 7rem 8%; }
+    .section-tag {
+      font-size: 0.72rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--ember);
+      font-weight: 500;
+      margin-bottom: 1rem;
+    }
+    h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2rem, 3.5vw, 3.2rem);
+      font-weight: 900;
+      line-height: 1.1;
+      letter-spacing: -0.02em;
+    }
+
+    /* ── HOW IT WORKS ── */
+    .how-section { background: var(--dark); color: var(--cream); }
+    .how-section .section-tag { color: var(--gold); }
+    .how-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-bottom: 5rem;
+      flex-wrap: wrap;
+      gap: 1.5rem;
+    }
+    .how-header p {
+      font-size: 1rem;
+      line-height: 1.75;
+      color: rgba(245,240,232,0.6);
+      max-width: 340px;
+    }
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0;
+    }
+    .step {
+      border-left: 1px solid rgba(245,240,232,0.1);
+      padding: 0 2.5rem 0 2rem;
+      position: relative;
+    }
+    .step:first-child { border-left: none; padding-left: 0; }
+    .step-num {
+      font-family: 'Playfair Display', serif;
+      font-size: 3.5rem;
+      font-weight: 900;
+      color: rgba(245,240,232,0.08);
+      line-height: 1;
+      margin-bottom: 1.5rem;
+    }
+    .step-icon {
+      width: 44px; height: 44px;
+      background: var(--ember);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 1.2rem;
+      font-size: 1.2rem;
+    }
+    .step h3 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.2rem;
+      font-weight: 700;
+      margin-bottom: 0.75rem;
+    }
+    .step p {
+      font-size: 0.88rem;
+      line-height: 1.7;
+      color: rgba(245,240,232,0.55);
+    }
+
+    /* ── BENEFITS ── */
+    .benefits-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4rem;
+      align-items: center;
+    }
+    .benefits-left h2 { margin-bottom: 1.5rem; }
+    .benefits-left p {
+      font-size: 0.98rem;
+      line-height: 1.8;
+      color: var(--muted);
+      margin-bottom: 2.5rem;
+    }
+    .benefit-list { display: flex; flex-direction: column; gap: 1rem; }
+    .benefit-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 1rem;
+      padding: 1.2rem 1.5rem;
+      background: var(--surface);
+      border-radius: 3px;
+      border-left: 3px solid transparent;
+      transition: border-color 0.2s;
+    }
+    .benefit-item:hover { border-left-color: var(--ember); }
+    .benefit-icon { font-size: 1.3rem; flex-shrink: 0; padding-top: 0.1rem; }
+    .benefit-item h4 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 0.25rem;
+    }
+    .benefit-item p { font-size: 0.83rem; color: var(--muted); line-height: 1.6; }
+    .benefits-right {
+      position: relative;
+      background: var(--surface);
+      border-radius: 4px;
+      padding: 3rem;
+      min-height: 480px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      overflow: hidden;
+    }
+    .benefits-right::before {
+      content: '';
+      position: absolute;
+      top: -60px; right: -60px;
+      width: 220px; height: 220px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(201,75,30,0.15), transparent 70%);
+    }
+    .pricing-card {
+      background: var(--cream);
+      border-radius: 3px;
+      padding: 2rem;
+      box-shadow: 0 8px 40px rgba(26,18,8,0.09);
+      position: relative;
+      z-index: 2;
+    }
+    .pricing-badge {
+      display: inline-block;
+      background: var(--ember);
+      color: var(--cream);
+      font-size: 0.7rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      font-weight: 500;
+      padding: 0.25rem 0.75rem;
+      border-radius: 2px;
+      margin-bottom: 1.2rem;
+    }
+    .pricing-price {
+      font-family: 'Playfair Display', serif;
+      font-size: 3rem;
+      font-weight: 900;
+      line-height: 1;
+      margin-bottom: 0.25rem;
+    }
+    .pricing-price sup { font-size: 1.2rem; vertical-align: top; margin-top: 0.5rem; }
+    .pricing-freq { font-size: 0.82rem; color: var(--muted); margin-bottom: 1.8rem; }
+    .pricing-features { list-style: none; display: flex; flex-direction: column; gap: 0.65rem; margin-bottom: 2rem; }
+    .pricing-features li {
+      font-size: 0.87rem;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+    .pricing-features li::before { content: '✓'; color: var(--ember); font-weight: 700; }
+    .pricing-note {
+      font-size: 0.78rem;
+      color: var(--muted);
+      text-align: center;
+      margin-top: 1rem;
+    }
+
+    /* ── FORM SECTION ── */
+    .form-section {
+      background: var(--surface);
+      padding: 7rem 8%;
+    }
+    .form-container {
+      max-width: 780px;
+      margin: 0 auto;
+    }
+    .form-header {
+      text-align: center;
+      margin-bottom: 4rem;
+    }
+    .form-header h2 { margin-bottom: 1rem; }
+    .form-header p { font-size: 1rem; color: var(--muted); line-height: 1.7; }
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.25rem;
+    }
+    .form-group { display: flex; flex-direction: column; gap: 0.5rem; }
+    .form-group.full { grid-column: 1 / -1; }
+    label {
+      font-size: 0.78rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      font-weight: 500;
+      color: var(--dark);
+    }
+    input, select, textarea {
+      background: var(--cream);
+      border: 1px solid rgba(26,18,8,0.15);
+      border-radius: 2px;
+      padding: 0.85rem 1rem;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.92rem;
+      color: var(--dark);
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      width: 100%;
+    }
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--ember);
+      box-shadow: 0 0 0 3px rgba(201,75,30,0.1);
+    }
+    textarea { resize: vertical; min-height: 120px; }
+    select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238a7d6b' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 1rem center; background-size: 16px; }
+    .checkbox-group { display: flex; align-items: flex-start; gap: 0.75rem; }
+    .checkbox-group input { width: auto; margin-top: 2px; accent-color: var(--ember); }
+    .checkbox-group label { text-transform: none; font-size: 0.85rem; letter-spacing: 0; color: var(--muted); }
+    .form-submit {
+      grid-column: 1 / -1;
+      display: flex;
+      justify-content: center;
+      margin-top: 1rem;
+    }
+    .btn-submit {
+      background: var(--ember);
+      color: var(--cream);
+      border: none;
+      padding: 1rem 3.5rem;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 500;
+      letter-spacing: 0.05em;
+      border-radius: 2px;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.15s;
+    }
+    .btn-submit:hover { background: var(--ember-light); transform: translateY(-1px); }
+
+    /* ── TESTIMONIALS ── */
+    .testimonials { background: var(--cream); }
+    .testimonials-header { margin-bottom: 3.5rem; }
+    .testimonials-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem;
+    }
+    .testi-card {
+      background: var(--surface);
+      border-radius: 3px;
+      padding: 2rem;
+      border-top: 3px solid transparent;
+      transition: border-color 0.25s;
+    }
+    .testi-card:hover { border-top-color: var(--ember); }
+    .testi-stars { color: var(--gold); font-size: 0.9rem; margin-bottom: 1rem; }
+    .testi-quote {
+      font-family: 'Playfair Display', serif;
+      font-size: 1rem;
+      font-style: italic;
+      line-height: 1.7;
+      margin-bottom: 1.5rem;
+      color: var(--dark);
+    }
+    .testi-author {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .testi-avatar {
+      width: 38px; height: 38px;
+      border-radius: 50%;
+      background: var(--ember);
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Playfair Display', serif;
+      font-weight: 700;
+      color: var(--cream);
+      font-size: 0.9rem;
+      flex-shrink: 0;
+    }
+    .testi-name { font-weight: 500; font-size: 0.88rem; }
+    .testi-rest { font-size: 0.78rem; color: var(--muted); }
+
+    /* ── FOOTER ── */
+    footer {
+      background: var(--dark);
+      color: rgba(245,240,232,0.5);
+      padding: 3rem 8%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 1rem;
+      font-size: 0.83rem;
+    }
+    footer .logo { color: var(--cream); font-size: 1.2rem; }
+    footer a { color: rgba(245,240,232,0.5); text-decoration: none; }
+    footer a:hover { color: var(--ember); }
+
+    /* ── ANIMATIONS ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(28px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .hero-left > * {
+      opacity: 0;
+      animation: fadeUp 0.7s ease forwards;
+    }
+    .hero-left > *:nth-child(1) { animation-delay: 0.1s; }
+    .hero-left > *:nth-child(2) { animation-delay: 0.25s; }
+    .hero-left > *:nth-child(3) { animation-delay: 0.4s; }
+    .hero-left > *:nth-child(4) { animation-delay: 0.55s; }
+    .hero-left > *:nth-child(5) { animation-delay: 0.7s; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 900px) {
+      .hero { grid-template-columns: 1fr; min-height: auto; }
+      .hero-right { height: 50vw; min-height: 300px; }
+      .hero-overlay-card { left: 1rem; }
+      .steps { grid-template-columns: 1fr 1fr; }
+      .step:nth-child(2) { border-left: 1px solid rgba(245,240,232,0.1); }
+      .step:nth-child(3) { border-left: none; padding-left: 0; }
+      .benefits-grid { grid-template-columns: 1fr; }
+      .testimonials-grid { grid-template-columns: 1fr 1fr; }
+      nav a:not(.nav-cta):not(:last-child) { display: none; }
+    }
+    @media (max-width: 600px) {
+      section { padding: 5rem 6%; }
+      .form-grid { grid-template-columns: 1fr; }
+      .form-group.full { grid-column: auto; }
+      .steps { grid-template-columns: 1fr; }
+      .step { border-left: none; padding-left: 0; border-top: 1px solid rgba(245,240,232,0.1); padding-top: 2rem; }
+      .step:first-child { border-top: none; padding-top: 0; }
+      .testimonials-grid { grid-template-columns: 1fr; }
+      .hero-stats { gap: 1.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="logo">Fork <span>&</span> Fame</div>
+  <div style="display:flex;gap:2rem;align-items:center;">
+    <a href="#how">How It Works</a>
+    <a href="#pricing">Pricing</a>
+    <a href="#apply" class="nav-cta">Get Listed</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-left">
+    <span class="hero-tag">For restaurant owners</span>
+    <h1>Put your tables<br>in front of <em>hungry</em><br>diners.</h1>
+    <p class="hero-sub">Join thousands of restaurants already filling seats through Fork & Fame — the discovery platform built for serious hospitality.</p>
+    <div class="hero-actions">
+      <a href="#apply" class="btn-primary">List My Restaurant →</a>
+      <a href="#how" class="btn-secondary">See how it works</a>
+    </div>
+    <div class="hero-stats">
+      <div>
+        <div class="stat-num">4,200+</div>
+        <div class="stat-label">Restaurants listed</div>
+      </div>
+      <div>
+        <div class="stat-num">1.8M</div>
+        <div class="stat-label">Monthly diners</div>
+      </div>
+      <div>
+        <div class="stat-num">92%</div>
+        <div class="stat-label">Satisfaction rate</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="hero-right">
+    <div class="hero-img-grid">
+      <div class="img-card"><img src="https://images.unsplash.com/photo-1514190051997-0f6f39ca5cde?w=600&q=80" alt="Restaurant interior" /></div>
+      <div class="img-card"><img src="https://images.unsplash.com/photo-1550966871-3ed3cdb5ed0c?w=600&q=80" alt="Plated dish" /></div>
+      <div class="img-card"><img src="https://images.unsplash.com/photo-1579871494447-9811cf80d66c?w=600&q=80" alt="Chef at work" /></div>
+      <div class="img-card"><img src="https://images.unsplash.com/photo-1466978913421-dad2ebd01d17?w=600&q=80" alt="Dining guests" /></div>
+    </div>
+    <div class="hero-overlay-card">
+      <div class="overlay-card-title">The Oak Room</div>
+      <div class="overlay-card-sub">Joined last month · 340 new covers</div>
+      <div class="overlay-card-stars">★★★★★</div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="how-section" id="how">
+  <div class="how-header">
+    <div>
+      <div class="section-tag">The process</div>
+      <h2 style="color:var(--cream);">Live in four<br>simple steps.</h2>
+    </div>
+    <p>From sign-up to first reservation, our onboarding is designed to get you in front of diners fast — with zero technical headaches.</p>
+  </div>
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">01</div>
+      <div class="step-icon">📋</div>
+      <h3>Fill the form</h3>
+      <p>Tell us about your restaurant — cuisine, location, capacity, and what makes your dining experience special.</p>
+    </div>
+    <div class="step">
+      <div class="step-num">02</div>
+      <div class="step-icon">✅</div>
+      <h3>Quick review</h3>
+      <p>Our team reviews your listing within 48 hours to ensure quality and accuracy across the platform.</p>
+    </div>
+    <div class="step">
+      <div class="step-num">03</div>
+      <div class="step-icon">🎨</div>
+      <h3>Build your profile</h3>
+      <p>Upload photos, set your menu, manage hours, and customise your page to reflect your brand perfectly.</p>
+    </div>
+    <div class="step">
+      <div class="step-num">04</div>
+      <div class="step-icon">🍽️</div>
+      <h3>Seats get filled</h3>
+      <p>Start receiving reservations, reviews, and new regulars from day one. Track everything in your dashboard.</p>
+    </div>
+  </div>
+</section>
+
+<!-- BENEFITS + PRICING -->
+<section class="benefits-section" id="pricing">
+  <div class="benefits-grid">
+    <div class="benefits-left">
+      <div class="section-tag">Why Fork & Fame</div>
+      <h2>Everything a restaurant<br>owner actually needs.</h2>
+      <p>We built Fork & Fame by talking to hundreds of restaurant owners. Every feature solves a real problem.</p>
+      <div class="benefit-list">
+        <div class="benefit-item">
+          <div class="benefit-icon">📍</div>
+          <div>
+            <h4>Hyper-local discovery</h4>
+            <p>Appear in searches for diners actively looking in your neighbourhood and cuisine category.</p>
+          </div>
+        </div>
+        <div class="benefit-item">
+          <div class="benefit-icon">📊</div>
+          <div>
+            <h4>Real-time analytics</h4>
+            <p>See page views, reservation conversions, and review trends in a clean owner dashboard.</p>
+          </div>
+        </div>
+        <div class="benefit-item">
+          <div class="benefit-icon">📱</div>
+          <div>
+            <h4>Instant reservations</h4>
+            <p>Diners book directly — no phone tag, no third-party commissions eating into your margin.</p>
+          </div>
+        </div>
+        <div class="benefit-item">
+          <div class="benefit-icon">⭐</div>
+          <div>
+            <h4>Verified reviews</h4>
+            <p>Only diners who actually visited can leave a review, so your rating is earned and trusted.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="benefits-right">
+      <div class="pricing-card">
+        <span class="pricing-badge">Most popular</span>
+        <div class="pricing-price"><sup>$</sup>49</div>
+        <div class="pricing-freq">per month · cancel any time</div>
+        <ul class="pricing-features">
+          <li>Full restaurant profile page</li>
+          <li>Unlimited reservations</li>
+          <li>Photo gallery (up to 40 images)</li>
+          <li>Menu builder & display</li>
+          <li>Owner analytics dashboard</li>
+          <li>Review management tools</li>
+          <li>Priority placement in search</li>
+          <li>Email & chat support</li>
+        </ul>
+        <a href="#apply" class="btn-primary" style="display:block;text-align:center;">Start free 30-day trial</a>
+        <p class="pricing-note">No credit card required to apply.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- APPLICATION FORM -->
+<section class="form-section" id="apply">
+  <div class="form-container">
+    <div class="form-header">
+      <div class="section-tag">Apply now</div>
+      <h2>Let's get your restaurant listed.</h2>
+      <p>Fill in the details below and our team will be in touch within 48 hours to complete your onboarding.</p>
+    </div>
+
+    <div class="form-grid">
+      <div class="form-group">
+        <label for="rest-name">Restaurant name *</label>
+        <input type="text" id="rest-name" placeholder="e.g. The Copper Spoon" />
+      </div>
+      <div class="form-group">
+        <label for="cuisine">Cuisine type *</label>
+        <select id="cuisine">
+          <option value="" disabled selected>Select cuisine</option>
+          <option>Italian</option>
+          <option>Japanese</option>
+          <option>French</option>
+          <option>Indian</option>
+          <option>Mediterranean</option>
+          <option>American</option>
+          <option>Chinese</option>
+          <option>Mexican</option>
+          <option>Middle Eastern</option>
+          <option>Other</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="owner">Your name *</label>
+        <input type="text" id="owner" placeholder="First and last name" />
+      </div>
+      <div class="form-group">
+        <label for="email">Email address *</label>
+        <input type="email" id="email" placeholder="owner@yourrestaurant.com" />
+      </div>
+      <div class="form-group">
+        <label for="phone">Phone number</label>
+        <input type="tel" id="phone" placeholder="+1 (555) 000-0000" />
+      </div>
+      <div class="form-group">
+        <label for="city">City / Town *</label>
+        <input type="text" id="city" placeholder="e.g. New York" />
+      </div>
+      <div class="form-group full">
+        <label for="address">Full address *</label>
+        <input type="text" id="address" placeholder="Street address, city, state/province, zip" />
+      </div>
+      <div class="form-group full">
+        <label for="about">Tell us about your restaurant</label>
+        <textarea id="about" placeholder="What makes your restaurant unique? What's your dining experience like?"></textarea>
+      </div>
+      <div class="form-group full">
+        <label for="website">Website (optional)</label>
+        <input type="url" id="website" placeholder="https://yourrestaurant.com" />
+      </div>
+      <div class="form-group full">
+        <div class="checkbox-group">
+          <input type="checkbox" id="agree" />
+          <label for="agree">I agree to Fork & Fame's <a href="#" style="color:var(--ember);">Terms of Service</a> and <a href="#" style="color:var(--ember);">Privacy Policy</a>, and confirm I am authorised to list this restaurant.</label>
+        </div>
+      </div>
+      <div class="form-submit">
+        <button class="btn-submit" onclick="handleSubmit()">Submit Application →</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section class="testimonials">
+  <div class="testimonials-header">
+    <div class="section-tag">From our community</div>
+    <h2>Owners who made the switch.</h2>
+  </div>
+  <div class="testimonials-grid">
+    <div class="testi-card">
+      <div class="testi-stars">★★★★★</div>
+      <p class="testi-quote">"We were sceptical at first, but within the first month we had filled our midweek tables consistently for the first time in years."</p>
+      <div class="testi-author">
+        <div class="testi-avatar">MR</div>
+        <div>
+          <div class="testi-name">Marco Rossi</div>
+          <div class="testi-rest">Trattoria Rossi, Chicago</div>
+        </div>
+      </div>
+    </div>
+    <div class="testi-card">
+      <div class="testi-stars">★★★★★</div>
+      <p class="testi-quote">"The analytics dashboard alone is worth the subscription. I finally understand when and why diners choose us — and what brings them back."</p>
+      <div class="testi-author">
+        <div class="testi-avatar">SL</div>
+        <div>
+          <div class="testi-name">Sarah Lin</div>
+          <div class="testi-rest">Jade Garden, San Francisco</div>
+        </div>
+      </div>
+    </div>
+    <div class="testi-card">
+      <div class="testi-stars">★★★★★</div>
+      <p class="testi-quote">"Setup took under an hour and reservations started coming in the same week. The no-commission model is a genuine game-changer for margins."</p>
+      <div class="testi-author">
+        <div class="testi-avatar">DP</div>
+        <div>
+          <div class="testi-name">David Park</div>
+          <div class="testi-rest">Ember & Oak, Austin</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="logo">Fork <span style="color:var(--ember);">&</span> Fame</div>
+  <div style="display:flex;gap:2rem;flex-wrap:wrap;">
+    <a href="#">About</a>
+    <a href="#">Pricing</a>
+    <a href="#">Contact</a>
+    <a href="#">Privacy</a>
+    <a href="#">Terms</a>
+  </div>
+  <div>© 2026 Fork & Fame. All rights reserved.</div>
+</footer>
+
+<script>
+  function handleSubmit() {
+    const name = document.getElementById('rest-name').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const agree = document.getElementById('agree').checked;
+
+    if (!name || !email) {
+      alert('Please fill in your restaurant name and email address.');
+      return;
+    }
+    if (!agree) {
+      alert('Please agree to the Terms of Service to continue.');
+      return;
+    }
+
+    const btn = document.querySelector('.btn-submit');
+    btn.textContent = 'Application sent! ✓';
+    btn.style.background = '#2d7a4f';
+    btn.disabled = true;
+
+    document.querySelector('.form-container').scrollIntoView({ behavior: 'smooth' });
+  }
+
+  // Subtle scroll reveal
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.style.opacity = '1';
+        e.target.style.transform = 'translateY(0)';
+      }
+    });
+  }, { threshold: 0.12 });
+
+  document.querySelectorAll('.step, .benefit-item, .testi-card, .pricing-card').forEach(el => {
+    el.style.opacity = '0';
+    el.style.transform = 'translateY(20px)';
+    el.style.transition = 'opacity 0.55s ease, transform 0.55s ease';
+    observer.observe(el);
+  });
+</script>
+</body>
+</html>

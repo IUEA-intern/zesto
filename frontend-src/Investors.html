@@ -519,5 +519,88 @@
   </div>
 </footer>
 
+<script>
+// ── Investors page — API integration ─────────────────────────────────────────
+// Change this to your server URL when deploying
+const API = 'http://localhost:3000'
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function showFormMsg(type, text) {
+  let el = document.getElementById('deckFormMsg')
+  if (!el) {
+    el = document.createElement('div')
+    el.id = 'deckFormMsg'
+    el.style.cssText = 'margin-top:10px;padding:10px 14px;border-radius:8px;font-size:13px;font-weight:600;text-align:center;'
+    document.querySelector('.round-form').appendChild(el)
+  }
+  el.style.background = type === 'success' ? '#F0FDF4' : '#FFF5F5'
+  el.style.color      = type === 'success' ? '#16A34A' : '#C53030'
+  el.style.border     = type === 'success' ? '1px solid #BBF7D0' : '1px solid #FED7D7'
+  el.textContent      = text
+  el.style.display    = 'block'
+}
+
+// ── Deck request form ─────────────────────────────────────────────────────────
+async function handleDeckRequest(e) {
+  e.preventDefault()
+  const btn = document.querySelector('.form-submit')
+  const inputs = document.querySelectorAll('.round-form .form-input')
+
+  // Gather values
+  const [nameEl, orgEl, emailEl, chequeEl] = inputs
+  const payload = {
+    name:         nameEl.value.trim(),
+    organisation: orgEl.value.trim(),
+    email:        emailEl.value.trim(),
+    chequeSize:   chequeEl.value,
+  }
+
+  // Client guard
+  if (!payload.name || !payload.organisation || !payload.email) {
+    showFormMsg('error', 'Please fill in all fields.')
+    return
+  }
+
+  // Loading state
+  btn.disabled    = true
+  btn.textContent = 'Sending…'
+
+  try {
+    const res  = await fetch(`${API}/api/investors/deck-request`, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify(payload),
+    })
+    const data = await res.json()
+
+    if (!res.ok) {
+      btn.disabled    = false
+      btn.textContent = 'Request deck →'
+      showFormMsg('error', data.error || 'Something went wrong. Please try again.')
+      return
+    }
+
+    // Success
+    btn.textContent      = '✓ Request received!'
+    btn.style.background = '#22C55E'
+    showFormMsg('success', data.message)
+    document.querySelectorAll('.round-form .form-input').forEach(i => { i.value = ''; i.disabled = true })
+
+  } catch (err) {
+    btn.disabled    = false
+    btn.textContent = 'Request deck →'
+    showFormMsg('error', 'Could not reach the server. Please check your connection.')
+    console.error('[deck-request]', err)
+  }
+}
+
+// Wire up the form on DOM ready
+document.addEventListener('DOMContentLoaded', () => {
+  const submitBtn = document.querySelector('.form-submit')
+  if (submitBtn) {
+    submitBtn.addEventListener('click', handleDeckRequest)
+  }
+})
+</script>
 </body>
 </html>
