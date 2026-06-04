@@ -1,6 +1,6 @@
 const express = require('express')
-const cors = require('cors')
-const app = express()
+const cors    = require('cors')
+const app     = express()
 
 app.use(cors({ // to be able to test on server machine
   origin: 'http://localhost:5500',
@@ -11,8 +11,8 @@ app.use(cors({ // to be able to test on server machine
 app.use(express.json())
 
 app.use('/api/register', require('./routes/register'))
-app.usr('/api/search', require('./routers/search))
-	
+app.use('/api/search',   require('./routes/search'))
+app.use('/api/signin',   require('./routes/signin'))
 app.use((req, res) => {
   res.status(404).json({ error: 'Route not found' })
 })
