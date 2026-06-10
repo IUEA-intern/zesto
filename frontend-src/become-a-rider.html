@@ -1,1211 +1,390 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Become a Rider</title>
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:ital,wght@0,300;0,400;0,600;0,700;1,700&display=swap" rel="stylesheet" />
-  <style>
-    :root {
-      --black: #0a0a0a;
-      --off-black: #111111;
-      --panel: #161616;
-      --border: rgba(255,255,255,0.07);
-      --white: #f0ede8;
-      --muted: rgba(240,237,232,0.45);
-      --lime: #c8f53a;
-      --lime-dark: #a8d020;
-      --red: #ff3c2e;
-      --card-bg: #1a1a1a;
-    }
-
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html { scroll-behavior: smooth; }
-
-    body {
-      background: var(--black);
-      color: var(--white);
-      font-family: 'Barlow', sans-serif;
-      font-weight: 300;
-      overflow-x: hidden;
-      cursor: default;
-    }
-
-    /* ── NOISE OVERLAY ── */
-    body::before {
-      content: '';
-      position: fixed;
-      inset: 0;
-      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
-      pointer-events: none;
-      z-index: 999;
-      opacity: 0.4;
-    }
-
-    /* ── NAV ── */
-    nav {
-      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 1.2rem 5%;
-      border-bottom: 1px solid var(--border);
-      background: rgba(10,10,10,0.88);
-      backdrop-filter: blur(14px);
-    }
-    .logo {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 1.8rem;
-      letter-spacing: 0.06em;
-      color: var(--white);
-    }
-    .logo span { color: var(--lime); }
-    .nav-right { display: flex; align-items: center; gap: 2rem; }
-    nav a {
-      text-decoration: none;
-      color: var(--muted);
-      font-size: 0.8rem;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      font-weight: 600;
-      transition: color 0.2s;
-    }
-    nav a:hover { color: var(--lime); }
-    .nav-cta {
-      background: var(--lime);
-      color: var(--black) !important;
-      padding: 0.55rem 1.4rem;
-      border-radius: 2px;
-      font-weight: 700 !important;
-      transition: background 0.2s !important;
-    }
-    .nav-cta:hover { background: var(--lime-dark) !important; }
-
-    /* ── HERO ── */
-    .hero {
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-end;
-      padding: 0 6% 7rem;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .hero-bg {
-      position: absolute;
-      inset: 0;
-      background:
-        radial-gradient(ellipse 60% 50% at 80% 40%, rgba(200,245,58,0.08) 0%, transparent 70%),
-        radial-gradient(ellipse 40% 60% at 20% 70%, rgba(255,60,46,0.06) 0%, transparent 60%),
-        linear-gradient(180deg, rgba(10,10,10,0) 0%, rgba(10,10,10,0.7) 60%, var(--black) 100%);
-      z-index: 1;
-    }
-    .hero-bg-img {
-      position: absolute;
-      inset: 0;
-      background: url('https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1600&q=80') center/cover no-repeat;
-      filter: brightness(0.28) saturate(0.6);
-      z-index: 0;
-    }
-
-    .hero-content {
-      position: relative;
-      z-index: 2;
-    }
-
-    .hero-eyebrow {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.6rem;
-      font-size: 0.75rem;
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-      font-weight: 700;
-      color: var(--lime);
-      margin-bottom: 1.2rem;
-    }
-    .hero-eyebrow .dot {
-      width: 6px; height: 6px;
-      background: var(--lime);
-      border-radius: 50%;
-      animation: pulse 2s infinite;
-    }
-    @keyframes pulse {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.4; transform: scale(0.6); }
-    }
-
-    h1 {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: clamp(5rem, 13vw, 13rem);
-      line-height: 0.9;
-      letter-spacing: 0.01em;
-      margin-bottom: 2rem;
-    }
-    h1 .line-accent { color: var(--lime); }
-    h1 .line-stroke {
-      -webkit-text-stroke: 2px var(--white);
-      color: transparent;
-    }
-
-    .hero-bottom {
-      display: flex;
-      align-items: flex-end;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 2rem;
-    }
-    .hero-sub {
-      font-size: 1.05rem;
-      line-height: 1.75;
-      color: var(--muted);
-      max-width: 400px;
-    }
-    .hero-sub strong { color: var(--white); font-weight: 600; }
-
-    .hero-earn {
-      text-align: right;
-    }
-    .earn-label {
-      font-size: 0.72rem;
-      letter-spacing: 0.16em;
-      text-transform: uppercase;
-      color: var(--muted);
-      margin-bottom: 0.3rem;
-    }
-    .earn-num {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 4rem;
-      line-height: 1;
-      color: var(--lime);
-    }
-    .earn-sub {
-      font-size: 0.78rem;
-      color: var(--muted);
-    }
-
-    .hero-cta-group {
-      display: flex;
-      align-items: center;
-      gap: 1.2rem;
-      margin-top: 2.5rem;
-      flex-wrap: wrap;
-    }
-    .btn-lime {
-      background: var(--lime);
-      color: var(--black);
-      padding: 1rem 2.8rem;
-      font-family: 'Barlow', sans-serif;
-      font-size: 0.88rem;
-      font-weight: 700;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      text-decoration: none;
-      border: none;
-      border-radius: 2px;
-      cursor: pointer;
-      display: inline-block;
-      transition: background 0.2s, transform 0.15s;
-    }
-    .btn-lime:hover { background: var(--lime-dark); transform: translateY(-2px); }
-    .btn-ghost {
-      color: var(--white);
-      text-decoration: none;
-      font-size: 0.82rem;
-      font-weight: 600;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      border-bottom: 1px solid rgba(240,237,232,0.3);
-      padding-bottom: 2px;
-      transition: color 0.2s, border-color 0.2s;
-    }
-    .btn-ghost:hover { color: var(--lime); border-color: var(--lime); }
-
-    /* ── TICKER ── */
-    .ticker {
-      background: var(--lime);
-      overflow: hidden;
-      padding: 0.7rem 0;
-      position: relative;
-      z-index: 10;
-    }
-    .ticker-inner {
-      display: flex;
-      white-space: nowrap;
-      animation: ticker 22s linear infinite;
-      gap: 0;
-    }
-    .ticker-item {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 1.1rem;
-      letter-spacing: 0.08em;
-      color: var(--black);
-      padding: 0 2rem;
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-    }
-    .ticker-item::after {
-      content: '★';
-      font-size: 0.7rem;
-    }
-    @keyframes ticker {
-      from { transform: translateX(0); }
-      to   { transform: translateX(-50%); }
-    }
-
-    /* ── SECTION BASE ── */
-    section { padding: 7rem 6%; }
-    .section-label {
-      font-size: 0.72rem;
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-      font-weight: 700;
-      color: var(--lime);
-      margin-bottom: 1rem;
-    }
-    h2 {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: clamp(2.5rem, 5vw, 4.5rem);
-      letter-spacing: 0.02em;
-      line-height: 1;
-    }
-
-    /* ── WHY RIDE ── */
-    .why-section {
-      background: var(--off-black);
-      border-top: 1px solid var(--border);
-      border-bottom: 1px solid var(--border);
-    }
-    .why-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-end;
-      margin-bottom: 4rem;
-      flex-wrap: wrap;
-      gap: 1.5rem;
-    }
-    .why-header p {
-      font-size: 0.95rem;
-      line-height: 1.8;
-      color: var(--muted);
-      max-width: 360px;
-    }
-    .perks-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 1px;
-      background: var(--border);
-      border: 1px solid var(--border);
-    }
-    .perk {
-      background: var(--off-black);
-      padding: 2.5rem 2rem;
-      position: relative;
-      overflow: hidden;
-      transition: background 0.25s;
-    }
-    .perk::before {
-      content: '';
-      position: absolute;
-      bottom: 0; left: 0; right: 0;
-      height: 2px;
-      background: var(--lime);
-      transform: scaleX(0);
-      transition: transform 0.3s ease;
-    }
-    .perk:hover { background: var(--panel); }
-    .perk:hover::before { transform: scaleX(1); }
-    .perk-icon {
-      font-size: 2rem;
-      margin-bottom: 1.2rem;
-      display: block;
-    }
-    .perk-title {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 1.6rem;
-      letter-spacing: 0.04em;
-      margin-bottom: 0.5rem;
-      color: var(--white);
-    }
-    .perk-desc {
-      font-size: 0.87rem;
-      line-height: 1.7;
-      color: var(--muted);
-    }
-    .perk-num {
-      position: absolute;
-      top: 1.5rem; right: 1.8rem;
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 3.5rem;
-      color: rgba(200,245,58,0.06);
-      line-height: 1;
-    }
-
-    /* ── HOW IT WORKS ── */
-    .how-section { background: var(--black); }
-    .how-layout {
-      display: grid;
-      grid-template-columns: 1fr 1.6fr;
-      gap: 6rem;
-      align-items: center;
-    }
-    .how-left h2 { margin-bottom: 1.5rem; }
-    .how-left p {
-      font-size: 0.95rem;
-      line-height: 1.8;
-      color: var(--muted);
-      margin-bottom: 2.5rem;
-    }
-    .steps-list { display: flex; flex-direction: column; gap: 0; }
-    .step-row {
-      display: flex;
-      align-items: flex-start;
-      gap: 1.5rem;
-      padding: 1.8rem 0;
-      border-bottom: 1px solid var(--border);
-    }
-    .step-row:first-child { border-top: 1px solid var(--border); }
-    .step-n {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 2.2rem;
-      color: var(--lime);
-      line-height: 1;
-      flex-shrink: 0;
-      width: 2.5rem;
-    }
-    .step-text h4 {
-      font-family: 'Barlow', sans-serif;
-      font-size: 1rem;
-      font-weight: 700;
-      letter-spacing: 0.04em;
-      margin-bottom: 0.3rem;
-    }
-    .step-text p {
-      font-size: 0.85rem;
-      line-height: 1.65;
-      color: var(--muted);
-    }
-    .how-right {
-      position: relative;
-    }
-    .phone-mockup {
-      background: var(--panel);
-      border: 1px solid var(--border);
-      border-radius: 28px;
-      padding: 2rem 1.5rem;
-      max-width: 300px;
-      margin: 0 auto;
-      box-shadow: 0 40px 100px rgba(0,0,0,0.6), 0 0 0 1px rgba(200,245,58,0.05);
-      position: relative;
-    }
-    .phone-notch {
-      width: 80px; height: 24px;
-      background: var(--black);
-      border-radius: 12px;
-      margin: 0 auto 1.5rem;
-    }
-    .phone-screen-label {
-      font-size: 0.68rem;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-      color: var(--muted);
-      text-align: center;
-      margin-bottom: 1.5rem;
-    }
-    .phone-map {
-      background: #1e2a1e;
-      border-radius: 12px;
-      height: 160px;
-      margin-bottom: 1.2rem;
-      position: relative;
-      overflow: hidden;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .phone-map::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background:
-        repeating-linear-gradient(0deg, transparent, transparent 20px, rgba(200,245,58,0.04) 20px, rgba(200,245,58,0.04) 21px),
-        repeating-linear-gradient(90deg, transparent, transparent 20px, rgba(200,245,58,0.04) 20px, rgba(200,245,58,0.04) 21px);
-    }
-    .map-pin {
-      width: 28px; height: 28px;
-      background: var(--lime);
-      border-radius: 50% 50% 50% 0;
-      transform: rotate(-45deg);
-      position: relative;
-      z-index: 2;
-      box-shadow: 0 4px 20px rgba(200,245,58,0.5);
-      animation: bounce 2s ease-in-out infinite;
-    }
-    @keyframes bounce {
-      0%, 100% { transform: rotate(-45deg) translateY(0); }
-      50% { transform: rotate(-45deg) translateY(-5px); }
-    }
-    .phone-stat-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 0.6rem;
-      margin-bottom: 0.6rem;
-    }
-    .phone-stat {
-      background: var(--off-black);
-      border-radius: 10px;
-      padding: 0.9rem;
-      border: 1px solid var(--border);
-    }
-    .phone-stat-val {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 1.5rem;
-      color: var(--lime);
-      line-height: 1;
-      margin-bottom: 0.15rem;
-    }
-    .phone-stat-label {
-      font-size: 0.68rem;
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-    }
-    .phone-order {
-      background: var(--off-black);
-      border-radius: 10px;
-      padding: 0.9rem 1rem;
-      border: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-    .phone-order-text { font-size: 0.8rem; color: var(--muted); }
-    .phone-order-text strong { display: block; color: var(--white); font-size: 0.88rem; margin-bottom: 0.1rem; }
-    .order-badge {
-      background: var(--lime);
-      color: var(--black);
-      font-size: 0.65rem;
-      font-weight: 700;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      padding: 0.25rem 0.6rem;
-      border-radius: 20px;
-    }
-    .how-right .glow {
-      position: absolute;
-      width: 300px; height: 300px;
-      background: radial-gradient(circle, rgba(200,245,58,0.08), transparent 70%);
-      top: 50%; left: 50%;
-      transform: translate(-50%, -50%);
-      pointer-events: none;
-    }
-
-    /* ── EARNINGS SECTION ── */
-    .earn-section {
-      background: var(--lime);
-      color: var(--black);
-      overflow: hidden;
-      position: relative;
-    }
-    .earn-section::before {
-      content: 'EARN';
-      position: absolute;
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 30vw;
-      color: rgba(0,0,0,0.04);
-      top: 50%; left: 50%;
-      transform: translate(-50%, -50%);
-      white-space: nowrap;
-      pointer-events: none;
-    }
-    .earn-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 4rem;
-      align-items: center;
-      position: relative;
-      z-index: 2;
-    }
-    .earn-left .section-label { color: rgba(0,0,0,0.5); }
-    .earn-left h2 { color: var(--black); margin-bottom: 1.5rem; }
-    .earn-left p {
-      font-size: 0.95rem;
-      line-height: 1.8;
-      color: rgba(0,0,0,0.6);
-      margin-bottom: 2rem;
-    }
-    .earn-table { width: 100%; border-collapse: collapse; }
-    .earn-table th {
-      font-size: 0.7rem;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-      font-weight: 700;
-      color: rgba(0,0,0,0.5);
-      text-align: left;
-      padding: 0.6rem 0;
-      border-bottom: 1px solid rgba(0,0,0,0.15);
-    }
-    .earn-table td {
-      padding: 0.8rem 0;
-      font-size: 0.9rem;
-      font-weight: 600;
-      color: var(--black);
-      border-bottom: 1px solid rgba(0,0,0,0.1);
-    }
-    .earn-table td:last-child { font-weight: 700; }
-    .earn-right {
-      display: flex;
-      flex-direction: column;
-      gap: 1.5rem;
-    }
-    .earn-card {
-      background: var(--black);
-      color: var(--white);
-      border-radius: 4px;
-      padding: 2rem;
-    }
-    .earn-card-val {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 3.2rem;
-      color: var(--lime);
-      line-height: 1;
-      margin-bottom: 0.3rem;
-    }
-    .earn-card-desc { font-size: 0.85rem; color: var(--muted); }
-
-    /* ── REQUIREMENTS ── */
-    .req-section { background: var(--off-black); }
-    .req-layout {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 5rem;
-    }
-    .req-list { display: flex; flex-direction: column; gap: 0.8rem; margin-top: 2rem; }
-    .req-item {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      padding: 1rem 1.2rem;
-      background: var(--panel);
-      border-radius: 3px;
-      border: 1px solid var(--border);
-      font-size: 0.88rem;
-      font-weight: 600;
-      transition: border-color 0.2s;
-    }
-    .req-item:hover { border-color: rgba(200,245,58,0.3); }
-    .req-icon { font-size: 1.1rem; width: 28px; text-align: center; }
-    .req-section h2 { margin-bottom: 0.5rem; }
-    .req-section > .req-layout > div > p {
-      font-size: 0.92rem;
-      color: var(--muted);
-      line-height: 1.75;
-      margin-bottom: 2rem;
-    }
-    .vehicle-tabs {
-      display: flex;
-      gap: 0.5rem;
-      margin-bottom: 1.5rem;
-      flex-wrap: wrap;
-    }
-    .vtab {
-      padding: 0.5rem 1.2rem;
-      background: var(--panel);
-      border: 1px solid var(--border);
-      border-radius: 2px;
-      font-size: 0.78rem;
-      font-weight: 700;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: var(--muted);
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    .vtab.active, .vtab:hover {
-      background: var(--lime);
-      color: var(--black);
-      border-color: var(--lime);
-    }
-    .vtab-content { display: none; }
-    .vtab-content.active { display: flex; flex-direction: column; gap: 0.6rem; }
-    .vtab-item {
-      font-size: 0.85rem;
-      color: var(--muted);
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-    }
-    .vtab-item::before {
-      content: '→';
-      color: var(--lime);
-      font-weight: 700;
-      flex-shrink: 0;
-    }
-
-    /* ── APPLICATION FORM ── */
-    .form-section {
-      background: var(--black);
-      border-top: 1px solid var(--border);
-    }
-    .form-wrap {
-      max-width: 760px;
-      margin: 0 auto;
-    }
-    .form-head { text-align: center; margin-bottom: 4rem; }
-    .form-head h2 { margin-bottom: 1rem; }
-    .form-head p { font-size: 0.95rem; color: var(--muted); line-height: 1.7; }
-    .f-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 1.2rem;
-    }
-    .f-group { display: flex; flex-direction: column; gap: 0.5rem; }
-    .f-group.full { grid-column: 1 / -1; }
-    .f-label {
-      font-size: 0.7rem;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-      font-weight: 700;
-      color: var(--muted);
-    }
-    .f-input {
-      background: var(--panel);
-      border: 1px solid var(--border);
-      border-radius: 2px;
-      padding: 0.85rem 1rem;
-      font-family: 'Barlow', sans-serif;
-      font-size: 0.92rem;
-      font-weight: 400;
-      color: var(--white);
-      outline: none;
-      transition: border-color 0.2s, box-shadow 0.2s;
-      width: 100%;
-    }
-    .f-input::placeholder { color: rgba(240,237,232,0.2); }
-    .f-input:focus {
-      border-color: var(--lime);
-      box-shadow: 0 0 0 3px rgba(200,245,58,0.08);
-    }
-    select.f-input {
-      appearance: none;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23c8f53a' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
-      background-repeat: no-repeat;
-      background-position: right 1rem center;
-      background-size: 15px;
-    }
-    select.f-input option { background: var(--panel); }
-    .f-check { display: flex; align-items: flex-start; gap: 0.75rem; }
-    .f-check input { accent-color: var(--lime); margin-top: 2px; flex-shrink: 0; }
-    .f-check label {
-      font-size: 0.83rem;
-      color: var(--muted);
-      line-height: 1.6;
-      text-transform: none;
-      letter-spacing: 0;
-      font-weight: 300;
-    }
-    .f-check a { color: var(--lime); text-decoration: none; }
-    .form-submit-wrap {
-      grid-column: 1 / -1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 1rem;
-      margin-top: 1rem;
-    }
-    .btn-submit-rider {
-      background: var(--lime);
-      color: var(--black);
-      border: none;
-      padding: 1.1rem 4rem;
-      font-family: 'Barlow', sans-serif;
-      font-size: 0.9rem;
-      font-weight: 700;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      border-radius: 2px;
-      cursor: pointer;
-      transition: background 0.2s, transform 0.15s;
-    }
-    .btn-submit-rider:hover { background: var(--lime-dark); transform: translateY(-2px); }
-    .form-note { font-size: 0.78rem; color: var(--muted); }
-
-    /* ── FOOTER ── */
-    footer {
-      background: var(--off-black);
-      border-top: 1px solid var(--border);
-      padding: 3rem 6%;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 1rem;
-    }
-    footer .logo { font-size: 1.4rem; }
-    footer a {
-      text-decoration: none;
-      color: var(--muted);
-      font-size: 0.8rem;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      font-weight: 600;
-    }
-    footer a:hover { color: var(--lime); }
-    .footer-links { display: flex; gap: 2rem; flex-wrap: wrap; }
-    .footer-copy { font-size: 0.78rem; color: var(--muted); }
-
-    /* ── SCROLL REVEAL ── */
-    .reveal {
-      opacity: 0;
-      transform: translateY(24px);
-      transition: opacity 0.6s ease, transform 0.6s ease;
-    }
-    .reveal.visible {
-      opacity: 1;
-      transform: translateY(0);
-    }
-
-    /* ── HERO ANIMATION ── */
-    @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(30px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    .hero-content > * {
-      opacity: 0;
-      animation: fadeUp 0.8s ease forwards;
-    }
-    .hero-content > *:nth-child(1) { animation-delay: 0.1s; }
-    .hero-content > *:nth-child(2) { animation-delay: 0.3s; }
-    .hero-content > *:nth-child(3) { animation-delay: 0.5s; }
-
-    /* ── RESPONSIVE ── */
-    @media (max-width: 960px) {
-      .perks-grid { grid-template-columns: 1fr 1fr; }
-      .how-layout { grid-template-columns: 1fr; }
-      .how-right { display: none; }
-      .earn-grid { grid-template-columns: 1fr; }
-      .req-layout { grid-template-columns: 1fr; gap: 3rem; }
-      .f-grid { grid-template-columns: 1fr; }
-      .f-group.full { grid-column: auto; }
-    }
-    @media (max-width: 600px) {
-      h1 { font-size: clamp(4rem, 18vw, 6rem); }
-      .perks-grid { grid-template-columns: 1fr; }
-      nav a:not(.nav-cta) { display: none; }
-      .hero-earn { display: none; }
-    }
-  </style>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Become a Rider — Zesto</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Knewave&family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="./css/rider.css"/>
 </head>
+
 <body>
-
-<!-- NAV -->
-<nav>
-  <div class="logo">Dash<span>Run</span></div>
-  <div class="nav-right">
-    <a href="#why">Why Ride</a>
-    <a href="#earnings">Earnings</a>
-    <a href="#apply" class="nav-cta">Apply Now</a>
-  </div>
-</nav>
-
-<!-- HERO -->
-<section class="hero" id="home">
-  <div class="hero-bg-img"></div>
-  <div class="hero-bg"></div>
-  <div class="hero-content">
-    <span class="hero-eyebrow"><span class="dot"></span> Now recruiting riders</span>
-    <h1>
-      <span class="line-stroke">Ride.</span><br>
-      <span class="line-accent">Earn.</span><br>
-      Own it.
-    </h1>
-    <div class="hero-bottom">
-      <div>
-        <p class="hero-sub">
-          Deliver on <strong>your schedule</strong>. No boss, no shifts, no ceiling.
-          DashRun riders earn more, work smarter, and get paid fast.
-        </p>
-        <div class="hero-cta-group">
-          <a href="#apply" class="btn-lime">Start Earning Today</a>
-          <a href="#why" class="btn-ghost">Learn more ↓</a>
+<header class="nav">
+  <div class="container">
+    <nav class="nav-inner">
+      <a href="index.html" class="nav-logo">
+        <div class="logo-mark">
+          <svg viewBox="0 0 24 24"><path d="M13 2L4 13h7l-1 9 10-12h-7l1-8z"/></svg>
+        </div>
+        <span class="logo-text">Zes<span>to</span></span>
+      </a>
+      <div class="nav-desktop-wrapper">
+        <div class="nav-links">
+          <a href="restaurant.html" class="nav-link">Restaurants</a>
+          <a href="become-a-rider.html" class="nav-link active">Become a Rider</a>
+        </div>
+        <div class="nav-actions-auth">
+          <a href="login.html" class="btn-nav-signin">Sign In</a>
+          <a href="signin.html" class="btn-nav-signup">Sign Up</a>
         </div>
       </div>
-      <div class="hero-earn">
-        <div class="earn-label">Top riders earn up to</div>
-        <div class="earn-num">$1,400</div>
-        <div class="earn-sub">per week · paid every Friday</div>
-      </div>
-    </div>
-  </div>
-</section>
 
-<!-- TICKER -->
-<div class="ticker">
-  <div class="ticker-inner">
-    <!-- duplicated for seamless loop -->
-    <span class="ticker-item">Flexible hours</span>
-    <span class="ticker-item">Weekly payouts</span>
-    <span class="ticker-item">Instant pay available</span>
-    <span class="ticker-item">Keep 100% of tips</span>
-    <span class="ticker-item">No experience needed</span>
-    <span class="ticker-item">Ride any vehicle</span>
-    <span class="ticker-item">Flexible hours</span>
-    <span class="ticker-item">Weekly payouts</span>
-    <span class="ticker-item">Instant pay available</span>
-    <span class="ticker-item">Keep 100% of tips</span>
-    <span class="ticker-item">No experience needed</span>
-    <span class="ticker-item">Ride any vehicle</span>
+      <button class="hamburger-btn" id="drawerTrigger" onclick="toggleMobileDrawer()" aria-label="Toggle Navigation">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </nav>
+  </div>
+</header>
+
+<div class="mobile-drawer" id="mobileDrawer">
+  <div class="nav-links">
+    <a href="restaurant.html" class="nav-link" onclick="toggleMobileDrawer()">Restaurants</a>
+    <a href="become-a-rider.html" class="nav-link active" onclick="toggleMobileDrawer()">Become a Rider</a>
+  </div>
+  <div class="nav-actions-auth">
+    <a href="login.html" class="btn-nav-signin" onclick="toggleMobileDrawer()">Sign In</a>
+    <a href="signup.html" class="btn-nav-signup" onclick="toggleMobileDrawer()">Sign Up</a>
   </div>
 </div>
 
-<!-- WHY RIDE -->
-<section class="why-section" id="why">
-  <div class="why-header reveal">
-    <div>
-      <div class="section-label">Why DashRun</div>
-      <h2>Six reasons riders<br>choose us first.</h2>
-    </div>
-    <p>We built DashRun for riders — not restaurants, not investors. Every policy we have was designed to put more money in your pocket.</p>
+<section class="rider-hero-visual">
+  <div class="hero-visual-content">
+    <h1 class="rider-hero-h1">Own Your Time.<br><label class="rider-hero-label">Earn on Your Terms.</label></h1>
+    <p class="rider-hero-sub">Tap the active particle cluster grid to shift configurations and parameters inside your portal setup below.</p>
   </div>
-  <div class="perks-grid">
-    <div class="perk reveal">
-      <span class="perk-num">01</span>
-      <span class="perk-icon">⚡</span>
-      <div class="perk-title">Instant Pay</div>
-      <p class="perk-desc">Cash out your earnings any time, any day. No waiting for payday — your money moves when you do.</p>
-    </div>
-    <div class="perk reveal">
-      <span class="perk-num">02</span>
-      <span class="perk-icon">🗓️</span>
-      <div class="perk-title">Your Schedule</div>
-      <p class="perk-desc">Log on when you want, log off when you're done. No minimum hours, no penalties for taking a day off.</p>
-    </div>
-    <div class="perk reveal">
-      <span class="perk-num">03</span>
-      <span class="perk-icon">💰</span>
-      <div class="perk-title">100% of Tips</div>
-      <p class="perk-desc">We never touch your tips. Every cent a customer adds goes directly into your wallet, always.</p>
-    </div>
-    <div class="perk reveal">
-      <span class="perk-num">04</span>
-      <span class="perk-icon">📍</span>
-      <div class="perk-title">Zone Bonuses</div>
-      <p class="perk-desc">Stack extra cash during peak hours and busy zones. The more you ride during surges, the more you earn.</p>
-    </div>
-    <div class="perk reveal">
-      <span class="perk-num">05</span>
-      <span class="perk-icon">🛡️</span>
-      <div class="perk-title">Rider Insurance</div>
-      <p class="perk-desc">You're covered while you're active on the app — accident protection so you can ride with confidence.</p>
-    </div>
-    <div class="perk reveal">
-      <span class="perk-num">06</span>
-      <span class="perk-icon">📱</span>
-      <div class="perk-title">Smart App</div>
-      <p class="perk-desc">Our rider app shows you hotspots, estimates earnings per order, and tracks every delivery in real time.</p>
+  <div class="hero-canvas-panel">
+    <div id="blender-canvas-container"></div>
+    <div id="magic-text-overlay">BOOST ACTIVATED! ⚡</div>
+  </div>
+</section>
+
+<div class="zesto-ticker">
+  <div class="ticker-inner">
+    <span class="ticker-item">Flexible hours</span>
+    <span class="ticker-item">Weekly payouts</span>
+    <span class="ticker-item">Instant mobile cashouts</span>
+    <span class="ticker-item">Keep 100% of tips</span>
+    <span class="ticker-item">No activation fees</span>
+    <span class="ticker-item">Flexible hours</span>
+    <span class="ticker-item">Weekly payouts</span>
+    <span class="ticker-item">Instant mobile cashouts</span>
+  </div>
+</div>
+
+<section class="portal-workspace-section">
+  <div class="container">
+    <div class="workspace-box-layout">
+      
+      <div class="rider-form-card">
+        <div class="rider-form-title">Rider Registration Portal</div>
+        <div class="form-title-sub">Initialize onboarding matrices by assigning deployment arrays.</div>
+        
+        <form action="#" method="POST" id="riderForm" onsubmit="handleFormSubmission(event)">
+          <div class="form-group-row">
+            <div class="floating-group">
+              <input type="text" class="floating-input" placeholder=" " required id="fname">
+              <label class="floating-label" for="fname">First Name</label>
+            </div>
+            <div class="floating-group">
+              <input type="text" class="floating-input" placeholder=" " required id="lname">
+              <label class="floating-label" for="lname">Last Name</label>
+            </div>
+          </div>
+
+          <div class="form-group-row">
+            <div class="floating-group">
+              <input type="email" class="floating-input" placeholder=" " required id="email">
+              <label class="floating-label" for="email">Email Address</label>
+            </div>
+            <div class="floating-group">
+              <input type="tel" class="floating-input" placeholder=" " required id="phone">
+              <label class="floating-label" for="phone">Phone Number</label>
+            </div>
+          </div>
+
+          <div class="floating-group" style="margin-bottom: 24px;">
+            <select class="form-select-native" required id="form-vehicle-select">
+              <option value="" disabled selected hidden></option>
+              <option value="Bicycle">Bicycle</option>
+              <option value="Motorcycle">Motorcycle</option>
+              <option value="Scooter">Electric Scooter</option>
+              <option value="Car">Delivery Car</option>
+            </select>
+            <label class="floating-label" for="form-vehicle-select">Selected Fleet Vehicle</label>
+          </div>
+
+          <div class="upload-vault-title">Required Credentials Verification</div>
+          <div class="upload-matrix-grid">
+            <div class="upload-zone-wrapper">
+              <span class="upload-icon">🆔</span>
+              <div>
+                <div class="upload-label">National ID</div>
+                <div class="upload-spec">PDF / JPG</div>
+              </div>
+              <input type="file" accept="image/*,.pdf" required onchange="flagUploadSuccess(this)">
+            </div>
+            <div class="upload-zone-wrapper">
+              <span class="upload-icon">🪪</span>
+              <div>
+                <div class="upload-label">Driving Permit</div>
+                <div class="upload-spec">Front / Back</div>
+              </div>
+              <input type="file" accept="image/*,.pdf" required onchange="flagUploadSuccess(this)">
+            </div>
+            <div class="upload-zone-wrapper">
+              <span class="upload-icon">📄</span>
+              <div>
+                <div class="upload-label">Vehicle Log</div>
+                <div class="upload-spec">Proof Copy</div>
+              </div>
+              <input type="file" accept="image/*,.pdf" required onchange="flagUploadSuccess(this)">
+            </div>
+          </div>
+
+          <label class="agreement-group">
+            <input type="checkbox" required id="policyCheckbox">
+            <span class="agreement-text">
+              I am at least 18 years old, confirm alignment with the <a href="terms.html" target="_blank">Rider Terms of Service</a>, and consent to background identity validation checks.
+            </span>
+          </label>
+
+          <button type="submit" class="btn-gradient-submit" id="submitBtn">Submit Application</button>
+        </form>
+      </div>
+
+      <div class="right-workspace-stack">
+        
+        <div class="calc-box">
+          <div class="calc-header-title">⚡ Interactive Earnings Projector</div>
+          
+          <div class="slider-item-block">
+            <div class="slider-header"><span>Estimated Trips per Day</span><span id="trips-val">15</span></div>
+            <input type="range" min="5" max="40" value="15" class="real-range" id="trips-slider">
+          </div>
+          
+          <div class="slider-item-block">
+            <div class="slider-header"><span>Days Active per Week</span><span id="days-val">5</span></div>
+            <input type="range" min="1" max="7" value="5" class="real-range" id="days-slider">
+          </div>
+          
+          <div class="calc-display">
+            <div style="font-size: 11px; text-transform: uppercase; color: #6B6560; letter-spacing:0.06em; font-weight:700;">Potential Weekly Earnings</div>
+            <div class="calc-amt" id="total-earnings">UGX 375,000</div>
+            <div style="font-size: 11px; color: #6B6560; opacity: 0.85;">Calculated based on flat base fare platform route metrics</div>
+          </div>
+        </div>
+        
+        <div class="vehicle-matrix-vault">
+          <div class="matrix-header-row">
+            <div>
+              <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: #FF5500; font-weight: 700;">Onboarding Guide</div>
+              <h3 style="color: #0E0C0A; font-size: 18px; font-weight: 800; margin-top: 1px;">Fleet Category Baseline</h3>
+            </div>
+          </div>
+          
+          <div class="vehicle-tabs">
+            <div class="vtab active" onclick="switchTab('bicycle', this)">🚲 Bicycle</div>
+            <div class="vtab" onclick="switchTab('motorcycle', this)">🏍️ Motorcycle</div>
+            <div class="vtab" onclick="switchTab('scooter', this)">⚡ Scooter</div>
+            <div class="vtab" onclick="switchTab('car', this)">🚗 Car</div>
+          </div>
+
+          <div id="tab-bicycle" class="vtab-content active">
+            <div class="vtab-item">No driver's operating license verification required</div>
+            <div class="vtab-item">Roadworthy frame structure or functional e-bike configuration</div>
+          </div>
+          
+          <div id="tab-motorcycle" class="vtab-content">
+            <div class="vtab-item">Valid class driving license permit authorization matrix card</div>
+            <div class="vtab-item">Registered asset matching logbook documentation identity tracks</div>
+          </div>
+
+          <div id="tab-scooter" class="vtab-content">
+            <div class="vtab-item">Valid local identity card check parameters</div>
+            <div class="vtab-item">Electric scooter configuration accompanied by battery logs</div>
+          </div>
+
+          <div id="tab-car" class="vtab-content">
+            <div class="vtab-item">Commercial category driving operation permission papers</div>
+            <div class="vtab-item">Active auto liability third-party safety insurance coverage records</div>
+          </div>
+        </div>
+
+        <div class="compliance-card">
+          <div>
+            <div class="compliance-info-title">Platform Directives Hub</div>
+            <p class="compliance-info-p">Review municipal guidelines, safety requirements, and operation terms.</p>
+          </div>
+          <button class="btn-compliance-trigger" onclick="toggleComplianceModal(true)">View Guidelines ↗</button>
+        </div>
+
+      </div>
+
     </div>
   </div>
 </section>
 
-<!-- HOW IT WORKS -->
-<section class="how-section" id="how">
-  <div class="how-layout">
-    <div class="how-left reveal">
-      <div class="section-label">Getting started</div>
-      <h2>On the road<br>in 3 steps.</h2>
-      <p>Signing up takes less than 10 minutes. Once approved, you can start accepting orders immediately.</p>
-      <div class="steps-list">
-        <div class="step-row">
-          <div class="step-n">01</div>
-          <div class="step-text">
-            <h4>Apply online</h4>
-            <p>Fill in the form below. We'll need your name, contact info, city, and vehicle type.</p>
-          </div>
-        </div>
-        <div class="step-row">
-          <div class="step-n">02</div>
-          <div class="step-text">
-            <h4>Pass background check</h4>
-            <p>We run a quick background and document verification — usually done within 24–48 hours.</p>
-          </div>
-        </div>
-        <div class="step-row">
-          <div class="step-n">03</div>
-          <div class="step-text">
-            <h4>Download & go</h4>
-            <p>Get the DashRun rider app, complete a 5-minute orientation, and start delivering today.</p>
-          </div>
-        </div>
-        <div class="step-row">
-          <div class="step-n">04</div>
-          <div class="step-text">
-            <h4>Get paid</h4>
-            <p>Earnings hit your account weekly — or instantly with our fast-pay feature, any time.</p>
-          </div>
-        </div>
-      </div>
+<div class="compliance-modal-overlay" id="complianceModalOverlay">
+  <div class="compliance-modal-box">
+    <button class="modal-close-x" onclick="toggleComplianceModal(false)">✕</button>
+    <h3 class="modal-header-h3">Fleet Dispatch Guidelines</h3>
+    <p style="font-size: 13px; color: #FF5500; font-weight: 700; margin-bottom: 12px;">Active Compliance Protocols v2.6</p>
+    
+    <div class="modal-scroll-pane">
+      <p class="modal-para"><strong>1. Speed &amp; Traffic Conduct:</strong> Riders must operating strictly inside local legal speed ceilings. Motorized vectors require active helmets at all execution points.</p>
+      <p class="modal-para"><strong>2. Equipment Standards:</strong> Mobile processing platforms must be securely anchored inside dash rigs. Smart delivery thermal containers must undergo sanitation cycles daily.</p>
+      <p class="modal-para"><strong>3. Revenue Payout Integrity:</strong> Financial pipelines running matching cashouts protect integrity via biometric check parameters. Fraud vectors result in immediate core termination blocks.</p>
     </div>
-    <div class="how-right">
-      <div class="glow"></div>
-      <div class="phone-mockup reveal">
-        <div class="phone-notch"></div>
-        <div class="phone-screen-label">DashRun Rider</div>
-        <div class="phone-map">
-          <div class="map-pin"></div>
-        </div>
-        <div class="phone-stat-row">
-          <div class="phone-stat">
-            <div class="phone-stat-val">$84</div>
-            <div class="phone-stat-label">Today</div>
-          </div>
-          <div class="phone-stat">
-            <div class="phone-stat-val">12</div>
-            <div class="phone-stat-label">Deliveries</div>
-          </div>
-        </div>
-        <div class="phone-order">
-          <div class="phone-order-text">
-            <strong>New order · 0.8 mi</strong>
-            <span>Burger Palace → 5th Ave</span>
-          </div>
-          <div class="order-badge">+$8.40</div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
 
-<!-- EARNINGS -->
-<section class="earn-section" id="earnings">
-  <div class="earn-grid">
-    <div class="earn-left reveal">
-      <div class="section-label">Real numbers</div>
-      <h2>What will<br>you earn?</h2>
-      <p>Earnings depend on your city, vehicle, and hours — but here's what our riders actually make.</p>
-      <table class="earn-table">
-        <thead>
-          <tr>
-            <th>Hours / week</th>
-            <th>Vehicle</th>
-            <th>Est. weekly</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr><td>10 hrs</td><td>Bicycle</td><td>$140–$200</td></tr>
-          <tr><td>20 hrs</td><td>Motorcycle</td><td>$320–$450</td></tr>
-          <tr><td>30 hrs</td><td>Motorcycle</td><td>$500–$750</td></tr>
-          <tr><td>40 hrs</td><td>Car</td><td>$750–$1,050</td></tr>
-          <tr><td>50+ hrs</td><td>Car</td><td>$1,100–$1,400+</td></tr>
-        </tbody>
-      </table>
-    </div>
-    <div class="earn-right reveal">
-      <div class="earn-card">
-        <div class="earn-card-val">$0</div>
-        <div class="earn-card-desc">Commission on tips — we never take a cut of what customers give you directly.</div>
-      </div>
-      <div class="earn-card">
-        <div class="earn-card-val">$2–$5</div>
-        <div class="earn-card-desc">Base pay per delivery, before tips, bonuses, and peak-hour multipliers.</div>
-      </div>
-      <div class="earn-card">
-        <div class="earn-card-val">3×</div>
-        <div class="earn-card-desc">Maximum surge multiplier during high-demand hours and events in your zone.</div>
-      </div>
-    </div>
+    <button class="btn-modal-acknowledge" onclick="toggleComplianceModal(false)">Acknowledge Protocols</button>
   </div>
-</section>
+</div>
 
-<!-- REQUIREMENTS -->
-<section class="req-section" id="requirements">
-  <div class="req-layout">
-    <div class="reveal">
-      <div class="section-label">Eligibility</div>
-      <h2>What you<br>need to join.</h2>
-      <p>Requirements are simple — if you're 18+, have a valid ID, and a way to deliver, you're already most of the way there.</p>
-      <div class="req-list">
-        <div class="req-item"><span class="req-icon">🪪</span> Valid government-issued ID</div>
-        <div class="req-item"><span class="req-icon">📅</span> Aged 18 years or older</div>
-        <div class="req-item"><span class="req-icon">📱</span> Smartphone (iOS or Android)</div>
-        <div class="req-item"><span class="req-icon">✅</span> Pass a background check</div>
-        <div class="req-item"><span class="req-icon">📍</span> Based in a DashRun city</div>
-        <div class="req-item"><span class="req-icon">🏦</span> Valid bank account for payouts</div>
+<section class="steps-section">
+  <div class="container">
+    <h2 class="steps-title">Onboarding <span>Pipeline</span></h2>
+    <div class="steps-grid">
+      <div class="step-card">
+        <div class="step-num">01</div>
+        <span class="step-icon">📝</span>
+        <h3 class="step-h3">Apply Online</h3>
+        <p class="step-p">Fill the credential validation matrix forms and drop your matching credential packets.</p>
       </div>
-    </div>
-    <div class="reveal">
-      <div class="section-label">Vehicle requirements</div>
-      <h2>Pick your<br>ride type.</h2>
-      <p style="margin-bottom:1.5rem;">Different vehicles, different requirements. Select your vehicle to see what's needed.</p>
-      <div class="vehicle-tabs">
-        <div class="vtab active" onclick="switchTab('bicycle', this)">🚲 Bicycle</div>
-        <div class="vtab" onclick="switchTab('motorcycle', this)">🏍️ Motorcycle</div>
-        <div class="vtab" onclick="switchTab('car', this)">🚗 Car</div>
-        <div class="vtab" onclick="switchTab('scooter', this)">🛵 Scooter</div>
+      <div class="step-card">
+        <div class="step-num">02</div>
+        <span class="step-icon">⚡</span>
+        <h3 class="step-h3">App Validation</h3>
+        <p class="step-p">Our authentication nodes cross-verify details with standard directory registries within 24 hours.</p>
       </div>
-      <div id="tab-bicycle" class="vtab-content active">
-        <div class="vtab-item">No license required</div>
-        <div class="vtab-item">Roadworthy bicycle in good condition</div>
-        <div class="vtab-item">Helmet recommended (required in some cities)</div>
-        <div class="vtab-item">Insulated delivery bag (provided by DashRun)</div>
-        <div class="vtab-item">Basic smartphone mount</div>
-      </div>
-      <div id="tab-motorcycle" class="vtab-content">
-        <div class="vtab-item">Valid motorcycle license</div>
-        <div class="vtab-item">Registered & insured motorcycle</div>
-        <div class="vtab-item">DOT-approved helmet</div>
-        <div class="vtab-item">Vehicle not older than 15 years</div>
-        <div class="vtab-item">Insurance documents at verification</div>
-      </div>
-      <div id="tab-car" class="vtab-content">
-        <div class="vtab-item">Valid driver's license</div>
-        <div class="vtab-item">Vehicle 2010 or newer</div>
-        <div class="vtab-item">Current vehicle registration</div>
-        <div class="vtab-item">Personal auto insurance (min. liability)</div>
-        <div class="vtab-item">4-door vehicle preferred</div>
-      </div>
-      <div id="tab-scooter" class="vtab-content">
-        <div class="vtab-item">Moped/scooter license or standard license</div>
-        <div class="vtab-item">Scooter under 150cc qualifies</div>
-        <div class="vtab-item">Registered & insured vehicle</div>
-        <div class="vtab-item">Helmet required</div>
-        <div class="vtab-item">Vehicle in roadworthy condition</div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- APPLICATION FORM -->
-<section class="form-section" id="apply">
-  <div class="form-wrap">
-    <div class="form-head reveal">
-      <div class="section-label">Apply now</div>
-      <h2>Ready to start?<br>Let's go.</h2>
-      <p>Complete the form and we'll get back to you within 24 hours to complete your setup.</p>
-    </div>
-    <div class="f-grid reveal">
-      <div class="f-group">
-        <label class="f-label">First name *</label>
-        <input type="text" class="f-input" placeholder="Your first name" />
-      </div>
-      <div class="f-group">
-        <label class="f-label">Last name *</label>
-        <input type="text" class="f-input" placeholder="Your last name" />
-      </div>
-      <div class="f-group">
-        <label class="f-label">Email address *</label>
-        <input type="email" class="f-input" placeholder="you@email.com" />
-      </div>
-      <div class="f-group">
-        <label class="f-label">Phone number *</label>
-        <input type="tel" class="f-input" placeholder="+1 (555) 000-0000" />
-      </div>
-      <div class="f-group">
-        <label class="f-label">City *</label>
-        <input type="text" class="f-input" placeholder="e.g. Chicago" />
-      </div>
-      <div class="f-group">
-        <label class="f-label">Vehicle type *</label>
-        <select class="f-input">
-          <option value="" disabled selected>Select vehicle</option>
-          <option>Bicycle</option>
-          <option>Scooter / Moped</option>
-          <option>Motorcycle</option>
-          <option>Car</option>
-        </select>
-      </div>
-      <div class="f-group">
-        <label class="f-label">Availability *</label>
-        <select class="f-input">
-          <option value="" disabled selected>How many hrs/week?</option>
-          <option>Less than 10 hrs</option>
-          <option>10–20 hrs</option>
-          <option>20–35 hrs</option>
-          <option>35+ hrs (full-time)</option>
-        </select>
-      </div>
-      <div class="f-group">
-        <label class="f-label">How did you hear about us?</label>
-        <select class="f-input">
-          <option value="" disabled selected>Select source</option>
-          <option>Friend / Referral</option>
-          <option>Social media</option>
-          <option>Search engine</option>
-          <option>DashRun ad</option>
-          <option>Other</option>
-        </select>
-      </div>
-      <div class="f-group full">
-        <div class="f-check">
-          <input type="checkbox" id="terms" />
-          <label for="terms">I agree to DashRun's <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>. I consent to a background check as part of the onboarding process.</label>
-        </div>
-      </div>
-      <div class="form-submit-wrap">
-        <button class="btn-submit-rider" onclick="submitRider()">Submit Application →</button>
-        <span class="form-note">No commitment until you're approved. Free to sign up.</span>
+      <div class="step-card">
+        <div class="step-num">03</div>
+        <span class="step-icon">🏁</span>
+        <h3 class="step-h3">Hit the Road</h3>
+        <p class="step-p">Unlock configuration pathways on your mobile application node and start processing real orders.</p>
       </div>
     </div>
   </div>
 </section>
 
-<!-- FOOTER -->
-<footer>
-  <div class="logo">Dash<span style="color:var(--lime);">Run</span></div>
-  <div class="footer-links">
-    <a href="#">Riders</a>
-    <a href="#">Restaurants</a>
-    <a href="#">Safety</a>
-    <a href="#">Support</a>
-    <a href="#">Privacy</a>
+<section class="perks-section">
+  <div class="container">
+    <h2 class="perks-title">Platform <span>Incentives</span></h2>
+    <div class="perks-grid">
+      <div class="perk-card">
+        <div class="perk-badge">💰</div>
+        <h3 class="perk-h3">Instant Payouts</h3>
+        <p class="perk-p">Move earnings over to your connected mobile money vault interface instantly whenever you complete trips.</p>
+      </div>
+      <div class="perk-card">
+        <div class="perk-badge">⏰</div>
+        <h3 class="perk-h3">Absolute Autonomy</h3>
+        <p class="perk-p">Toggle active platform dispatch modes at any time. You define your shifts without operational ceiling limits.</p>
+      </div>
+      <div class="perk-card">
+        <div class="perk-badge">🎁</div>
+        <h3 class="perk-h3">100% Tips Coverage</h3>
+        <p class="perk-p">Every extra tip dispatched by client vectors belongs entirely to you. Zesto system takes zero commissions from tips.</p>
+      </div>
+    </div>
   </div>
-  <div class="footer-copy">© 2026 DashRun Inc. All rights reserved.</div>
+</section>
+
+<section class="faq-section">
+  <div class="container">
+    <h2 class="faq-title">Frequently Asked <span>Questions</span></h2>
+    <div class="faq-wrapper">
+      
+      <div class="faq-node">
+        <button class="faq-trigger" onclick="toggleFaqAccordion(this)">
+          <span>What documents are required to initialize validation?</span>
+          <span>▼</span>
+        </button>
+        <div class="faq-panel">
+          <div class="faq-panel-content">
+            You must provide a clear national identification card, an active driving permit (if selecting a motorized vehicle class), and matching property logging verification paperwork.
+          </div>
+        </div>
+      </div>
+
+      <div class="faq-node">
+        <button class="faq-trigger" onclick="toggleFaqAccordion(this)">
+          <span>When are platform processing revenues delivered?</span>
+          <span>▼</span>
+        </button>
+        <div class="faq-panel">
+          <div class="faq-panel-content">
+            You can cashout anytime instantly via your application panel profile settings directly down to your tracking money balance profile vectors.
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<section class="app-cta-section">
+  <div class="container">
+    <div class="cta-box-inner">
+      <h2 class="cta-h2">Download the Zesto Mobile Fleet Module</h2>
+      <p class="cta-p">Manage maps routes, process delivery items, track performance velocity metrics, and view real earnings logs straight from your device.</p>
+      <div class="app-store-badges">
+        <a href="#" class="badge-btn">
+          <svg viewBox="0 0 24 24"><path d="M17.5 12c0-2.5 1.8-3.7 1.9-3.8-1.2-1.7-3-1.9-3.6-2-.9-.1-2.5.6-3.3.6-.8 0-2.2-.5-3.3-.5-1.5 0-3.1.9-3.9 2.4-1.6 2.9-.4 7.2 1.1 9.5.8 1.1 1.7 2.4 2.9 2.3 1.1-.1 1.6-.7 3-.7s1.8.6 3 .6c1.2 0 2-.1 2.8-1.3.9-1.3 1.2-2.6 1.3-2.7-.1 0-1.9-.7-1.9-3.1zM14.5 4.7c.6-.7.9-1.6.8-2.6-.9 0-1.9.6-2.5 1.3-.5.6-.9 1.5-.8 2.5 1 .1 1.9-.5 2.5-1.2z"/></svg>
+          iOS Client App
+        </a>
+        <a href="#" class="badge-btn">
+          <svg viewBox="0 0 24 24"><path d="M5.5 2h13c1.9 0 3.5 1.6 3.5 3.5v13c0 1.9-1.6 3.5-3.5 3.5h-13C3.6 22 2 20.4 2 18.5v-13C2 3.6 3.6 2 5.5 2zm5 4v4H6.5v2.5h4v4h2.5v-4h4V10h-4V6h-2.5z"/></svg>
+          Android APK Build
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="rider-footer">
+  <div class="container">
+    <div class="footer-top-grid">
+      <div>
+        <a href="index.html" class="nav-logo" style="margin-bottom: 12px;">
+          <div class="f-brand">Zes<span>to</span></div>
+        </a>
+        <p class="f-col-desc">High velocity hyper-local logistics management systems operating out of East African municipal clusters.</p>
+      </div>
+      <div>
+        <label class="f-h4">Partners</label>
+        <div class="f-links-stack">
+          <a href="restaurant.html" class="f-link">List your restaurant</a>
+          <a href="index.html" class="f-link">zesto</a>
+          <a href="#" class="f-link">Enterprise</a>
+        </div>
+      </div>
+      <div>
+        <label class="f-h4">Help</label>
+        <div class="f-links-stack">
+          <a href="Help-center.html" class="f-link">Help Center</a>
+          <a href="privacy-policy.html" class="f-link">Privacy Policy</a>
+          <a href="terms-of-service.html" class="f-link">Terms of Service</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom-row">
+      <span>© 2026 Zesto Technologies Inc. All rights reserved.</span>
+      <div style="display:flex; gap:20px;">
+        <a href="#" class="f-link">Terms Matrix</a>
+        <a href="#" class="f-link">Privacy Safeguards</a>
+      </div>
+    </div>
+  </div>
 </footer>
 
-<script>
-  // Vehicle tabs
-  function switchTab(id, el) {
-    document.querySelectorAll('.vtab').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.vtab-content').forEach(c => c.classList.remove('active'));
-    el.classList.add('active');
-    document.getElementById('tab-' + id).classList.add('active');
-  }
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="./script/rider.js"></script>
 
-  // Scroll reveal
-  const revealObserver = new IntersectionObserver((entries) => {
-    entries.forEach(e => {
-      if (e.isIntersecting) {
-        e.target.classList.add('visible');
-        revealObserver.unobserve(e.target);
-      }
-    });
-  }, { threshold: 0.1 });
-  document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
 
-  // Form submit
-  function submitRider() {
-    const inputs = document.querySelectorAll('.f-input');
-    const terms = document.getElementById('terms');
-    let valid = true;
-    inputs.forEach(i => { if (i.hasAttribute('required') === false && i.value === '' && i.closest('.f-group') && !i.closest('.f-group').querySelector('label').textContent.includes('?')) {} });
 
-    if (!terms.checked) {
-      alert('Please agree to the Terms of Service to continue.');
-      return;
-    }
-
-    const btn = document.querySelector('.btn-submit-rider');
-    btn.textContent = '🎉 Application Received!';
-    btn.style.background = '#22c55e';
-    btn.disabled = true;
-    btn.style.transform = 'none';
-
-    document.querySelector('.form-head').scrollIntoView({ behavior: 'smooth' });
-  }
-
-  // Staggered perk reveals
-  document.querySelectorAll('.perk').forEach((el, i) => {
-    el.style.transitionDelay = (i * 0.08) + 's';
-  });
-</script>
 </body>
 </html>
