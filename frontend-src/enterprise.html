@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Zesto Enterprise — Feed Your Whole Team</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Knewave&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="css/enterprise.css"/>
+
+</head>
+<body>
+
+<!-- ── MOBILE MENU ── -->
+<div class="mobile-menu" id="mobileMenu">
+  <div class="mobile-menu-header">
+    <div class="nav-logo">
+      <div class="logo-mark">
+        <svg viewBox="0 0 24 24"><path d="M13 2L4 13h7l-1 9 10-12h-7l1-8z"/></svg>
+      </div>
+      <span class="logo-text">Zes<span>to</span></span>
+    </div>
+    <button class="mobile-close" onclick="document.getElementById('mobileMenu').classList.remove('open')">✕</button>
+  </div>
+  <div class="mobile-links">
+    <a class="mobile-link" href="restaurant.html">Restaurants</a>
+    <a class="mobile-link" href="for-busines.html">For Business</a>
+    <a class="mobile-link" href="about.html">About us</a>
+    <a class="mobile-link" href="enterprise.html">Enterprise</a>
+  </div>
+  <div class="mobile-actions" style="margin-top:24px;">
+    <a href="login.html" class="btn btn-ghost" style="justify-content:center;padding:14px;">Sign in</a>
+    <a href="signin.html" class="btn btn-primary" style="justify-content:center;padding:14px;border-radius:var(--r12);">Get started</a>
+  </div>
+</div>
+
+<!-- ── NAV ── -->
+<header class="nav">
+  <div class="container">
+    <nav class="nav-inner">
+      <a href="index.html" class="nav-logo">
+        <div class="logo-mark">
+          <svg viewBox="0 0 24 24"><path d="M13 2L4 13h7l-1 9 10-12h-7l1-8z"/></svg>
+        </div>
+        <span class="logo-text">Zes<span>to</span></span>
+      </a>
+      <div class="nav-links">
+        <a href="restaurant.html" class="nav-link">Restaurants</a>
+        <a href="for-busines.html" class="nav-link">For Business</a>
+        <a href="about.html" class="nav-link">About us</a>
+        <a href="enterprise.html" class="nav-link active">Enterprise</a>
+      </div>
+      <a href="#" class="nav-loc">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M8 1.5A4.5 4.5 0 0 1 12.5 6c0 3.2-4.5 8.5-4.5 8.5S3.5 9.2 3.5 6A4.5 4.5 0 0 1 8 1.5z"/><circle cx="8" cy="6" r="1.6"/></svg>
+        Kampala, UG
+        <svg viewBox="0 0 10 6" fill="none" stroke="currentColor" stroke-width="1.5" style="width:10px;height:10px;"><path d="M1 1l4 4 4-4"/></svg>
+      </a>
+      <div class="nav-actions">
+        <a href="login.html" class="btn btn-ghost">Sign in</a>
+        <a href="contact-us.html" class="btn btn-primary">Contact sales</a>
+      </div>
+      <button class="nav-hamburger" onclick="document.getElementById('mobileMenu').classList.add('open')" aria-label="Open menu">
+        <span></span><span></span><span></span>
+      </button>
+    </nav>
+  </div>
+</header>
+
+<!-- ── ENT HERO ── -->
+<section class="ent-hero">
+  <div class="container">
+    <div class="ent-hero-inner">
+      <div>
+        <div class="ent-eyebrow">
+          <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M2 10L7 3l5 7H2z"/><path d="M5 10v2M9 10v2"/></svg>
+          Zesto for Enterprise
+        </div>
+        <h1 class="ent-h1">Feed your<br>whole team,<br><span>effortlessly.</span></h1>
+        <p class="ent-sub">A dedicated food delivery platform for offices, events, and large teams. Centralized billing, real-time tracking, and a dedicated account manager — all in one place.</p>
+        <div class="ent-cta-row">
+          <a href="#contact" class="btn-ent">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" width="15" height="15"><path d="M2 4l6 5 6-5M2 4h12v9H2z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Talk to sales
+          </a>
+          <button class="btn-ent-outline">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" width="15" height="15"><circle cx="8" cy="8" r="6"/><path d="M6 8l2 2 4-4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            See a demo
+          </button>
+        </div>
+      </div>
+
+      <div class="ent-dashboard">
+        <div class="dash-header">
+          <div class="dash-title">Team Dashboard — June 2026</div>
+          <div class="dash-date">Acme Corp · 42 members</div>
+        </div>
+        <div class="dash-stats">
+          <div class="dash-stat">
+            <div class="dash-stat-num orange">142</div>
+            <div class="dash-stat-lbl">Orders this month</div>
+          </div>
+          <div class="dash-stat">
+            <div class="dash-stat-num">UGX 4.2M</div>
+            <div class="dash-stat-lbl">Total spend</div>
+          </div>
+          <div class="dash-stat">
+            <div class="dash-stat-num">98%</div>
+            <div class="dash-stat-lbl">On-time rate</div>
+          </div>
+        </div>
+        <div class="dash-orders">
+          <div class="dash-order">
+            <div class="do-em">🍔</div>
+            <div class="do-info">
+              <div class="do-name">Burger Shack × 8</div>
+              <div class="do-meta">Finance team · 20 min ETA</div>
+            </div>
+            <div class="do-status otw">On the way</div>
+          </div>
+          <div class="dash-order">
+            <div class="do-em">🍕</div>
+            <div class="do-info">
+              <div class="do-name">Napoli Express × 12</div>
+              <div class="do-meta">Engineering team · Preparing</div>
+            </div>
+            <div class="do-status prep">Preparing</div>
+          </div>
+          <div class="dash-order">
+            <div class="do-em">🥗</div>
+            <div class="do-info">
+              <div class="do-name">Garden Fresh × 5</div>
+              <div class="do-meta">HR team · Delivered today</div>
+            </div>
+            <div class="do-status delivered">Delivered</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="ent-trust">
+    <div class="container">
+      <div class="trust-items">
+        <div class="trust-item">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M8 2a3 3 0 1 0 0 6 3 3 0 0 0 0-6zM3 13a5 5 0 0 1 10 0"/></svg>
+          <span><strong>Dedicated</strong> account manager</span>
+        </div>
+        <div class="trust-item">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M3 8h10M3 5h10M3 11h6"/></svg>
+          <span><strong>Centralized</strong> billing & invoicing</span>
+        </div>
+        <div class="trust-item">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M2 12l4-4 3 3 5-7"/></svg>
+          <span><strong>Real-time</strong> order tracking</span>
+        </div>
+        <div class="trust-item">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="2" y="5" width="12" height="9" rx="1.5"/><path d="M5 5V4a3 3 0 0 1 6 0v1"/></svg>
+          <span><strong>Custom</strong> spending controls</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── LOGOS ── -->
+<div class="logos-section">
+  <div class="container">
+    <div class="logos-label">Trusted by teams across Africa</div>
+    <div class="logos-row">
+      <div class="logo-pill">Acme Corp</div>
+      <div class="logo-pill">Savantech</div>
+      <div class="logo-pill">KampalaTech</div>
+      <div class="logo-pill">NairobiFin</div>
+      <div class="logo-pill">AccraSoft</div>
+      <div class="logo-pill">LagosMedia</div>
+    </div>
+  </div>
+</div>
+
+<!-- ── FEATURES ── -->
+<section class="features-section">
+  <div class="container">
+    <div class="features-header">
+      <div class="section-label">Platform features</div>
+      <h2 class="section-title">Built for teams, not just individuals</h2>
+      <p class="section-sub">Every feature of Zesto Enterprise is designed around how real teams actually order food — collectively, efficiently, at scale.</p>
+    </div>
+    <div class="features-grid">
+      <div class="feat-card">
+        <div class="feat-ico">📊</div>
+        <div class="feat-title">Team Dashboard</div>
+        <div class="feat-desc">A unified control center to manage all orders, set budgets, track spend by department, and generate expense reports in one click.</div>
+        <div class="feat-list">
+          <div class="feat-li"><svg viewBox="0 0 12 10" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 5l3 3 7-7" stroke-linecap="round" stroke-linejoin="round"/></svg>Department-level budgets</div>
+          <div class="feat-li"><svg viewBox="0 0 12 10" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 5l3 3 7-7" stroke-linecap="round" stroke-linejoin="round"/></svg>Monthly spend analytics</div>
+          <div class="feat-li"><svg viewBox="0 0 12 10" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 5l3 3 7-7" stroke-linecap="round" stroke-linejoin="round"/></svg>Exportable reports (CSV, PDF)</div>
+        </div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-ico">💳</div>
+        <div class="feat-title">Centralized Billing</div>
+        <div class="feat-desc">One invoice at the end of each month covering all team orders. Supports purchase orders, MOMO, and bank transfer. No expense reports for employees.</div>
+        <div class="feat-list">
+          <div class="feat-li"><svg viewBox="0 0 12 10" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 5l3 3 7-7" stroke-linecap="round" stroke-linejoin="round"/></svg>Consolidated monthly invoice</div>
+          <div class="feat-li"><svg viewBox="0 0 12 10" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 5l3 3 7-7" stroke-linecap="round" stroke-linejoin="round"/></svg>Multiple payment methods</div>
+          <div class="feat-li"><svg viewBox="0 0 12 10" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 5l3 3 7-7" stroke-linecap="round" stroke-linejoin="round"/></svg>Net-30 payment terms available</div>
+        </div>
+      </div>
+      <div class="feat-card wide">
+        <div class="feat-inner">
+          <div>
+            <div class="feat-ico">🗓️</div>
+            <div class="feat-title">Scheduled Group Orders</div>
+            <div class="feat-desc">Schedule recurring orders for daily lunch, weekly team meetings, or one-off events. Set it once — Zesto handles the rest, every time, on time.</div>
+            <div class="feat-list">
+              <div class="feat-li"><svg viewBox="0 0 12 10" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 5l3 3 7-7" stroke-linecap="round" stroke-linejoin="round"/></svg>Daily or weekly recurring deliveries</div>
+              <div class="feat-li"><svg viewBox="0 0 12 10" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 5l3 3 7-7" stroke-linecap="round" stroke-linejoin="round"/></svg>Individual customization per team member</div>
+              <div class="feat-li"><svg viewBox="0 0 12 10" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 5l3 3 7-7" stroke-linecap="round" stroke-linejoin="round"/></svg>Automated reminders and confirmations</div>
+            </div>
+          </div>
+          <div>
+            <div class="feat-ico">👤</div>
+            <div class="feat-title">Dedicated Account Manager</div>
+            <div class="feat-desc">Every Enterprise account gets a named account manager who is available by phone, chat, or email. They help onboard your team, resolve issues fast, and negotiate custom pricing.</div>
+            <div class="feat-list">
+              <div class="feat-li"><svg viewBox="0 0 12 10" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 5l3 3 7-7" stroke-linecap="round" stroke-linejoin="round"/></svg>Named manager, not a ticket queue</div>
+              <div class="feat-li"><svg viewBox="0 0 12 10" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 5l3 3 7-7" stroke-linecap="round" stroke-linejoin="round"/></svg>Quarterly business reviews</div>
+              <div class="feat-li"><svg viewBox="0 0 12 10" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 5l3 3 7-7" stroke-linecap="round" stroke-linejoin="round"/></svg>Custom onboarding for your team</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── HOW IT WORKS ── -->
+<section class="how-section">
+  <div class="container">
+    <div class="how-header">
+      <div class="section-label">Getting started</div>
+      <h2 class="section-title">From signup to first delivery in 24 hours</h2>
+      <p class="section-sub">Our onboarding team makes getting started fast and painless.</p>
+    </div>
+    <div class="how-steps">
+      <div class="how-step active">
+        <div class="how-num">1</div>
+        <div class="how-step-title">Contact sales</div>
+        <div class="how-step-desc">Fill in the form below or call us. We respond within 2 business hours.</div>
+      </div>
+      <div class="how-step">
+        <div class="how-num">2</div>
+        <div class="how-step-title">Custom setup</div>
+        <div class="how-step-desc">Your account manager configures your dashboard, billing, and team structure.</div>
+      </div>
+      <div class="how-step">
+        <div class="how-num">3</div>
+        <div class="how-step-title">Invite your team</div>
+        <div class="how-step-desc">Send invite links to team members. They join and start ordering immediately.</div>
+      </div>
+      <div class="how-step">
+        <div class="how-num">4</div>
+        <div class="how-step-title">Order & track</div>
+        <div class="how-step-desc">Track every order in real time and get a single invoice at month end.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── PRICING ── -->
+<section class="ent-pricing">
+  <div class="container">
+    <div class="ent-pricing-header">
+      <div class="section-label">Plans & pricing</div>
+      <h2 class="section-title">Scale to fit your team</h2>
+      <p class="section-sub">No hidden fees. All plans include free delivery and centralized billing.</p>
+    </div>
+    <div class="ent-plans">
+      <!-- Starter -->
+      <div class="ent-plan">
+        <div class="ep-tier">Starter</div>
+        <div class="ep-price">$49</div>
+        <div class="ep-per">/month · up to 10 members</div>
+        <div class="ep-divider"></div>
+        <div class="ep-features">
+          <div class="ep-feat"><div class="ep-check"><svg viewBox="0 0 10 8" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 4l3 3 5-6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>Up to 10 team members</div>
+          <div class="ep-feat"><div class="ep-check"><svg viewBox="0 0 10 8" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 4l3 3 5-6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>Centralized billing</div>
+          <div class="ep-feat"><div class="ep-check"><svg viewBox="0 0 10 8" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 4l3 3 5-6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>Team dashboard</div>
+          <div class="ep-feat"><div class="ep-check"><svg viewBox="0 0 10 8" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 4l3 3 5-6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>Free delivery on all orders</div>
+          <div class="ep-feat"><div class="ep-check"><svg viewBox="0 0 10 8" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 4l3 3 5-6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>Email support</div>
+        </div>
+        <button class="ep-btn outline">Get started</button>
+        <div class="ep-note">14-day free trial included</div>
+      </div>
+
+      <!-- Growth (featured) -->
+      <div class="ent-plan featured">
+        <div class="ep-popular">Most popular</div>
+        <div class="ep-tier">Growth</div>
+        <div class="ep-price">$149</div>
+        <div class="ep-per">/month · up to 50 members</div>
+        <div class="ep-divider"></div>
+        <div class="ep-features">
+          <div class="ep-feat"><div class="ep-check"><svg viewBox="0 0 10 8" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 4l3 3 5-6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>Up to 50 team members</div>
+          <div class="ep-feat"><div class="ep-check"><svg viewBox="0 0 10 8" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 4l3 3 5-6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>Department sub-accounts</div>
+          <div class="ep-feat"><div class="ep-check"><svg viewBox="0 0 10 8" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 4l3 3 5-6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>Scheduled group orders</div>
+          <div class="ep-feat"><div class="ep-check"><svg viewBox="0 0 10 8" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 4l3 3 5-6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>Spend controls & limits</div>
+          <div class="ep-feat"><div class="ep-check"><svg viewBox="0 0 10 8" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 4l3 3 5-6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>Priority phone support</div>
+        </div>
+        <button class="ep-btn solid">Start free trial</button>
+        <div class="ep-note">14-day free trial · cancel anytime</div>
+      </div>
+
+      <!-- Enterprise -->
+      <div class="ent-plan">
+        <div class="ep-tier">Enterprise</div>
+        <div class="ep-price" style="font-size:32px;padding-top:8px;">Custom</div>
+        <div class="ep-per">unlimited members · volume pricing</div>
+        <div class="ep-divider"></div>
+        <div class="ep-features">
+          <div class="ep-feat"><div class="ep-check"><svg viewBox="0 0 10 8" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 4l3 3 5-6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>Unlimited team members</div>
+          <div class="ep-feat"><div class="ep-check"><svg viewBox="0 0 10 8" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 4l3 3 5-6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>Dedicated account manager</div>
+          <div class="ep-feat"><div class="ep-check"><svg viewBox="0 0 10 8" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 4l3 3 5-6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>Custom API integrations</div>
+          <div class="ep-feat"><div class="ep-check"><svg viewBox="0 0 10 8" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 4l3 3 5-6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>SLA & service guarantees</div>
+          <div class="ep-feat"><div class="ep-check"><svg viewBox="0 0 10 8" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 4l3 3 5-6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>24/7 dedicated support line</div>
+        </div>
+        <button class="ep-btn outline" onclick="document.getElementById('contact').scrollIntoView({behavior:'smooth'})">Talk to sales</button>
+        <div class="ep-note">Volume discounts available</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── TESTIMONIALS ── -->
+<section class="ent-reviews">
+  <div class="container">
+    <div class="ent-reviews-header">
+      <div class="section-label">Testimonials</div>
+      <h2 class="section-title">Teams love Zesto Enterprise</h2>
+      <p class="section-sub">Hear from operations managers and HR leads across Africa.</p>
+    </div>
+    <div class="rev-grid">
+      <div class="rev-card">
+        <div class="rev-company">
+          <div class="rev-co-logo" style="background:#FF5500;">A</div>
+          <div>
+            <div class="rev-co-name">Acme Corp</div>
+            <div class="rev-co-size">85 employees · Kampala</div>
+          </div>
+        </div>
+        <div class="rev-stars">
+          <svg viewBox="0 0 14 14" fill="currentColor"><path d="M7 1.5l1.3 3h3l-2.5 2 1 3L7 8 4.2 9.5l1-3L2.7 4.5h3z"/></svg>
+          <svg viewBox="0 0 14 14" fill="currentColor"><path d="M7 1.5l1.3 3h3l-2.5 2 1 3L7 8 4.2 9.5l1-3L2.7 4.5h3z"/></svg>
+          <svg viewBox="0 0 14 14" fill="currentColor"><path d="M7 1.5l1.3 3h3l-2.5 2 1 3L7 8 4.2 9.5l1-3L2.7 4.5h3z"/></svg>
+          <svg viewBox="0 0 14 14" fill="currentColor"><path d="M7 1.5l1.3 3h3l-2.5 2 1 3L7 8 4.2 9.5l1-3L2.7 4.5h3z"/></svg>
+          <svg viewBox="0 0 14 14" fill="currentColor"><path d="M7 1.5l1.3 3h3l-2.5 2 1 3L7 8 4.2 9.5l1-3L2.7 4.5h3z"/></svg>
+        </div>
+        <div class="rev-text">"Managing lunch for our 85-person team used to take hours per week. With Zesto Enterprise it's fully automated. One invoice, zero headaches."</div>
+        <div class="rev-author">
+          <div class="rev-av" style="background:var(--or-lt);color:var(--or);">AM</div>
+          <div>
+            <div class="rev-name">Amara Mensah</div>
+            <div class="rev-role">Head of People Operations</div>
+          </div>
+        </div>
+      </div>
+      <div class="rev-card">
+        <div class="rev-company">
+          <div class="rev-co-logo" style="background:#185FA5;">S</div>
+          <div>
+            <div class="rev-co-name">Savantech</div>
+            <div class="rev-co-size">34 employees · Nairobi</div>
+          </div>
+        </div>
+        <div class="rev-stars">
+          <svg viewBox="0 0 14 14" fill="currentColor"><path d="M7 1.5l1.3 3h3l-2.5 2 1 3L7 8 4.2 9.5l1-3L2.7 4.5h3z"/></svg>
+          <svg viewBox="0 0 14 14" fill="currentColor"><path d="M7 1.5l1.3 3h3l-2.5 2 1 3L7 8 4.2 9.5l1-3L2.7 4.5h3z"/></svg>
+          <svg viewBox="0 0 14 14" fill="currentColor"><path d="M7 1.5l1.3 3h3l-2.5 2 1 3L7 8 4.2 9.5l1-3L2.7 4.5h3z"/></svg>
+          <svg viewBox="0 0 14 14" fill="currentColor"><path d="M7 1.5l1.3 3h3l-2.5 2 1 3L7 8 4.2 9.5l1-3L2.7 4.5h3z"/></svg>
+          <svg viewBox="0 0 14 14" fill="currentColor"><path d="M7 1.5l1.3 3h3l-2.5 2 1 3L7 8 4.2 9.5l1-3L2.7 4.5h3z"/></svg>
+        </div>
+        <div class="rev-text">"The dedicated account manager made all the difference. She helped us set up spend limits by team and we haven't had a billing issue since. Highly recommended."</div>
+        <div class="rev-author">
+          <div class="rev-av" style="background:#EEF3FF;color:#185FA5;">DK</div>
+          <div>
+            <div class="rev-name">David Kimani</div>
+            <div class="rev-role">Finance Manager</div>
+          </div>
+        </div>
+      </div>
+      <div class="rev-card">
+        <div class="rev-company">
+          <div class="rev-co-logo" style="background:#3B6D11;">L</div>
+          <div>
+            <div class="rev-co-name">LagosMedia</div>
+            <div class="rev-co-size">210 employees · Lagos</div>
+          </div>
+        </div>
+        <div class="rev-stars">
+          <svg viewBox="0 0 14 14" fill="currentColor"><path d="M7 1.5l1.3 3h3l-2.5 2 1 3L7 8 4.2 9.5l1-3L2.7 4.5h3z"/></svg>
+          <svg viewBox="0 0 14 14" fill="currentColor"><path d="M7 1.5l1.3 3h3l-2.5 2 1 3L7 8 4.2 9.5l1-3L2.7 4.5h3z"/></svg>
+          <svg viewBox="0 0 14 14" fill="currentColor"><path d="M7 1.5l1.3 3h3l-2.5 2 1 3L7 8 4.2 9.5l1-3L2.7 4.5h3z"/></svg>
+          <svg viewBox="0 0 14 14" fill="currentColor"><path d="M7 1.5l1.3 3h3l-2.5 2 1 3L7 8 4.2 9.5l1-3L2.7 4.5h3z"/></svg>
+          <svg viewBox="0 0 14 14" fill="#E0D9D0"><path d="M7 1.5l1.3 3h3l-2.5 2 1 3L7 8 4.2 9.5l1-3L2.7 4.5h3z"/></svg>
+        </div>
+        <div class="rev-text">"At 210 people across three offices, coordinating food was a nightmare. Zesto Enterprise handles it all. The group scheduling feature is a game changer for our all-hands events."</div>
+        <div class="rev-author">
+          <div class="rev-av" style="background:#EDF7EE;color:#3B6D11;">FO</div>
+          <div>
+            <div class="rev-name">Funke Okafor</div>
+            <div class="rev-role">Office Manager</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── CONTACT ── -->
+<section class="contact-section" id="contact">
+  <div class="container">
+    <div class="contact-inner">
+      <div>
+        <div class="contact-label">Get in touch</div>
+        <h2 class="contact-title">Let's talk about your team</h2>
+        <p class="contact-sub">Tell us a bit about your company and we'll reach out within 2 business hours with a custom plan and pricing.</p>
+        <div class="contact-perks">
+          <div class="cp-item">
+            <div class="cp-ico">⚡</div>
+            <div>
+              <div class="cp-label">Fast response</div>
+              <div class="cp-sub">We respond to all inquiries within 2 business hours, guaranteed.</div>
+            </div>
+          </div>
+          <div class="cp-item">
+            <div class="cp-ico">🎯</div>
+            <div>
+              <div class="cp-label">Custom pricing</div>
+              <div class="cp-sub">Get a quote tailored to your team size, frequency, and locations.</div>
+            </div>
+          </div>
+          <div class="cp-item">
+            <div class="cp-ico">🛡️</div>
+            <div>
+              <div class="cp-label">No commitment</div>
+              <div class="cp-sub">Explore options with zero obligation. Start a free 14-day trial when you're ready.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="contact-form">
+        <div class="form-title">Request a demo or quote</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">First name</label>
+            <input type="text" class="form-input" placeholder="Kavira"/>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Last name</label>
+            <input type="text" class="form-input" placeholder="Laurente"/>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Work email</label>
+          <input type="email" class="form-input" placeholder="Kavira@acmecorp.com"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Company name</label>
+          <input type="text" class="form-input" placeholder="Acme Corp"/>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Team size</label>
+            <select class="form-input form-select">
+              <option>Select team size</option>
+              <option>1–10 people</option>
+              <option>11–50 people</option>
+              <option>51–200 people</option>
+              <option>200+ people</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">City</label>
+            <select class="form-input form-select">
+              <option>Select city</option>
+              <option>Kampala</option>
+              <option>Nairobi</option>
+              <option>Lagos</option>
+              <option>Accra</option>
+              <option>Abidjan</option>
+              <option>Dakar</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">How can we help?</label>
+          <textarea class="form-input" rows="3" placeholder="Tell us about your team's food needs..." style="resize:none;height:80px;"></textarea>
+        </div>
+        <button class="form-submit">Send request →</button>
+        <div class="form-note">We'll reply within 2 business hours. No spam, ever.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── FOOTER ── -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <div class="f-brand">Zes<span>to</span></div>
+        <div class="f-tagline">Fast, reliable delivery across West Africa. Restaurants, groceries, and more — delivered to your door.</div>
+        <div class="f-badge">
+          <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M7 1.5A4.5 4.5 0 0 1 11.5 6c0 3-4.5 7.5-4.5 7.5S2.5 9 2.5 6A4.5 4.5 0 0 1 7 1.5z"/></svg>
+          Available in 3 cities
+        </div>
+      </div>
+      <div>
+        <div class="fc-title">Company</div>
+        <div class="f-links">
+          <a href="about.html" class="f-link">About us</a>
+          <a href="Careers.html" class="f-link">Careers</a>
+          <a href="Press.html" class="f-link">Press</a>
+          <a href="Blog.html" class="f-link">Blog</a>
+          <a href="Investors.html" class="f-link">Investors</a>
+        </div>
+      </div>
+      <div>
+        <div class="fc-title">Partners</div>
+        <div class="f-links">
+          <a href="list-your-restaurant.html" class="f-link">List your restaurant</a>
+          <a href="become-a-rider.html" class="f-link">Become a rider</a>
+          <a href="zesto-pro.html" class="f-link">Zesto Pro</a>
+          <a href="enterprise.html" class="f-link">Enterprise</a>
+        </div>
+      </div>
+      <div>
+        <div class="fc-title">Help</div>
+        <div class="f-links">
+          <a href="Help-center.html" class="f-link">Help center</a>
+          <a href="privacy-policy.html" class="f-link">Privacy policy</a>
+          <a href="terms-of-service.html" class="f-link">Terms of service</a>
+          <a href="contact-us.html" class="f-link">Contact us</a>
+        </div>
+      </div>
+      <div>
+        <div class="fc-title">Cities</div>
+        <div class="f-links">
+          <a href="#" class="f-link">Abidjan</a>
+          <a href="#" class="f-link">Accra</a>
+          <a href="#" class="f-link">Dakar</a>
+          <a href="#" class="f-link">Lagos</a>
+          <a href="#" class="f-link">Nairobi</a>
+          <a href="#" class="f-link">Kampala</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bot">
+      <span class="footer-copy">© 2026 Zesto Technologies Inc. All rights reserved.</span>
+      <div class="socials">
+        <a href="#" class="soc-icon" aria-label="Instagram">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="2" y="2" width="12" height="12" rx="3.5"/><circle cx="8" cy="8" r="3"/><circle cx="11.5" cy="4.5" r=".8" fill="currentColor" stroke="none"/></svg>
+        </a>
+        <a href="#" class="soc-icon" aria-label="X / Twitter">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M2 3h12L9.5 8.5V13l-3-1.5V8.5z" stroke-linejoin="round"/></svg>
+        </a>
+        <a href="#" class="soc-icon" aria-label="Facebook">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="2" y="2" width="12" height="12" rx="2"/><path d="M9 8H7v5M7 8V6a2 2 0 0 1 2-2h1" stroke-linecap="round"/></svg>
+        </a>
+        <a href="#" class="soc-icon" aria-label="LinkedIn">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="2" y="2" width="12" height="12" rx="2"/><path d="M5 7v4M5 5v.5M8 11V8.5A1.5 1.5 0 0 1 11 8.5V11" stroke-linecap="round"/></svg>
+        </a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

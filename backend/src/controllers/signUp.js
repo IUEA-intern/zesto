@@ -1,38 +1,23 @@
 const { query } = require('../config/db')
 const bcrypt = require('bcryptjs')
 
-function signUp(flag) {
-	return async (req,res) =>  {
-	let isCustomer = false, isRider = false , isRestaurant = false
-	let firstName , lastName , email , phoneNumber , password , vehicleType, businessName
-	switch (flag) {
-		case"customer":
-			({firstName , lastName , email , phoneNumber , password } = req.body)
-			isCustomer = true
-			if (!firstName || !lastName ||  !email ||  !phoneNumber || !password) {
-				return res.status(400).json({error : 'missing fields'})
-			}
-			break;
-		case"rider":
-			({firstName , lastName , email , phoneNumber , vehicleType , password} = req.body)
-			isRider = true
-		 	if (!firstName || !lastName ||  !email ||  !phoneNumber || !vehicleType || !password) {
-				return res.status(400).json({error : 'missing fields'})
-		 	}
-		 	break;
-		case"restaurant":
-		 	({firstName , lastName , email , phoneNumber , businessName , password} = req.body)
-			isRestaurant = true
-		 	if (!firstName || !lastName ||  !email ||  !phoneNumber || !businessName || !password) {
-				return res.status(400).json({error : 'missing fields'})
-		 	}
-		 	break;
-		default:
-			return res.status(400).json({error: "flag not found"})
-			break;
-		}
 
+async function signUp(req, res) {
+    const { name, email, phone, password, role } = req.body
+    if (!name || !email || !phone || !password || !role) {
+      return res.status(400).json({error : "missing fields"})
+    }
+    let connection;
 
+    try {
+    	 connection = db.getConnection();
+    	 const hashedPassword = await bcrypt.hash(password, 10);
+
+      const [query] = await connection.query(
+        'INSERT INTO users (name,role , email,phone,password) VALUES (?,?,?,?,?))'
+        , [name, role, email, phone, hashedPassword])
+
+      return res.status(200).json({ })
 
 	try {
     const hashedPassword = await bcrypt.hash(password, 10)
@@ -60,7 +45,8 @@ function signUp(flag) {
 		return res.status(500).json({error:'server error'})
 		}
     }
-}
+  }
 
+}
 
 module.exports = { signUp }
