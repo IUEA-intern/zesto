@@ -1,22 +1,61 @@
 const express = require('express')
-const cors    = require('cors')
-const app     = express()
+const cors = require('cors')
+const cookieParser = require('cookie-parser')
+const helmet = require('helmet')
+const path = require('path')
 
-app.use(cors({ // to be able to test on server machine
-  origin: 'http://localhost:5500',
-  methods: ['GET', 'POST'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+const app = express()
+const frontendPath = path.join(__dirname, '../../frontend-src')
+
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'", 'https://checkout.flutterwave.com', 'https://cdn.socket.io'],
+      styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
+      fontSrc: ["'self'", 'https://fonts.gstatic.com'],
+      imgSrc: ["'self'", 'data:', 'https://images.unsplash.com'],
+      connectSrc: ["'self'", 'https://api.flutterwave.com'],
+      frameSrc: ["'self'", 'https://checkout.flutterwave.com'],
+    },
+  },
+}))
+
+app.use(cors({
+  origin: process.env.CORS_ORIGIN || ['http://localhost:3000', 'http://localhost:5000', 'http://localhost:5500'],
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true,
 }))
 
 app.use(express.json())
+app.use(express.urlencoded({ extended: true }))
+app.use(cookieParser())
 
-app.use('/api/auth',      require('./routes/register'))
-app.use('/api/search',    require('./routes/search'))
-app.use('/api/signin',    require('./routes/signin'))
+app.use(express.static(frontendPath))
+
+app.use('/api/register', require('./routes/register'))
+app.use('/api/search', require('./routes/search'))
+app.use('/api/signin', require('./routes/signin'))
 app.use('/api/investors', require('./routes/investors'))
+app.use('/api/products', require('./routes/products'))
+app.use('/api/cart', require('./routes/cart'))
+app.use('/api/auth', require('./routes/auth'))
+app.use('/api/orders', require('./routes/orders'))
+app.use('/api/payments', require('./routes/payments'))
+app.use('/api/admin', require('./routes/admin'))
 
 app.use((req, res) => {
-  res.status(404).json({ error: 'Route not found' })
+  if (req.method === 'GET' && req.accepts('html')) {
+    return res.sendFile(path.join(frontendPath, 'order.html'))
+  }
+
+  return res.status(404).json({ error: 'Route not found' })
 })
 
-module.exports =  app
+app.use((err, req, res, _next) => {
+  console.error('[UNHANDLED ERROR]', err)
+  return res.status(500).json({ success: false, message: 'Internal server error.' })
+})
+
+module.exports = app

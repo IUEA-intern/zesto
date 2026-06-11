@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Zesto Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Knewave&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="../css/admin.css"/>
+</head>
+<body>
+
+    <!-- ── Toast ─────────────────────────────────────────────────── -->
+    <div id="toastContainer" class="toast-container" aria-live="polite"></div>
+
+    <!-- ── Auth Gate (shown when not logged in) ──────────────────── -->
+    <div id="authGate" class="auth-gate hidden">
+    <div class="auth-gate-card">
+        <div class="auth-gate-logo"><span class="brand-logo">Zes<span class="brand-accent">to</span></span> <span class="admin-badge">Admin</span></div>
+        <h2>Sign in to continue</h2>
+        <div class="form-group"><label>Email</label><input type="email" id="agEmail" placeholder="admin@zesto.ug"/></div>
+        <div class="form-group"><label>Password</label><input type="password" id="agPassword" placeholder="••••••••"/></div>
+        <button class="btn-primary full-w" id="agLoginBtn">Sign In</button>
+    </div>
+    </div>
+
+    <!-- ── App Shell ─────────────────────────────────────────────── -->
+    <div id="appShell" class="app-shell hidden">
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-brand">
+        <span class="brand-logo">Zes<span class="brand-accent">to</span></span>
+        <span class="admin-badge">Admin</span>
+        </div>
+
+        <nav class="sidebar-nav">
+        <button class="nav-item active" data-page="dashboard">
+            <span class="nav-icon">📊</span><span>Dashboard</span>
+        </button>
+        <button class="nav-item" data-page="orders">
+            <span class="nav-icon">📦</span><span>Orders</span>
+            <span class="nav-badge" id="activeOrdersBadge">0</span>
+        </button>
+        <button class="nav-item" data-page="products">
+            <span class="nav-icon">🍔</span><span>Products</span>
+        </button>
+        <button class="nav-item" data-page="users">
+            <span class="nav-icon">👥</span><span>Users</span>
+        </button>
+        <button class="nav-item" data-page="payments">
+            <span class="nav-icon">💳</span><span>Payments</span>
+        </button>
+        <button class="nav-item" data-page="analytics">
+            <span class="nav-icon">📈</span><span>Analytics</span>
+        </button>
+        <button class="nav-item" data-page="audit">
+            <span class="nav-icon">🔍</span><span>Audit Logs</span>
+        </button>
+        </nav>
+
+        <div class="sidebar-footer">
+        <div class="sidebar-user" id="sidebarUser"></div>
+        <button class="btn-logout-admin" id="adminLogout">↩ Sign Out</button>
+        </div>
+    </aside>
+
+    <!-- Main content -->
+    <div class="main-wrap">
+        <!-- Top bar -->
+        <header class="topbar">
+        <button class="sidebar-toggle" id="sidebarToggle">☰</button>
+        <h1 class="topbar-title" id="topbarTitle">Dashboard</h1>
+        <div class="topbar-actions">
+            <div class="live-indicator" id="liveIndicator">
+            <span class="live-dot"></span> Live
+            </div>
+        </div>
+        </header>
+
+        <!-- Pages -->
+        <main class="content-area">
+
+        <!-- ── DASHBOARD PAGE ─────────────────────────────────── -->
+        <section id="page-dashboard" class="page active">
+
+            <!-- KPI Cards -->
+            <div class="kpi-grid">
+            <div class="kpi-card">
+                <div class="kpi-icon">💰</div>
+                <div class="kpi-body">
+                <div class="kpi-label">Total Revenue</div>
+                <div class="kpi-value" id="kpiRevenue">—</div>
+                </div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-icon">📦</div>
+                <div class="kpi-body">
+                <div class="kpi-label">Orders Today</div>
+                <div class="kpi-value" id="kpiOrdersToday">—</div>
+                </div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-icon">🔥</div>
+                <div class="kpi-body">
+                <div class="kpi-label">Active Orders</div>
+                <div class="kpi-value" id="kpiActive">—</div>
+                </div>
+            </div>
+            <div class="kpi-card kpi-warn">
+                <div class="kpi-icon">⚠️</div>
+                <div class="kpi-body">
+                <div class="kpi-label">Failed Payments Today</div>
+                <div class="kpi-value" id="kpiFailed">—</div>
+                </div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-icon">👥</div>
+                <div class="kpi-body">
+                <div class="kpi-label">Total Customers</div>
+                <div class="kpi-value" id="kpiUsers">—</div>
+                </div>
+            </div>
+            <div class="kpi-card kpi-warn">
+                <div class="kpi-icon">📉</div>
+                <div class="kpi-body">
+                <div class="kpi-label">Low Stock Items</div>
+                <div class="kpi-value" id="kpiLowStock">—</div>
+                </div>
+            </div>
+            </div>
+
+            <!-- Live feed + top products -->
+            <div class="dash-grid">
+            <div class="dash-card">
+                <div class="dash-card-header">
+                <h3>🔴 Live Order Feed</h3>
+                <span class="live-dot-sm"></span>
+                </div>
+                <div class="live-feed" id="liveFeed">
+                <div class="feed-empty">Waiting for orders…</div>
+                </div>
+            </div>
+
+            <div class="dash-card">
+                <div class="dash-card-header"><h3>🏆 Top Products (30 days)</h3></div>
+                <div id="topProductsList" class="top-products">
+                <div class="skeleton-row"></div>
+                <div class="skeleton-row"></div>
+                <div class="skeleton-row"></div>
+                </div>
+            </div>
+            </div>
+
+        </section>
+
+        <!-- ── ORDERS PAGE ────────────────────────────────────── -->
+        <section id="page-orders" class="page">
+            <div class="page-toolbar">
+            <div class="filter-tabs">
+                <button class="filter-tab active" data-status="">All</button>
+                <button class="filter-tab" data-status="pending">Pending</button>
+                <button class="filter-tab" data-status="processing">Processing</button>
+                <button class="filter-tab" data-status="preparing">Preparing</button>
+                <button class="filter-tab" data-status="out_for_delivery">Out for Delivery</button>
+                <button class="filter-tab" data-status="delivered">Delivered</button>
+                <button class="filter-tab" data-status="cancelled">Cancelled</button>
+            </div>
+            </div>
+
+            <div class="table-card">
+            <table class="data-table" id="ordersTable">
+                <thead>
+                <tr>
+                    <th>Order #</th>
+                    <th>Customer</th>
+                    <th>Items</th>
+                    <th>Total</th>
+                    <th>Payment</th>
+                    <th>Status</th>
+                    <th>Date</th>
+                    <th>Action</th>
+                </tr>
+                </thead>
+                <tbody id="ordersBody">
+                <tr><td colspan="8" class="table-loading">Loading orders…</td></tr>
+                </tbody>
+            </table>
+            </div>
+            <div class="pagination" id="ordersPagination"></div>
+        </section>
+
+        <!-- ── PRODUCTS PAGE ──────────────────────────────────── -->
+        <section id="page-products" class="page">
+            <div class="page-toolbar">
+            <button class="btn-primary" id="addProductBtn">+ Add Product</button>
+            </div>
+
+            <div class="table-card">
+            <table class="data-table" id="productsTable">
+                <thead>
+                <tr>
+                    <th>Image</th>
+                    <th>Name</th>
+                    <th>Category</th>
+                    <th>Price</th>
+                    <th>Stock</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+                </thead>
+                <tbody id="productsBody">
+                <tr><td colspan="7" class="table-loading">Loading products…</td></tr>
+                </tbody>
+            </table>
+            </div>
+        </section>
+
+        <!-- ── USERS PAGE ─────────────────────────────────────── -->
+        <section id="page-users" class="page">
+            <div class="table-card">
+            <table class="data-table">
+                <thead>
+                <tr><th>ID</th><th>Name</th><th>Email</th><th>Phone</th><th>Role</th><th>Orders</th><th>Joined</th></tr>
+                </thead>
+                <tbody id="usersBody">
+                <tr><td colspan="7" class="table-loading">Loading users…</td></tr>
+                </tbody>
+            </table>
+            </div>
+        </section>
+
+        <!-- ── PAYMENTS PAGE ──────────────────────────────────── -->
+        <section id="page-payments" class="page">
+            <div class="table-card">
+            <table class="data-table">
+                <thead>
+                <tr><th>ID</th><th>Order</th><th>Customer</th><th>Method</th><th>Amount</th><th>Status</th><th>Date</th></tr>
+                </thead>
+                <tbody id="paymentsBody">
+                <tr><td colspan="7" class="table-loading">Loading payments…</td></tr>
+                </tbody>
+            </table>
+            </div>
+        </section>
+
+        <!-- ── ANALYTICS PAGE ─────────────────────────────────── -->
+        <section id="page-analytics" class="page">
+            <div class="analytics-grid">
+            <div class="dash-card analytics-chart-card">
+                <div class="dash-card-header"><h3>📈 Daily Revenue (30 days)</h3></div>
+                <canvas id="revenueChart" height="260"></canvas>
+            </div>
+            <div class="dash-card">
+                <div class="dash-card-header"><h3>🏆 Top Selling Products</h3></div>
+                <div id="analyticsTopProducts"></div>
+            </div>
+            </div>
+        </section>
+
+        <!-- ── AUDIT LOGS PAGE ────────────────────────────────── -->
+        <section id="page-audit" class="page">
+            <div class="table-card">
+            <table class="data-table">
+                <thead>
+                <tr><th>Time</th><th>Actor</th><th>Action</th><th>Entity</th><th>Notes</th><th>IP</th></tr>
+                </thead>
+                <tbody id="auditBody">
+                <tr><td colspan="6" class="table-loading">Loading logs…</td></tr>
+                </tbody>
+            </table>
+            </div>
+        </section>
+
+        </main>
+    </div>
+    </div>
+
+    <!-- ── Product Modal ─────────────────────────────────────────── -->
+    <div id="productModal" class="modal-overlay hidden">
+    <div class="modal-card wide-card">
+        <button class="modal-close" id="closeProductModal">&times;</button>
+        <h2 class="modal-title" id="productModalTitle">Add Product</h2>
+        <input type="hidden" id="editProductId"/>
+        <div class="form-row">
+        <div class="form-group"><label>Name *</label><input type="text" id="pName" placeholder="Product name"/></div>
+        <div class="form-group"><label>Category</label>
+            <select id="pCategory">
+            <option value="1">🍔 Food</option>
+            <option value="2">🥤 Drinks</option>
+            <option value="3">🍰 Desserts</option>
+            <option value="4">🎁 Combos</option>
+            </select>
+        </div>
+        </div>
+        <div class="form-row">
+        <div class="form-group"><label>Type</label><input type="text" id="pType" placeholder="e.g. burger, pizza"/></div>
+        <div class="form-group"><label>Price (UGX) *</label><input type="number" id="pPrice" min="0" placeholder="0"/></div>
+        </div>
+        <div class="form-row">
+        <div class="form-group"><label>Stock</label><input type="number" id="pStock" min="0" placeholder="0"/></div>
+        <div class="form-group"><label>Image URL</label><input type="url" id="pImageUrl" placeholder="https://…"/></div>
+        </div>
+        <div class="form-group"><label>Description</label><textarea id="pDescription" rows="3" placeholder="Describe the product…"></textarea></div>
+        <div class="form-check-row">
+        <label class="check-label"><input type="checkbox" id="pFeatured"/> Featured</label>
+        <label class="check-label"><input type="checkbox" id="pActive" checked/> Active</label>
+        </div>
+        <button class="btn-primary full-w" id="saveProductBtn">Save Product</button>
+    </div>
+    </div>
+
+    <!-- ── Order Detail Modal ────────────────────────────────────── -->
+    <div id="orderDetailModal" class="modal-overlay hidden">
+    <div class="modal-card wide-card">
+        <button class="modal-close" id="closeOrderModal">&times;</button>
+        <h2 class="modal-title" id="orderDetailTitle">Order Details</h2>
+        <div id="orderDetailContent"></div>
+    </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="admin.js"></script>
+</body>
+</html>
