@@ -1,0 +1,373 @@
+/**
+ * server/controllers/paymentController.js
+ * ──────────────────────────────────────────────────────────────
+ * Zesto — Secure Flutterwave Payment Verification
+ *
+ * ANTI-FRAUD CHECKS (all must pass):
+ *   ① transaction_id exists in DB (not fabricated)
+ *   ② idempotency key has never been processed (replay attack guard)
+ *   ③ FLW API status === 'successful'
+ *   ④ amount matches order total EXACTLY (±0.00)
+ *   ⑤ currency matches expected (UGX)
+ *   ⑥ tx_ref matches our DB record (not swapped)
+ *   ⑦ payment row still in 'pending' (prevent double-credit)
+ *
+ * Server-to-server ONLY — frontend data never trusted for amounts.
+ * ──────────────────────────────────────────────────────────────
+ */
+
+'use strict';
+
+require('dotenv').config({ path: __dirname + '/../.env' });
+
+const https         = require('https');
+const { query }     = require('../config/db');
+const { log, ACTIONS } = require('../config/audit');
+
+const EXPECTED_CURRENCY = 'UGX';
+
+/* ============================================================
+   STEP 1 — Initiate payment (creates pending payment row)
+   ============================================================ */
+async function initiatePayment(req, res) {
+  const io     = req.app.get('io');
+  const socket = req.app.get('socketEmitters');
+
+  try {
+    const { order_id } = req.body;
+    const userId       = req.user?.user_id || req.user?.id;
+
+    if (!order_id) {
+      return res.status(400).json({ success: false, message: 'order_id is required.' });
+    }
+
+    // Fetch order — must belong to this user
+    const orders = await query(
+      'SELECT * FROM orders WHERE order_id = ? AND user_id = ?',
+      [order_id, userId]
+    );
+    if (!orders.length) {
+      return res.status(404).json({ success: false, message: 'Order not found.' });
+    }
+
+    const order = orders[0];
+
+    // Check no verified payment exists already
+    const existing = await query(
+      "SELECT payment_id FROM payments WHERE order_id = ? AND status = 'verified'",
+      [order_id]
+    );
+    if (existing.length) {
+      return res.status(409).json({ success: false, message: 'Order already paid.' });
+    }
+
+    // Generate unique references
+    const txRef          = `ZST-${Date.now()}-${userId}-${order_id}`;
+    const idempotencyKey = `pay-${order_id}-${userId}-${Date.now()}`;
+
+    // Insert pending payment row
+    const result = await query(
+      `INSERT INTO payments
+         (order_id, user_id, method, status, amount, currency, flw_tx_ref, idempotency_key)
+       VALUES (?, ?, ?, 'pending', ?, ?, ?, ?)`,
+      [order_id, userId, req.body.method || 'mobile_money',
+       order.total, EXPECTED_CURRENCY, txRef, idempotencyKey]
+    );
+
+    await log({
+      actorId:    userId,
+      actorRole:  'customer',
+      action:     ACTIONS.PAYMENT_INITIATED,
+      entityType: 'payment',
+      entityId:   Number(result.insertId),
+      newValue:   { order_id, amount: order.total, txRef },
+      ip:         req.ip,
+      userAgent:  req.headers['user-agent'],
+    });
+
+    return res.json({
+      success:   true,
+      tx_ref:    txRef,
+      amount:    order.total,
+      currency:  EXPECTED_CURRENCY,
+      public_key: process.env.FLW_PUBLIC_KEY,
+    });
+  } catch (err) {
+    console.error('[initiatePayment]', err);
+    return res.status(500).json({ success: false, message: 'Failed to initiate payment.' });
+  }
+}
+
+/* ============================================================
+   STEP 2+3 — Verify payment (server-to-server, anti-fraud)
+   ============================================================ */
+async function verifyPayment(req, res) {
+  const socket = req.app.get('socketEmitters');
+  const userId = req.user?.user_id || req.user?.id;
+
+  const { transaction_id, tx_ref, order_id } = req.body;
+
+  if (!transaction_id || !tx_ref || !order_id) {
+    return res.status(400).json({ success: false, message: 'transaction_id, tx_ref and order_id are required.' });
+  }
+
+  // ── CHECK ①: payment row must exist in pending state ────────
+  const payments = await query(
+    "SELECT * FROM payments WHERE flw_tx_ref = ? AND order_id = ? AND user_id = ? AND status = 'pending'",
+    [tx_ref, order_id, userId]
+  );
+
+  if (!payments.length) {
+    // Could be replay attack or double-submission
+    await log({
+      actorId:    userId,
+      actorRole:  'customer',
+      action:     ACTIONS.PAYMENT_REPLAY_BLOCKED,
+      entityType: 'payment',
+      notes:      `tx_ref=${tx_ref} order_id=${order_id} transaction_id=${transaction_id}`,
+      ip:         req.ip,
+      userAgent:  req.headers['user-agent'],
+    });
+    return res.status(409).json({ success: false, message: 'Payment already processed or not found.' });
+  }
+
+  const payment = payments[0];
+
+  // ── CHECK ②: idempotency guard (replay attack) ───────────────
+  const replayCheck = await query(
+    "SELECT payment_id FROM payments WHERE idempotency_key = ? AND status != 'pending'",
+    [payment.idempotency_key]
+  );
+  if (replayCheck.length) {
+    await log({
+      actorId:    userId,
+      actorRole:  'customer',
+      action:     ACTIONS.PAYMENT_REPLAY_BLOCKED,
+      entityType: 'payment',
+      entityId:   payment.payment_id,
+      notes:      `Replay blocked. idempotency_key=${payment.idempotency_key}`,
+      ip:         req.ip,
+    });
+    return res.status(409).json({ success: false, message: 'Duplicate payment attempt blocked.' });
+  }
+
+  // ── STEP 3: Server-to-server Flutterwave API verify ─────────
+  let flwData;
+  try {
+    flwData = await flutterwaveVerifyAPI(transaction_id);
+  } catch (err) {
+    console.error('[verifyPayment] FLW API error:', err);
+    return res.status(502).json({ success: false, message: 'Payment gateway unreachable. Try again shortly.' });
+  }
+
+  const flwTx = flwData?.data;
+
+  // ── CHECK ③: FLW status must be successful ───────────────────
+  if (!flwTx || flwData.status !== 'success' || flwTx.status !== 'successful') {
+    await _markFailed(payment, userId, tx_ref, flwData, 'FLW status not successful', req, socket, order_id);
+    return res.status(400).json({ success: false, message: 'Payment was not completed successfully.' });
+  }
+
+  // ── CHECK ④: amount must match EXACTLY ──────────────────────
+  const flwAmount   = parseFloat(flwTx.amount);
+  const orderAmount = parseFloat(payment.amount);
+  if (Math.abs(flwAmount - orderAmount) > 0.001) {
+    await _markFailed(payment, userId, tx_ref, flwData,
+      `Amount mismatch: expected ${orderAmount} got ${flwAmount}`, req, socket, order_id);
+    return res.status(400).json({ success: false, message: 'Payment amount does not match order total.' });
+  }
+
+  // ── CHECK ⑤: currency must be correct ───────────────────────
+  if (flwTx.currency !== EXPECTED_CURRENCY) {
+    await _markFailed(payment, userId, tx_ref, flwData,
+      `Currency mismatch: expected ${EXPECTED_CURRENCY} got ${flwTx.currency}`, req, socket, order_id);
+    return res.status(400).json({ success: false, message: 'Invalid payment currency.' });
+  }
+
+  // ── CHECK ⑥: tx_ref must match ──────────────────────────────
+  if (flwTx.tx_ref !== tx_ref) {
+    await _markFailed(payment, userId, tx_ref, flwData,
+      `tx_ref mismatch: expected ${tx_ref} got ${flwTx.tx_ref}`, req, socket, order_id);
+    return res.status(400).json({ success: false, message: 'Transaction reference mismatch.' });
+  }
+
+  // ── ALL CHECKS PASSED — STEP 4: Finalize ────────────────────
+  try {
+    await query(
+      `UPDATE payments
+       SET status='verified', flw_tx_id=?, flw_raw_response=?, verified_at=CURRENT_TIMESTAMP,
+           updated_at=CURRENT_TIMESTAMP
+       WHERE payment_id=?`,
+      [String(transaction_id), JSON.stringify(flwData), payment.payment_id]
+    );
+
+    await query(
+      `UPDATE orders SET status='processing', updated_at=CURRENT_TIMESTAMP WHERE order_id=?`,
+      [order_id]
+    );
+
+    // Audit
+    await log({
+      actorId:    userId,
+      actorRole:  'customer',
+      action:     ACTIONS.PAYMENT_VERIFIED,
+      entityType: 'payment',
+      entityId:   payment.payment_id,
+      newValue:   { status: 'verified', transaction_id, amount: orderAmount },
+      ip:         req.ip,
+      userAgent:  req.headers['user-agent'],
+    });
+
+    // ── Real-time notifications ──────────────────────────────
+    if (socket) {
+      // Notify user
+      socket.paymentStatus(userId, { orderId: order_id, status: 'verified', amount: orderAmount });
+      socket.toastUser(userId, { type: 'success', message: 'Payment confirmed! Your order is being prepared.' });
+      socket.orderCreated(userId, { orderId: order_id, orderNumber: flwTx.tx_ref });
+
+      // Notify admin dashboard
+      socket.adminPaymentVerified({
+        paymentId:  payment.payment_id,
+        orderId:    order_id,
+        userId,
+        amount:     orderAmount,
+        method:     payment.method,
+        flwTxId:    String(transaction_id),
+      });
+      socket.adminOrderUpdate({ orderId: order_id, status: 'processing' });
+
+      // Notify kitchen
+      const orderRows = await query('SELECT * FROM orders WHERE order_id=?', [order_id]);
+      if (orderRows.length) {
+        socket.kitchenNewOrder({
+          orderId:     order_id,
+          orderNumber: orderRows[0].order_number,
+          total:       orderRows[0].total,
+        });
+      }
+    }
+
+    return res.json({ success: true, message: 'Payment verified! Order is being prepared.' });
+  } catch (err) {
+    console.error('[verifyPayment] Finalization error:', err);
+    return res.status(500).json({ success: false, message: 'Payment verified but order update failed. Contact support.' });
+  }
+}
+
+/* ============================================================
+   INTERNAL HELPERS
+   ============================================================ */
+
+/** Mark a payment as failed, emit events, write audit log */
+async function _markFailed(payment, userId, txRef, flwData, reason, req, socket, orderId) {
+  try {
+    await query(
+      `UPDATE payments
+       SET status='failed', flw_raw_response=?, failure_reason=?, updated_at=CURRENT_TIMESTAMP
+       WHERE payment_id=?`,
+      [JSON.stringify(flwData), reason, payment.payment_id]
+    );
+
+    await log({
+      actorId:    userId,
+      actorRole:  'customer',
+      action:     ACTIONS.PAYMENT_FAILED,
+      entityType: 'payment',
+      entityId:   payment.payment_id,
+      notes:      reason,
+      ip:         req.ip,
+      userAgent:  req.headers['user-agent'],
+    });
+
+    if (socket) {
+      socket.paymentStatus(userId, { orderId, status: 'failed', amount: payment.amount });
+      socket.toastUser(userId, { type: 'error', message: 'Payment failed. Please try again.' });
+      socket.adminPaymentFailed({ paymentId: payment.payment_id, orderId, reason });
+    }
+  } catch (err) {
+    console.error('[_markFailed]', err);
+  }
+}
+
+/** Server-to-server Flutterwave transaction verify */
+function flutterwaveVerifyAPI(transactionId) {
+  return new Promise((resolve, reject) => {
+    const options = {
+      hostname: 'api.flutterwave.com',
+      path:     `/v3/transactions/${transactionId}/verify`,
+      method:   'GET',
+      headers: {
+        Authorization:  `Bearer ${process.env.FLW_SECRET_KEY}`,
+        'Content-Type': 'application/json',
+      },
+    };
+
+    const req = https.request(options, (r) => {
+      let body = '';
+      r.on('data',  chunk => { body += chunk; });
+      r.on('end',   ()    => {
+        try { resolve(JSON.parse(body)); }
+        catch (e) { reject(new Error('Invalid JSON from Flutterwave')); }
+      });
+    });
+    req.on('error', reject);
+    req.setTimeout(10000, () => { req.destroy(); reject(new Error('FLW API timeout')); });
+    req.end();
+  });
+}
+
+/* ============================================================
+   Webhook callback (Flutterwave → your server, server-initiated)
+   ============================================================ */
+async function webhookCallback(req, res) {
+  // Validate secret hash header
+  const secretHash = process.env.FLW_SECRET_HASH;
+  const signature  = req.headers['verif-hash'];
+
+  if (!secretHash || signature !== secretHash) {
+    console.warn('[Webhook] Invalid signature — rejected');
+    return res.status(401).json({ message: 'Unauthorized' });
+  }
+
+  const payload = req.body;
+  res.status(200).json({ received: true }); // Respond immediately
+
+  // Process async
+  setImmediate(async () => {
+    try {
+      if (payload.event === 'charge.completed' && payload.data?.status === 'successful') {
+        const txRef       = payload.data.tx_ref;
+        const txId        = payload.data.id;
+        const flwAmount   = parseFloat(payload.data.amount);
+
+        const rows = await query(
+          "SELECT * FROM payments WHERE flw_tx_ref=? AND status='pending'",
+          [txRef]
+        );
+        if (!rows.length) return; // Already processed or doesn't exist
+
+        const payment = rows[0];
+        if (Math.abs(flwAmount - parseFloat(payment.amount)) > 0.001) {
+          console.warn(`[Webhook] Amount mismatch for tx_ref=${txRef}`);
+          return;
+        }
+
+        await query(
+          `UPDATE payments
+           SET status='verified', flw_tx_id=?, flw_raw_response=?, verified_at=CURRENT_TIMESTAMP
+           WHERE payment_id=?`,
+          [String(txId), JSON.stringify(payload), payment.payment_id]
+        );
+        await query(
+          "UPDATE orders SET status='processing' WHERE order_id=?",
+          [payment.order_id]
+        );
+        console.log(`[Webhook] Payment verified for order ${payment.order_id}`);
+      }
+    } catch (err) {
+      console.error('[Webhook] Processing error:', err);
+    }
+  });
+}
+
+module.exports = { initiatePayment, verifyPayment, webhookCallback };

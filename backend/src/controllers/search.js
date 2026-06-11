@@ -1,4 +1,4 @@
-const db = require('./db');
+const { query } = require('../config/db');
 
 const reservedOptionKeys = ['sortBy', 'sortOrder', 'sortFunction'];
 const filterHandlers = new Map();
@@ -97,7 +97,7 @@ function sortRows(rows, options) {
 async function performSearch(termOrOptions = '') {
   try {
     const options = normalizeSearchOptions(termOrOptions);
-    const result = await db.query();
+    const result = await query('SELECT * FROM products WHERE is_active = 1');
     let rows = extractRows(result);
 
     const predicates = buildFilterPredicates(options);

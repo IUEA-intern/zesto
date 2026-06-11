@@ -1,5 +1,5 @@
-const db = require('../../db')
-const bcrypt = require('bcrypt')
+const { query } = require('../config/db')
+const bcrypt = require('bcryptjs')
 
 function signUp(flag) {
 	return async (req,res) =>  {
@@ -35,28 +35,25 @@ function signUp(flag) {
 
 
 	try {
-	  const connection = await db.getConnection()
-    const hashedPassword = await bcrypt.hash(password, "salt")
+    const hashedPassword = await bcrypt.hash(password, 10)
 
 		if (isCustomer) {
-			await connection.query(
+			await query(
 				'INSERT INTO users(firstName , lastName , email , phoneNumber , password) VALUES (?,?,?,?,?)',
 				[firstName , lastName , email , phoneNumber , hashedPassword] )
 		} else if (isRider) {
-			await connection.query(
+			await query(
 				'INSERT INTO users(firstName , lastName , email , phoneNumber , vehicleType , password) VALUES (?,?,?,?,?,?)',
 				[firstName , lastName , email , phoneNumber , vehicleType , hashedPassword] )
 		} else if (isRestaurant) {
-				await connection.query(
+				await query(
 				'INSERT INTO users(firstName , lastName , email , phoneNumber , businessName , password) VALUES (?,?,?,?,?,?)',
 				[firstName , lastName , email , phoneNumber , businessName , hashedPassword] )
 		}
 
-		connection.release()
 		return res.status(201).json({msg: "account regsiterd"})
 
 	} catch(error) {
-		connection.release()
 		if (error.errno === 1062) {
 			return res.status(409).json({error:'User already exits'})
 		}
