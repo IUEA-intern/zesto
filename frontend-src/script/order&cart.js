@@ -25,6 +25,7 @@ const State = {
   products:  new Map(),   // product_id → product object
   session:   null,        // { user_id, name, email, role } or null
   cartItems: [],          // [{ product_id, qty }] — mirrors localStorage
+  cartServerIds: new Map(), // product_id → cart_id for server sync
   intent:    null,        // 'checkout' when login is required before completing checkout
 };
 
@@ -97,14 +98,27 @@ const Toast = {
 const LocalCart = {
   load() {
     try {
-      return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+      return this.normalize(JSON.parse(localStorage.getItem(STORAGE_KEY)) || []);
     } catch { return []; }
   },
 
   save(items) {
+    const normalized = this.normalize(items);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(
-      items.map(({ product_id, qty }) => ({ product_id: Number(product_id), qty: Number(qty) }))
+      normalized.map(({ product_id, qty }) => ({ product_id, qty }))
     ));
+    return normalized;
+  },
+
+  normalize(items) {
+    const map = new Map();
+    (Array.isArray(items) ? items : []).forEach(({ product_id, qty }) => {
+      const productId = Number(product_id);
+      const quantity = Number(qty);
+      if (!Number.isInteger(productId) || !Number.isFinite(quantity) || quantity < 1) return;
+      map.set(productId, (map.get(productId) || 0) + quantity);
+    });
+    return Array.from(map, ([product_id, qty]) => ({ product_id, qty }));
   },
 
   add(productId, qty = 1) {
@@ -346,6 +360,36 @@ const Cart = {
     State.cartItems = LocalCart.load();
   },
 
+  rememberServerItems(items) {
+    State.cartServerIds.clear();
+    items.forEach(item => {
+      if (item.cart_id) State.cartServerIds.set(Number(item.product_id), Number(item.cart_id));
+      State.products.set(item.product_id, item);
+    });
+  },
+
+  async syncServerQty(productId, qty) {
+    if (!State.session) return;
+
+    const cartId = State.cartServerIds.get(productId);
+    if (cartId) {
+      await Api.put(`/cart/${cartId}`, { qty });
+      return;
+    }
+
+    await Api.post('/cart', { product_id: productId, qty });
+  },
+
+  async removeServerItem(productId) {
+    if (!State.session) return;
+
+    const cartId = State.cartServerIds.get(productId);
+    if (!cartId) return;
+
+    await Api.delete(`/cart/${cartId}`);
+    State.cartServerIds.delete(productId);
+  },
+
   /** Update badge count(s) in the navbar */
   updateBadge() {
     const count = LocalCart.count();
@@ -488,8 +532,8 @@ const Cart = {
 },
 
   /**
-   * Merge: server cart wins for qty on items present server-side;
-   * purely local items stay local.
+   * Merge: local cart wins when it has a selected qty; server-only items remain.
+   * This preserves the user's visible selection without adding it again on refresh.
    */
   async mergeServerCart() {
     try {
@@ -499,7 +543,7 @@ const Cart = {
       const serverItems = res.data || [];
       const serverMap   = new Map(serverItems.map(i => [i.product_id, { qty: i.qty, cart_id: i.cart_id }]));
 
-      serverItems.forEach(i => State.products.set(i.product_id, i));
+      this.rememberServerItems(serverItems);
 
       const merged = [];
       const allIds = new Set([ ...localMap.keys(), ...serverMap.keys() ]);
@@ -507,7 +551,7 @@ const Cart = {
       for (const productId of allIds) {
         const localQty  = localMap.get(productId) || 0;
         const serverQty = serverMap.get(productId)?.qty || 0;
-        const qty       = localQty + serverQty;
+        const qty       = localMap.has(productId) ? localQty : serverQty;
         if (qty < 1) continue;
         merged.push({
           product_id: productId,
@@ -526,6 +570,9 @@ const Cart = {
           await Api.post('/cart', { product_id: item.product_id, qty: item.qty });
         }
       }));
+
+      const refreshed = await Api.get('/cart');
+      this.rememberServerItems(refreshed.data || []);
 
       const persisted = merged.map(({ product_id, qty }) => ({ product_id, qty }));
       LocalCart.save(persisted);
@@ -655,9 +702,12 @@ const Cart = {
     if (item.qty <= 1) {
       this.removeItem(pid);
     } else {
-      LocalCart.update(pid, item.qty - 1);
+      const nextQty = item.qty - 1;
+      LocalCart.update(pid, nextQty);
       this.refreshState();
-      if (State.session) Api.put(`/cart/${pid}`, { qty: item.qty - 1 }).catch(() => {});
+      this.syncServerQty(pid, nextQty).catch(err => {
+        console.warn('[Cart qty sync]', err.message);
+      });
       this.renderCartPage();
     }
   },
@@ -676,9 +726,12 @@ const Cart = {
       return;
     }
 
-    LocalCart.update(pid, item.qty + 1);
+    const nextQty = item.qty + 1;
+    LocalCart.update(pid, nextQty);
     this.refreshState();
-    if (State.session) Api.put(`/cart/${pid}`, { qty: item.qty + 1 }).catch(() => {});
+    this.syncServerQty(pid, nextQty).catch(err => {
+      console.warn('[Cart qty sync]', err.message);
+    });
     this.renderCartPage();
   },
 
@@ -690,7 +743,9 @@ const Cart = {
       itemEl.addEventListener('animationend', () => {
         LocalCart.remove(pid);
         this.refreshState();
-        if (State.session) Api.delete(`/cart/${pid}`).catch(() => {});
+        this.removeServerItem(pid).catch(err => {
+          console.warn('[Cart remove sync]', err.message);
+        });
         this.renderCartPage();
         this.updateBadge();
         Toast.info('Item removed from cart.');
@@ -698,6 +753,9 @@ const Cart = {
     } else {
       LocalCart.remove(pid);
       this.refreshState();
+      this.removeServerItem(pid).catch(err => {
+        console.warn('[Cart remove sync]', err.message);
+      });
       this.renderCartPage();
       this.updateBadge();
     }

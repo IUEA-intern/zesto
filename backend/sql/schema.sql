@@ -34,6 +34,7 @@ CREATE TABLE IF NOT EXISTS users (
   email       VARCHAR(180)    NOT NULL,
   phone       VARCHAR(20)     NULL,
   password    VARCHAR(255)    NOT NULL,
+  isPro       boolean         NOT NULL DEFAULT FALSE,
   role        ENUM('customer','staff','admin') NOT NULL DEFAULT 'customer',
   avatar_url  VARCHAR(500)    NULL,
   is_active   TINYINT(1)      NOT NULL DEFAULT 1,
