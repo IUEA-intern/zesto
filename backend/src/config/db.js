@@ -46,3 +46,15 @@ async function query(sql, params) {
 }
 
 module.exports = { query, testConnection };
+import mysql from "mysql2/promise";
+
+const db = await mysql.createPool({
+    host: "localhost",
+    user: "root",
+    password: "",
+    database: "zesto",
+    waitForConnections: true,
+    connectionLimit: 10
+});
+
+export default db;

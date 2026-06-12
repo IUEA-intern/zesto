@@ -1,272 +1,408 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="preconnect" href="https://fonts.googleapis.com"/>
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-  <link href="https://fonts.googleapis.com/css2?family=Knewave&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet"/>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Knewave&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap"
+    rel="stylesheet" />
   <link rel="stylesheet" type="text/css" href="css/restaurant.css">
   <style>
-    .search-hero{
-      position:relative;
-      overflow:visible;
-      background:linear-gradient(rgba(250,250,247,0.26), rgba(250,250,247,0.26));
+    .search-hero {
+      position: relative;
+      overflow: visible;
+      background: linear-gradient(rgba(250, 250, 247, 0.26), rgba(250, 250, 247, 0.26));
     }
-    .search-hero::before{
-      content:"";
-      position:absolute;
-      inset:0;
-      background-image:url('images/search-bg.jpeg');
-      background-size:cover;
-      background-position:center center;
-      opacity:0.85;
-      z-index:0;
-      pointer-events:none;
-      filter:contrast(1.06) saturate(1.05);
+
+    .search-hero::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-image: url('images/search-bg.jpeg');
+      background-size: cover;
+      background-position: center center;
+      opacity: 0.85;
+      z-index: 0;
+      pointer-events: none;
+      filter: contrast(1.06) saturate(1.05);
     }
-    .search-hero::after{
-      content:"";
-      position:absolute;
-      inset:0;
-      background:linear-gradient(rgba(250,250,247,0.66), rgba(250,250,247,1));
-      z-index:0;
-      pointer-events:none;
+
+    .search-hero::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(rgba(250, 250, 247, 0.66), rgba(250, 250, 247, 1));
+      z-index: 0;
+      pointer-events: none;
     }
-    .search-hero .container, .search-hero .hero-inner, .search-hero .hero-left, .search-hero .hero-right{position:relative;z-index:1}
-    .search-hero .hero-inner{grid-template-columns:1fr 360px;gap:32px;}
-    .search-hero .hero-h1{max-width:650px;font-size:clamp(22px,3vw,38px);line-height:1.2;}
+
+    .search-hero .container,
+    .search-hero .hero-inner,
+    .search-hero .hero-left,
+    .search-hero .hero-right {
+      position: relative;
+      z-index: 1
+    }
+
+    .search-hero .hero-inner {
+      grid-template-columns: 1fr 360px;
+      gap: 32px;
+    }
+
+    .search-hero .hero-h1 {
+      max-width: 650px;
+      font-size: clamp(22px, 3vw, 38px);
+      line-height: 1.2;
+    }
   </style>
-    <title>Zesto — Search & Restaurants</title>
+  <title>Zesto — Search & Restaurants</title>
 </head>
+
 <body>
-    <div class="mobile-menu" id="mobileMenu">
-  <div class="mobile-menu-header">
-    <div class="nav-logo">
-      <div class="logo-mark">
-        <svg viewBox="0 0 24 24"><path d="M13 2L4 13h7l-1 9 10-12h-7l1-8z"/></svg>
-      </div>
-      <span class="logo-text">Zes<span>to</span></span>
-    </div>
-    <button class="mobile-close" onclick="document.getElementById('mobileMenu').classList.remove('open')">✕</button>
-  </div>
-  <div class="mobile-links">
-    <a class="mobile-link" href="restaurant.html">Restaurants</a>
-    <!-- <a class="mobile-link" href="#">Grocery</a> -->
-    <a class="mobile-link" href="for-busines.html">for business</a>
-    <a class="mobile-link" href="about.html">About us</a>
-    <a class="mobile-link" href="Blog.html">Blog</a>
-
-  </div>
-  <div class="mobile-actions" style="margin-top:24px;">
-    <a href="login.html" class="btn btn-ghost" style="justify-content:center;padding:14px;">Sign in</a>
-    <a href="signin.html" class="btn btn-primary" style="justify-content:center;padding:14px;border-radius:var(--r12);">Get started</a>
-  </div>
-</div >
-
-<!-- ── NAV ── -->
-<header class="nav">
-  <div class="container">
-    <nav class="nav-inner">
-      <a href="index.html" class="nav-logo">
+  <div class="mobile-menu" id="mobileMenu">
+    <div class="mobile-menu-header">
+      <div class="nav-logo">
         <div class="logo-mark">
-          <svg viewBox="0 0 24 24"><path d="M13 2L4 13h7l-1 9 10-12h-7l1-8z"/></svg>
+          <svg viewBox="0 0 24 24">
+            <path d="M13 2L4 13h7l-1 9 10-12h-7l1-8z" />
+          </svg>
         </div>
         <span class="logo-text">Zes<span>to</span></span>
-      </a>
-      <div class="nav-links">
-        <a href="restaurant.html" class="nav-link active">Restaurants</a>
-        <!-- <a href="#" class="nav-link">Grocery</a> -->
-        <a href="for-busines.html" class="nav-link">for Busines</a>
-        <a href="about.html" class="nav-link">About us</a>
-        <a href="Blog.html" class="nav-link">Blog</a>
+      </div>
+      <button class="mobile-close" onclick="document.getElementById('mobileMenu').classList.remove('open')">✕</button>
+    </div>
+    <div class="mobile-links">
+      <a class="mobile-link" href="restaurant.html">Restaurants</a>
+      <!-- <a class="mobile-link" href="#">Grocery</a> -->
+      <a class="mobile-link" href="for-busines.html">for business</a>
+      <a class="mobile-link" href="about.html">About us</a>
+      <a class="mobile-link" href="Blog.html">Blog</a>
 
-      </div>
-      <a href="#" class="nav-loc">
-        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M8 1.5A4.5 4.5 0 0 1 12.5 6c0 3.2-4.5 8.5-4.5 8.5S3.5 9.2 3.5 6A4.5 4.5 0 0 1 8 1.5z"/><circle cx="8" cy="6" r="1.6"/></svg>
-        Kampala, UG
-        <svg viewBox="0 0 10 6" fill="none" stroke="currentColor" stroke-width="1.5" style="width:10px;height:10px;"><path d="M1 1l4 4 4-4"/></svg>
-      </a>
-      <div class="nav-actions">
-      <a href="login.html" class="btn btn-ghost">Sign in</a>
-      <a href="signin.html" class="btn btn-primary">Get started</a>
-      </div>
-      <button class="nav-hamburger" onclick="document.getElementById('mobileMenu').classList.add('open')" aria-label="Open menu">
-        <span></span><span></span><span></span>
-      </button>
-    </nav>
+    </div>
+    <div class="mobile-actions" style="margin-top:24px;">
+      <a href="login.html" class="btn btn-ghost" style="justify-content:center;padding:14px;">Sign in</a>
+      <a href="signin.html" class="btn btn-primary"
+        style="justify-content:center;padding:14px;border-radius:var(--r12);">Get started</a>
+    </div>
   </div>
-</header>
-<section class="hero search-hero">
-  <div class="container">
-    <div class="hero-inner">
-      <div class="hero-left">
-        <div class="hero-eyebrow">
-          <svg viewBox="0 0 14 14" fill="currentColor"><path d="M7 1l1.3 3.1L11.5 4l-2.5 2.4.6 3.5L7 8.3 4.4 9.9l.6-3.5L2.5 4l3.2-.9z"/></svg>
-          Find the perfect meal in seconds
+
+  <!-- ── NAV ── -->
+  <header class="nav">
+    <div class="container">
+      <nav class="nav-inner">
+        <a href="index.html" class="nav-logo">
+          <div class="logo-mark">
+            <svg viewBox="0 0 24 24">
+              <path d="M13 2L4 13h7l-1 9 10-12h-7l1-8z" />
+            </svg>
+          </div>
+          <span class="logo-text">Zes<span>to</span></span>
+        </a>
+        <div class="nav-links">
+          <a href="restaurant.html" class="nav-link active">Restaurants</a>
+          <!-- <a href="#" class="nav-link">Grocery</a> -->
+          <a href="for-busines.html" class="nav-link">for Busines</a>
+          <a href="about.html" class="nav-link">About us</a>
+          <a href="Blog.html" class="nav-link">Blog</a>
+
         </div>
-        <h1 class="hero-h1">Search restaurants, dishes, and cuisines with <span class="brand-key">Zesto</span>.</h1>
-        <p class="hero-sub">Use the smart search bar below to discover popular local restaurants, trending dishes, and fast delivery options near your address.</p>
-        <form class="hero-search" action="restaurant.html" method="get">
-          <button type="button" class="mobile-back" aria-label="Go back">
-            <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 2 4 6l4 4" stroke-linecap="round"/></svg>
+        <div class="city-selector">
+
+          <button id="cityBtn" class="nav-loc">
+
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4">
+              <path d="M8 1.5A4.5 4.5 0 0 1 12.5 6c0 3.2-4.5 8.5-4.5 8.5S3.5 9.2 3.5 6A4.5 4.5 0 0 1 8 1.5z" />
+              <circle cx="8" cy="6" r="1.6" />
+            </svg>
+
+            <span id="selectedCity">Kampala</span>
+
+            <svg viewBox="0 0 10 6" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M1 1l4 4 4-4" />
+            </svg>
+
           </button>
-          <a class="hs-loc" href="#">
-            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M8 1.5A4.5 4.5 0 0 1 12.5 6c0 3.2-4.5 8.5-4.5 8.5S3.5 9.2 3.5 6A4.5 4.5 0 0 1 8 1.5z"/><circle cx="8" cy="6" r="1.6"/></svg>
-            <span>Delivering to Kampala, UG</span>
+
+          <div class="city-dropdown" id="cityDropdown">
+
+            <input type="text" id="citySearch" placeholder="Search city..." class="city-search">
+
+            <div id="cityList"></div>
+
+          </div>
+
+        </div>
+        <div class="nav-actions">
+          <a href="login.html" class="btn btn-ghost">Sign in</a>
+          <a href="signin.html" class="btn btn-primary">Get started</a>
+        </div>
+        <button class="nav-hamburger" onclick="document.getElementById('mobileMenu').classList.add('open')"
+          aria-label="Open menu">
+          <span></span><span></span><span></span>
+        </button>
+      </nav>
+    </div>
+  </header>
+  <section class="hero search-hero">
+    <div class="container">
+      <div class="hero-inner">
+        <div class="hero-left">
+          <div class="hero-eyebrow">
+            <svg viewBox="0 0 14 14" fill="currentColor">
+              <path d="M7 1l1.3 3.1L11.5 4l-2.5 2.4.6 3.5L7 8.3 4.4 9.9l.6-3.5L2.5 4l3.2-.9z" />
+            </svg>
+            Find the perfect meal in seconds
+          </div>
+          <h1 class="hero-h1">Search restaurants, dishes, and cuisines with <span class="brand-key">Zesto</span>.</h1>
+          <p class="hero-sub">Use the smart search bar below to discover popular local restaurants, trending dishes, and
+            fast delivery options near your address.</p>
+          <form class="hero-search" action="restaurant.html" method="get">
+            <button type="button" class="mobile-back" aria-label="Go back">
+              <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path d="M8 2 4 6l4 4" stroke-linecap="round" />
+              </svg>
+            </button>
+            <a class="hs-loc" href="#">
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4">
+                <path d="M8 1.5A4.5 4.5 0 0 1 12.5 6c0 3.2-4.5 8.5-4.5 8.5S3.5 9.2 3.5 6A4.5 4.5 0 0 1 8 1.5z" />
+                <circle cx="8" cy="6" r="1.6" />
+              </svg>
+              <span>Delivering to Kampala, UG</span>
+            </a>
+            <div class="hs-q">
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4">
+                <circle cx="7" cy="7" r="4.5" />
+                <path d="M10.5 10.5l2.5 2.5" stroke-linecap="round" />
+              </svg>
+              <input type="search" name="q" placeholder="Search for pizza, burgers, sushi…">
+            </div>
+            <button type="submit" class="hs-btn">Search</button>
+          </form>
+          <div class="mobile-category-tabs">
+            <button type="button" class="mobile-category-tab active">Restaurants</button>
+            <button type="button" class="mobile-category-tab">Groceries</button>
+            <button type="button" class="mobile-category-tab">Shops</button>
+            <button type="button" class="mobile-category-tab">Home</button>
+          </div>
+          <div class="hero-filters">
+            <div class="filter-dropdown">
+              <button type="button" class="filter-button">Promotions</button>
+            </div>
+            <div class="filter-dropdown">
+              <button type="button" class="filter-button">food types</button>
+              <div class="filter-menu">
+                <button type="button" class="filter-menu-item">🍕 Pizza</button>
+                <button type="button" class="filter-menu-item">🍔 Burgers</button>
+                <button type="button" class="filter-menu-item">🍣 Sushi</button>
+                <button type="button" class="filter-menu-item">🥗 Healthy</button>
+              </div>
+            </div>
+            <div class="filter-dropdown">
+              <button type="button" class="filter-button">Takeaway</button>
+            </div>
+            <div class="filter-dropdown">
+              <button type="button" class="filter-button">Sort by</button>
+              <div class="filter-menu">
+                <button type="button" class="filter-menu-item">Recommended</button>
+                <button type="button" class="filter-menu-item">Near me</button>
+                <button type="button" class="filter-menu-item">Top Rated</button>
+              </div>
+            </div>
+          </div>
+          <button type="button" class="hero-reset">Reset filters</button>
+        </div>
+        <div class="hero-right">
+          <a href="#" class="h-card">
+            <div class="h-c-ico" style="background:#EDF7EE;">🍕</div>
+            <div>
+              <div class="h-c-name">Napoli Express</div>
+              <div class="h-c-meta">
+                <span><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.2">
+                    <circle cx="6" cy="6" r="4.5" />
+                    <path d="M6 3.5v2.5l1.5 1.5" stroke-linecap="round" />
+                  </svg>28 min</span>
+                <span class="h-c-star"><svg viewBox="0 0 12 12" fill="currentColor">
+                    <path d="M6 1l1.1 2.7 2.9.4-2.1 2 .5 2.9L6 7.6 3.6 9l.5-2.9L2 4.1l2.9-.4z" />
+                  </svg>4.6</span>
+              </div>
+            </div>
+            <button class="h-c-btn">View</button>
           </a>
-          <div class="hs-q">
-            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="7" cy="7" r="4.5"/><path d="M10.5 10.5l2.5 2.5" stroke-linecap="round"/></svg>
-            <input type="search" name="q" placeholder="Search for pizza, burgers, sushi…">
-          </div>
-          <button type="submit" class="hs-btn">Search</button>
-        </form>
-        <div class="mobile-category-tabs">
-          <button type="button" class="mobile-category-tab active">Restaurants</button>
-          <button type="button" class="mobile-category-tab">Groceries</button>
-          <button type="button" class="mobile-category-tab">Shops</button>
-          <button type="button" class="mobile-category-tab">Home</button>
+          <a href="#" class="h-card">
+            <div class="h-c-ico" style="background:#FFF0E8;">🍔</div>
+            <div>
+              <div class="h-c-name">Burger Shack</div>
+              <div class="h-c-meta">
+                <span><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.2">
+                    <circle cx="6" cy="6" r="4.5" />
+                    <path d="M6 3.5v2.5l1.5 1.5" stroke-linecap="round" />
+                  </svg>20 min</span>
+                <span class="h-c-star"><svg viewBox="0 0 12 12" fill="currentColor">
+                    <path d="M6 1l1.1 2.7 2.9.4-2.1 2 .5 2.9L6 7.6 3.6 9l.5-2.9L2 4.1l2.9-.4z" />
+                  </svg>4.8</span>
+              </div>
+            </div>
+            <button class="h-c-btn">View</button>
+          </a>
+          <a href="#" class="h-card">
+            <div class="h-c-ico" style="background:#EEF3FF;">🍣</div>
+            <div>
+              <div class="h-c-name">Tokyo Bay</div>
+              <div class="h-c-meta">
+                <span><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.2">
+                    <circle cx="6" cy="6" r="4.5" />
+                    <path d="M6 3.5v2.5l1.5 1.5" stroke-linecap="round" />
+                  </svg>38 min</span>
+                <span class="h-c-star"><svg viewBox="0 0 12 12" fill="currentColor">
+                    <path d="M6 1l1.1 2.7 2.9.4-2.1 2 .5 2.9L6 7.6 3.6 9l.5-2.9L2 4.1l2.9-.4z" />
+                  </svg>4.9</span>
+              </div>
+            </div>
+            <button class="h-c-btn">View</button>
+          </a>
         </div>
-        <div class="hero-filters">
-          <div class="filter-dropdown">
-            <button type="button" class="filter-button">Promotions</button>
-          </div>
-          <div class="filter-dropdown">
-            <button type="button" class="filter-button">food types</button>
-            <div class="filter-menu">
-              <button type="button" class="filter-menu-item">🍕 Pizza</button>
-              <button type="button" class="filter-menu-item">🍔 Burgers</button>
-              <button type="button" class="filter-menu-item">🍣 Sushi</button>
-              <button type="button" class="filter-menu-item">🥗 Healthy</button>
-            </div>
-          </div>
-          <div class="filter-dropdown">
-            <button type="button" class="filter-button">Takeaway</button>
-          </div>
-          <div class="filter-dropdown">
-            <button type="button" class="filter-button">Sort by</button>
-            <div class="filter-menu">
-              <button type="button" class="filter-menu-item">Recommended</button>
-              <button type="button" class="filter-menu-item">Near me</button>
-              <button type="button" class="filter-menu-item">Top Rated</button>
-            </div>
-          </div>
-        </div>
-        <button type="button" class="hero-reset">Reset filters</button>
-      </div>
-      <div class="hero-right">
-        <a href="#" class="h-card">
-          <div class="h-c-ico" style="background:#EDF7EE;">🍕</div>
-          <div>
-            <div class="h-c-name">Napoli Express</div>
-            <div class="h-c-meta">
-              <span><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="6" cy="6" r="4.5"/><path d="M6 3.5v2.5l1.5 1.5" stroke-linecap="round"/></svg>28 min</span>
-              <span class="h-c-star"><svg viewBox="0 0 12 12" fill="currentColor"><path d="M6 1l1.1 2.7 2.9.4-2.1 2 .5 2.9L6 7.6 3.6 9l.5-2.9L2 4.1l2.9-.4z"/></svg>4.6</span>
-            </div>
-          </div>
-          <button class="h-c-btn">View</button>
-        </a>
-        <a href="#" class="h-card">
-          <div class="h-c-ico" style="background:#FFF0E8;">🍔</div>
-          <div>
-            <div class="h-c-name">Burger Shack</div>
-            <div class="h-c-meta">
-              <span><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="6" cy="6" r="4.5"/><path d="M6 3.5v2.5l1.5 1.5" stroke-linecap="round"/></svg>20 min</span>
-              <span class="h-c-star"><svg viewBox="0 0 12 12" fill="currentColor"><path d="M6 1l1.1 2.7 2.9.4-2.1 2 .5 2.9L6 7.6 3.6 9l.5-2.9L2 4.1l2.9-.4z"/></svg>4.8</span>
-            </div>
-          </div>
-          <button class="h-c-btn">View</button>
-        </a>
-        <a href="#" class="h-card">
-          <div class="h-c-ico" style="background:#EEF3FF;">🍣</div>
-          <div>
-            <div class="h-c-name">Tokyo Bay</div>
-            <div class="h-c-meta">
-              <span><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="6" cy="6" r="4.5"/><path d="M6 3.5v2.5l1.5 1.5" stroke-linecap="round"/></svg>38 min</span>
-              <span class="h-c-star"><svg viewBox="0 0 12 12" fill="currentColor"><path d="M6 1l1.1 2.7 2.9.4-2.1 2 .5 2.9L6 7.6 3.6 9l.5-2.9L2 4.1l2.9-.4z"/></svg>4.9</span>
-            </div>
-          </div>
-          <button class="h-c-btn">View</button>
-        </a>
       </div>
     </div>
-  </div>
-</section>
-<!-- ── RESTAURANTS SECTION ── -->
-<section class="restos-section">
-  <div class="container">
-    <!-- Skeleton shown while loading -->
-    <div class="restos-grid" id="restos-skeleton" aria-hidden="true">
-      <div class="r-card r-skeleton"></div>
-      <div class="r-card r-skeleton"></div>
-      <div class="r-card r-skeleton"></div>
+  </section>
+  <!-- ── RESTAURANTS SECTION ── -->
+  <section class="restos-section">
+    <div class="container">
+      <!-- Skeleton shown while loading -->
+      <div class="restos-grid" id="restos-skeleton" aria-hidden="true">
+        <div class="r-card r-skeleton"></div>
+        <div class="r-card r-skeleton"></div>
+        <div class="r-card r-skeleton"></div>
+      </div>
+      <!-- Cards injected here by JS -->
+      <div class="restos-grid" id="restos-grid" style="display:none;"></div>
     </div>
-    <!-- Cards injected here by JS -->
-    <div class="restos-grid" id="restos-grid" style="display:none;"></div>
-  </div>
-</section>
+  </section>
 
-<script src="script/restaurant.js"></script>
-<script>
-  (function(){
-    try {
-      var params = new URLSearchParams(window.location.search);
-      var q = params.get('q') || '';
-      var input = document.querySelector('.hero-search input[name="q"]');
-      if (input) input.value = q;
-      var restosTitle = document.getElementById('restosTitle');
-      var restosSub = document.getElementById('restosSub');
-      if (restosTitle) restosTitle.textContent = q ? 'Showing results for "' + q + '"' : 'Top restaurants near you';
-      if (restosSub) restosSub.textContent = q ? 'Search results based on your query.' : 'Most ordered today in your area';
-    } catch (e) {
-      console.warn('Search query init error', e);
-    }
-  })();
+  <script src="script/restaurant.js"></script>
+  <script>
+    (function () {
+      try {
+        var params = new URLSearchParams(window.location.search);
+        var q = params.get('q') || '';
+        var input = document.querySelector('.hero-search input[name="q"]');
+        if (input) input.value = q;
+        var restosTitle = document.getElementById('restosTitle');
+        var restosSub = document.getElementById('restosSub');
+        if (restosTitle) restosTitle.textContent = q ? 'Showing results for "' + q + '"' : 'Top restaurants near you';
+        if (restosSub) restosSub.textContent = q ? 'Search results based on your query.' : 'Most ordered today in your area';
+      } catch (e) {
+        console.warn('Search query init error', e);
+      }
+    })();
 
-  document.addEventListener('click', function(event) {
-    var dropdown = event.target.closest('.filter-dropdown');
-    if (!dropdown) {
-      document.querySelectorAll('.filter-dropdown.open').forEach(function(item) {
-        item.classList.remove('open');
-      });
-      return;
-    }
-
-    var button = event.target.closest('.filter-button');
-    if (button) {
-      var hasMenu = button.nextElementSibling && button.nextElementSibling.classList.contains('filter-menu');
-      if (hasMenu) {
-        event.preventDefault();
-        event.stopPropagation();
-        document.querySelectorAll('.filter-dropdown.open').forEach(function(item) {
-          if (item !== dropdown) item.classList.remove('open');
+    document.addEventListener('click', function (event) {
+      var dropdown = event.target.closest('.filter-dropdown');
+      if (!dropdown) {
+        document.querySelectorAll('.filter-dropdown.open').forEach(function (item) {
+          item.classList.remove('open');
         });
-        dropdown.classList.toggle('open');
         return;
       }
-      button.classList.toggle('active');
-      return;
-    }
 
-    var menuItem = event.target.closest('.filter-menu-item');
-    if (menuItem) {
-      event.preventDefault();
-      event.stopPropagation();
-      menuItem.classList.toggle('active');
-    }
-  });
+      var button = event.target.closest('.filter-button');
+      if (button) {
+        var hasMenu = button.nextElementSibling && button.nextElementSibling.classList.contains('filter-menu');
+        if (hasMenu) {
+          event.preventDefault();
+          event.stopPropagation();
+          document.querySelectorAll('.filter-dropdown.open').forEach(function (item) {
+            if (item !== dropdown) item.classList.remove('open');
+          });
+          dropdown.classList.toggle('open');
+          return;
+        }
+        button.classList.toggle('active');
+        return;
+      }
 
-  var resetButton = document.querySelector('.hero-reset');
-  if (resetButton) {
-    resetButton.addEventListener('click', function() {
-      document.querySelectorAll('.filter-button.active, .filter-menu-item.active').forEach(function(item) {
-        item.classList.remove('active');
-      });
-      document.querySelectorAll('.filter-dropdown.open').forEach(function(item) {
-        item.classList.remove('open');
-      });
+      var menuItem = event.target.closest('.filter-menu-item');
+      if (menuItem) {
+        event.preventDefault();
+        event.stopPropagation();
+        menuItem.classList.toggle('active');
+      }
     });
-  }
-</script>
+
+    var resetButton = document.querySelector('.hero-reset');
+    if (resetButton) {
+      resetButton.addEventListener('click', function () {
+        document.querySelectorAll('.filter-button.active, .filter-menu-item.active').forEach(function (item) {
+          item.classList.remove('active');
+        });
+        document.querySelectorAll('.filter-dropdown.open').forEach(function (item) {
+          item.classList.remove('open');
+        });
+      });
+    }
+  </script>
+  <script>
+
+    const cities = [
+      "Kampala",
+      "Jinja",
+      "Entebbe",
+      "Mbarara",
+      "Gulu",
+      "Mbale",
+      "Arua",
+      "Masaka",
+      "Hoima",
+      "Fort Portal"
+    ];
+
+    const cityBtn = document.getElementById("cityBtn");
+    const cityDropdown = document.getElementById("cityDropdown");
+    const citySearch = document.getElementById("citySearch");
+    const cityList = document.getElementById("cityList");
+    const selectedCity = document.getElementById("selectedCity");
+
+    cityBtn.addEventListener("click", () => {
+      cityDropdown.classList.toggle("show");
+    });
+
+    function renderCities(search = "") {
+
+      cityList.innerHTML = "";
+
+      cities
+        .filter(city =>
+          city.toLowerCase().includes(search.toLowerCase())
+        )
+        .forEach(city => {
+
+          const div = document.createElement("div");
+
+          div.className = "city-item";
+          div.textContent = city;
+
+          div.onclick = () => {
+
+            selectedCity.textContent = city;
+
+            loadRestaurants(city);
+
+            cityDropdown.classList.remove("show");
+          };
+
+          cityList.appendChild(div);
+        });
+    }
+
+    citySearch.addEventListener("input", () => {
+      renderCities(citySearch.value);
+    });
+
+    renderCities();
+
+  </script>
 </body>
+
 </html>
