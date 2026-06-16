@@ -1,6 +1,6 @@
 // controllers/signin.js
-const db     = require('../../db')
-const bcrypt = require('bcrypt')
+const { query } = require('../config/db')
+const bcrypt = require('bcryptjs')
 const jwt    = require('jsonwebtoken')
 
 async function customerSignIn(req, res) {
@@ -13,17 +13,13 @@ async function customerSignIn(req, res) {
     return res.status(400).json({ error: 'missing fields' })
   }
 
-  const connection = await db.getConnection()
-
   try {
 
     // 3. Look up the user by email in the database
-    const [rows] = await connection.query(
+    const rows = await query(
       'SELECT * FROM users WHERE email = ? LIMIT 1',
       [email]
     )
-
-    connection.release()
 
     // 4. If no user found, return a vague error (prevents email enumeration)
     if (rows.length === 0) {
@@ -64,7 +60,6 @@ async function customerSignIn(req, res) {
     })
 
   } catch (err) {
-    connection.release()
     return res.status(500).json({ error: 'server error' })
   }
 }

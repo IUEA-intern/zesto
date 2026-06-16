@@ -1,5 +1,5 @@
-const db = require('../../db')
-const bcrypt = require('bcrypt')
+const { query } = require('../config/db')
+const bcrypt = require('bcryptjs')
 
 
 async function signUp(req, res) {
@@ -19,17 +19,31 @@ async function signUp(req, res) {
 
       return res.status(200).json({ })
 
-    } catch (error) {
+	try {
+    const hashedPassword = await bcrypt.hash(password, 10)
 
-      if (error.errno === 1062) {
-        return res.status(409).json({error:'Duplicate'})
-      }
-      return res.status(500).json({error:'server error'})
+		if (isCustomer) {
+			await query(
+				'INSERT INTO users(firstName , lastName , email , phoneNumber , password) VALUES (?,?,?,?,?)',
+				[firstName , lastName , email , phoneNumber , hashedPassword] )
+		} else if (isRider) {
+			await query(
+				'INSERT INTO users(firstName , lastName , email , phoneNumber , vehicleType , password) VALUES (?,?,?,?,?,?)',
+				[firstName , lastName , email , phoneNumber , vehicleType , hashedPassword] )
+		} else if (isRestaurant) {
+				await query(
+				'INSERT INTO users(firstName , lastName , email , phoneNumber , businessName , password) VALUES (?,?,?,?,?,?)',
+				[firstName , lastName , email , phoneNumber , businessName , hashedPassword] )
+		}
 
-  } finally {
+		return res.status(201).json({msg: "account regsiterd"})
 
-    if (connection) {
-      connection.release()
+	} catch(error) {
+		if (error.errno === 1062) {
+			return res.status(409).json({error:'User already exits'})
+		}
+		return res.status(500).json({error:'server error'})
+		}
     }
   }
 

@@ -1,112 +1,217 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Zesto — Your Cart</title>
-
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link
-    href="https://fonts.googleapis.com/css2?family=Knewave&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap"
-    rel="stylesheet" />
-  <link rel="stylesheet" href="css/cart.css">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Knewave&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/cart.css" />
 </head>
-
 <body>
 
-  <header class="nav">
-    <div class="container">
-      <div class="nav-inner">
+  <!-- ── Toast Container ──────────────────────────────────── -->
+  <div id="toastContainer" class="toast-container" aria-live="polite"></div>
 
-        <div class="nav-left">
-          <a href="order.html" class="back-btn">←</a>
-          <div class="logo">
-            <div class="logo-mark">⚡</div>
-            <div class="logo-text">
-              Zes<span>to</span>
-            </div>
-          </div>
+  <!-- ── Auth Modal ───────────────────────────────────────── -->
+  <div id="authModal" class="modal-overlay hidden">
+    <div class="modal-card">
+      <button class="modal-close" id="closeAuthModal" aria-label="Close">&times;</button>
+
+      <div id="loginTab" class="auth-tab active">
+        <h2 class="modal-title">Welcome Back 👋</h2>
+        <p class="modal-sub">Log in to your Zesto account</p>
+        <div class="form-group">
+          <label for="loginEmail">Email</label>
+          <input type="email" id="loginEmail" placeholder="you@example.com" autocomplete="email" />
         </div>
-
-        <div class="nav-right">
-          <div class="location-pill">
-            📍 Kampala, Uganda
-          </div>
-
-          <a href="cart.html" class="cart-nav-btn" style="opacity: 0.5; cursor: default; pointer-events: none;">
-            🛒 <span id="navCartCount">0</span>
-          </a>
-
-          <button class="profile-btn">
-            AK
-          </button>
+        <div class="form-group">
+          <label for="loginPassword">Password</label>
+          <input type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password" />
         </div>
+        <button class="btn-primary full-width" id="loginBtn">Log In</button>
+        <p class="auth-switch">Don't have an account? <a href="#" id="switchToRegister">Sign Up</a></p>
+      </div>
 
+      <div id="registerTab" class="auth-tab hidden">
+        <h2 class="modal-title">Create Account 🎉</h2>
+        <p class="modal-sub">Join Zesto for fast food delivery</p>
+        <div class="form-group">
+          <label for="regName">Full Name</label>
+          <input type="text" id="regName" placeholder="John Doe" autocomplete="name" />
+        </div>
+        <div class="form-group">
+          <label for="regEmail">Email</label>
+          <input type="email" id="regEmail" placeholder="you@example.com" autocomplete="email" />
+        </div>
+        <div class="form-group">
+          <label for="regPhone">Phone (optional)</label>
+          <input type="tel" id="regPhone" placeholder="+256 7XX XXX XXX" autocomplete="tel" />
+        </div>
+        <div class="form-group">
+          <label for="regPassword">Password</label>
+          <input type="password" id="regPassword" placeholder="Min. 6 characters" autocomplete="new-password" />
+        </div>
+        <button class="btn-primary full-width" id="registerBtn">Create Account</button>
+        <p class="auth-switch">Already have an account? <a href="#" id="switchToLogin">Log In</a></p>
       </div>
     </div>
-  </header>
+  </div>
 
-  <div class="container">
+  <!-- ── Checkout Modal (delivery details) ────────────────── -->
+  <div id="checkoutModal" class="modal-overlay hidden">
+    <div class="modal-card checkout-card">
+      <button class="modal-close" id="closeCheckoutModal">&times;</button>
+      <h2 class="modal-title">Complete Your Order 🚀</h2>
 
-    <h1 class="cart-main-title">Your Cart</h1>
+      <div class="form-group">
+        <label for="deliveryAddress">Delivery Address</label>
+        <textarea id="deliveryAddress" rows="2"
+          placeholder="e.g. Plot 15, Kira Road, Kampala"></textarea>
+      </div>
+      <div class="form-group">
+        <label for="paymentMethod">Payment Method</label>
+        <select id="paymentMethod">
+          <option value="mobile_money">📱 Mobile Money (MTN / Airtel)</option>
+          <option value="card">💳 Visa / Mastercard</option>
+          <option value="cash">💵 Cash on Delivery</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="orderNotes">Special Notes (optional)</label>
+        <input type="text" id="orderNotes" placeholder="e.g. Extra sauce, no onions" />
+      </div>
 
-    <!-- TABS -->
-    <div class="menu-tabs">
-      <a href="order.html" class="menu-tab" data-tab="food">Food</a>
-      <a href="order.html" class="menu-tab" data-tab="drinks">Drinks</a>
-      <a href="order.html" class="menu-tab" data-tab="desserts">Desserts</a>
-      <a href="order.html" class="menu-tab" data-tab="other">Other</a>
+      <div class="checkout-summary">
+        <div class="summary-row">
+          <span>Subtotal</span>
+          <span id="modalSubtotal">UGX 0</span>
+        </div>
+        <div class="summary-row">
+          <span>Delivery Fee</span>
+          <span>UGX 5,000</span>
+        </div>
+        <div class="summary-row total-row">
+          <span>Total</span>
+          <span id="modalTotal">UGX 0</span>
+        </div>
+      </div>
+
+      <button class="btn-primary full-width" id="proceedPaymentBtn">
+        💳 Proceed to Payment
+      </button>
     </div>
+  </div>
 
-    <div class="cart-layout">
+  <!-- ── Navbar ────────────────────────────────────────────── -->
+  <nav class="navbar" id="mainNav">
+    <div class="nav-inner">
+      <a href="order.html" class="nav-brand">
+        <span class="brand-logo">Zes<span class="brand-accent">to</span></span>
+      </a>
+      <div class="nav-links">
+        <a href="order.html" class="nav-link">← Back to Menu</a>
+      </div>
+      <div class="nav-actions">
+        <div id="userPill" class="user-pill hidden">
+          <span class="user-avatar">👤</span>
+          <span id="userName" class="user-name-text"></span>
+          <button id="logoutBtn" class="btn-logout" title="Logout">↩</button>
+        </div>
+        <a href="cart.html" class="cart-btn active-cart" id="cartNavBtn" aria-label="View cart">
+          <span class="cart-icon">🛒</span>
+          <span class="cart-badge" id="cartBadge">0</span>
+        </a>
+      </div>
+    </div>
+  </nav>
 
+  <!-- ── Cart Page ─────────────────────────────────────────── -->
+  <main class="cart-main">
+    <div class="cart-container">
+
+      <!-- Left: Cart Items -->
       <section class="cart-items-section">
-        <div id="cartContent">
-          <div class="empty-cart">
-            Your cart is empty. <br><br>
-            <a href="order.html" style="color:#FF5500; text-decoration:none; font-weight:700;">Continue Shopping →</a>
-          </div>
+        <div class="cart-header">
+          <h1 class="cart-title">Your Cart 🛒</h1>
+          <button class="btn-clear-cart" id="clearCartBtn">Clear All</button>
+        </div>
+
+        <!-- Loading state -->
+        <div id="cartLoading" class="cart-loading">
+          <div class="skeleton-item"></div>
+          <div class="skeleton-item"></div>
+          <div class="skeleton-item"></div>
+        </div>
+
+        <!-- Empty state -->
+        <div id="cartEmpty" class="cart-empty hidden">
+          <div class="empty-icon">🍽️</div>
+          <h3>Your cart is empty</h3>
+          <p>Looks like you haven't added anything yet.</p>
+          <a href="order.html" class="btn-primary">Browse Menu</a>
+        </div>
+
+        <!-- Cart items list -->
+        <div id="cartItemsList" class="cart-items-list hidden">
+          <!-- Populated dynamically -->
         </div>
       </section>
 
-      <aside class="cart-summary-box">
-        <div class="summary-title">Order Summary</div>
+      <!-- Right: Order Summary -->
+      <aside class="cart-summary-section">
+        <div class="summary-card">
+          <h2 class="summary-title">Order Summary</h2>
 
-        <div class="sum-row">
-          <span>Subtotal</span>
-          <span id="subtotal">UGX 0</span>
-        </div>
+          <div class="summary-rows" id="summaryRows">
+            <!-- Subtotal rows populated dynamically -->
+          </div>
 
-        <div class="sum-row">
-          <span>Delivery</span>
-          <span>UGX 5,000</span>
-        </div>
+          <div class="summary-divider"></div>
 
-        <div class="sum-row total">
-          <span>Total</span>
-          <span id="total">UGX 5,000</span>
-        </div>
+          <div class="summary-row delivery-row">
+            <span>Delivery Fee</span>
+            <span class="delivery-fee">UGX 5,000</span>
+          </div>
 
-        <a href="checkout.html">
-          <button class="checkout-btn" id="checkoutBtn">
-            Proceed to Checkout
+          <div class="summary-row grand-total-row">
+            <span>Total</span>
+            <span id="grandTotal" class="grand-total-amount">UGX 0</span>
+          </div>
+
+          <button class="btn-primary full-width checkout-btn" id="checkoutBtn" disabled>
+            Checkout
           </button>
-        </a>
 
-        <a href="order.html" class="continue-shopping-btn">
-          ← Continue Shopping
-        </a>
+          <a href="order.html" class="btn-outline full-width continue-btn">
+            + Add More Items
+          </a>
+
+          <!-- Accepted payments -->
+          <div class="payment-badges">
+            <span class="payment-badge">📱 MTN MoMo</span>
+            <span class="payment-badge">📱 Airtel Money</span>
+            <span class="payment-badge">💳 Visa</span>
+            <span class="payment-badge">💳 Mastercard</span>
+          </div>
+        </div>
       </aside>
 
     </div>
+  </main>
 
-  </div>
+  <!-- ── Footer ────────────────────────────────────────────── -->
+  <footer class="footer">
+    <div class="footer-inner">
+      <p class="footer-copy">© 2024 Zesto. Fast. Fresh. Flavourful.</p>
+    </div>
+  </footer>
 
+  <!-- ── Scripts ───────────────────────────────────────────── -->
+  <script src="/socket.io/socket.io.js"></script>
+  <!-- Flutterwave inline payment SDK -->
+  <script src="https://checkout.flutterwave.com/v3.js"></script>
   <script src="script/order&cart.js"></script>
-
-
 </body>
-
 </html>

@@ -1,329 +1,1175 @@
-const DELIVERY_FEE = 5000;
-const STORAGE_KEY = 'zestoCart';
+/**
+ * Zesto — order&cart.js
+ * ──────────────────────────────────────────────────────────────
+ * Single JS module serving both order.html and cart.html.
+ * Architecture: module pattern — no globals, no duplicate listeners.
+ *
+ * CART STORAGE RULE: localStorage stores ONLY { product_id, qty }
+ * Product details always resolved against the in-memory products map.
+ * ──────────────────────────────────────────────────────────────
+ */
 
-const MENU_ITEMS = [
-  {
-    id: 'burger1',
-    name: 'Double Smash Burger',
-    price: 28000,
-    category: 'food',
-    type: 'Burger',
-    description: 'Two juicy beef patties layered with cheddar cheese, pickles, lettuce, onions and signature shack sauce. Served with crispy fries.',
-    image: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?q=80&w=1200&auto=format&fit=crop'
+'use strict';
+
+/* ============================================================
+   CONSTANTS
+   ============================================================ */
+const API        = '/api';
+const STORAGE_KEY = 'zesto_cart';    // [{ product_id, qty }]
+const DELIVERY_FEE = 5000;          // UGX — mirrors server .env
+
+/* ============================================================
+   STATE
+   ============================================================ */
+const State = {
+  products:  new Map(),   // product_id → product object
+  session:   null,        // { user_id, name, email, role } or null
+  cartItems: [],          // [{ product_id, qty }] — mirrors localStorage
+  cartServerIds: new Map(), // product_id → cart_id for server sync
+  intent:    null,        // 'checkout' when login is required before completing checkout
+};
+
+/* ============================================================
+   UTILITY HELPERS
+   ============================================================ */
+const Utils = {
+  /** Format number as UGX currency string */
+  currency(n) {
+    return 'UGX ' + Number(n).toLocaleString('en-UG');
   },
-  {
-    id: 'wrap1',
-    name: 'Crispy Chicken Wrap',
-    price: 24000,
-    category: 'food',
-    type: 'Wrap',
-    description: 'Golden crispy chicken strips wrapped with fresh lettuce, cheese and creamy ranch sauce in a toasted tortilla.',
-    image: 'https://images.unsplash.com/photo-1606755962773-d324e0a13086?q=80&w=1200&auto=format&fit=crop'
+
+  /** Simple debounce */
+  debounce(fn, ms = 300) {
+    let t;
+    return (...args) => {
+      clearTimeout(t);
+      t = setTimeout(() => fn(...args), ms);
+    };
   },
-  {
-    id: 'drink1',
-    name: 'Vanilla Milkshake',
-    price: 12000,
-    category: 'drinks',
-    type: 'Milkshake',
-    description: 'Rich creamy vanilla milkshake blended fresh and topped with whipped cream for the perfect sweet finish.',
-    image: 'https://images.unsplash.com/photo-1577805947697-89e18249d767?q=80&w=1200&auto=format&fit=crop'
+
+  /** Emoji icon per category */
+  categoryIcon(cat) {
+    return { food: '🍔', drink: '🥤', dessert: '🍰', other: '🎁' }[cat] || '🍽️';
   },
-  {
-    id: 'drink2',
-    name: 'Coca-Cola',
-    price: 5000,
-    category: 'drinks',
-    type: 'Soft Drink',
-    description: 'Refreshing ice-cold Coca-Cola served chilled to pair perfectly with burgers, fries and wings.',
-    image: 'https://images.unsplash.com/photo-1581636625402-29b2a704ef13?q=80&w=1200&auto=format&fit=crop'
+
+  /** Escape HTML to prevent XSS when injecting user-supplied strings */
+  escape(str) {
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
   },
-  {
-    id: 'dessert1',
-    name: 'Chocolate Sundae',
-    price: 14000,
-    category: 'desserts',
-    type: 'Ice Cream',
-    description: 'Creamy chocolate ice cream topped with rich syrup, cookie crumbs and whipped cream.',
-    image: 'https://images.unsplash.com/photo-1563805042-7684c019e1cb?q=80&w=1200&auto=format&fit=crop'
+};
+
+/* ============================================================
+   TOAST SYSTEM
+   ============================================================ */
+const Toast = {
+  container: null,
+
+  init() {
+    this.container = document.getElementById('toastContainer');
   },
-  {
-    id: 'dessert2',
-    name: 'Red Velvet Cake',
-    price: 16000,
-    category: 'desserts',
-    type: 'Cake',
-    description: 'Soft layered red velvet cake with smooth cream cheese frosting and chocolate drizzle.',
-    image: 'https://images.unsplash.com/photo-1551024601-bec78aea704b?q=80&w=1200&auto=format&fit=crop'
+
+  show(message, type = 'info', duration = 3500) {
+    if (!this.container) return;
+    const icons = { success: '✅', error: '❌', info: '🍊', warning: '⚠️' };
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.innerHTML = `<span class="toast-icon">${icons[type] || '🍊'}</span><span>${Utils.escape(message)}</span>`;
+    this.container.appendChild(toast);
+
+    setTimeout(() => {
+      toast.classList.add('removing');
+      toast.addEventListener('animationend', () => toast.remove(), { once: true });
+    }, duration);
   },
-  {
-    id: 'other1',
-    name: 'Garlic Mayo Dip',
-    price: 3000,
-    category: 'other',
-    type: 'Sauce',
-    description: 'Creamy signature garlic mayo dip made fresh daily to pair with fries, wings and wraps.',
-    image: 'https://images.unsplash.com/photo-1601050690597-df0568f70950?q=80&w=1200&auto=format&fit=crop'
+
+  success(msg) { this.show(msg, 'success'); },
+  error(msg)   { this.show(msg, 'error'); },
+  info(msg)    { this.show(msg, 'info'); },
+  warning(msg) { this.show(msg, 'warning'); },
+};
+
+/* ============================================================
+   LOCAL STORAGE CART  (minimal: product_id + qty only)
+   ============================================================ */
+const LocalCart = {
+  load() {
+    try {
+      return this.normalize(JSON.parse(localStorage.getItem(STORAGE_KEY)) || []);
+    } catch { return []; }
   },
-  {
-    id: 'other2',
-    name: 'Extra Cheese',
-    price: 4000,
-    category: 'other',
-    type: 'Add-on',
-    description: 'Melted cheddar cheese topping added to burgers, fries or wraps for extra flavor.',
-    image: 'https://images.unsplash.com/photo-1482049016688-2d3e1b311543?q=80&w=1200&auto=format&fit=crop'
-  }
-];
 
-function getCart() {
-  return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-}
+  save(items) {
+    const normalized = this.normalize(items);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(
+      normalized.map(({ product_id, qty }) => ({ product_id, qty }))
+    ));
+    return normalized;
+  },
 
-function saveCart(cart) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(cart));
-}
+  normalize(items) {
+    const map = new Map();
+    (Array.isArray(items) ? items : []).forEach(({ product_id, qty }) => {
+      const productId = Number(product_id);
+      const quantity = Number(qty);
+      if (!Number.isInteger(productId) || !Number.isFinite(quantity) || quantity < 1) return;
+      map.set(productId, (map.get(productId) || 0) + quantity);
+    });
+    return Array.from(map, ([product_id, qty]) => ({ product_id, qty }));
+  },
 
-function formatPrice(value) {
-  return `UGX ${value.toLocaleString()}`;
-}
+  add(productId, qty = 1) {
+    const items = this.load();
+    const existing = items.find(i => i.product_id === productId);
+    if (existing) {
+      existing.qty += qty;
+    } else {
+      items.push({ product_id: productId, qty });
+    }
+    this.save(items);
+    return items;
+  },
 
-function updateCartCount() {
-  const navCount = document.getElementById('navCartCount');
-  const cart = getCart();
-  const itemCount = cart.reduce((sum, item) => sum + item.qty, 0);
+  update(productId, qty) {
+    const items = this.load().map(i =>
+      i.product_id === productId ? { ...i, qty } : i
+    ).filter(i => i.qty > 0);
+    this.save(items);
+    return items;
+  },
 
-  if (navCount) {
-    navCount.textContent = itemCount;
-  }
-}
+  remove(productId) {
+    const items = this.load().filter(i => i.product_id !== productId);
+    this.save(items);
+    return items;
+  },
 
-function updateNavActive(page) {
-  document.querySelectorAll('.nav-link').forEach(link => {
-    link.classList.toggle('active', link.dataset.page === page);
-  });
-}
+  clear() {
+    localStorage.removeItem(STORAGE_KEY);
+    return [];
+  },
 
-function addItemToCart(itemId) {
-  const item = MENU_ITEMS.find(menu => menu.id === itemId);
-  if (!item) return;
+  count() {
+    return this.load().reduce((sum, i) => sum + i.qty, 0);
+  },
+};
 
-  const cart = getCart();
-  const existing = cart.find(entry => entry.id === itemId);
+/* ============================================================
+   API HELPERS
+   ============================================================ */
+const Api = {
+  async request(path, options = {}) {
+    try {
+      const res = await fetch(API + path, {
+        ...options,
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json', ...(options.headers || {}) },
+        body: options.body ? JSON.stringify(options.body) : undefined,
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Request failed');
+      return data;
+    } catch (err) {
+      throw err;
+    }
+  },
 
-  if (existing) {
-    existing.qty += 1;
-  } else {
-    cart.push({ ...item, qty: 1 });
-  }
+  get:    (path)         => Api.request(path),
+  post:   (path, body)   => Api.request(path, { method: 'POST',   body }),
+  put:    (path, body)   => Api.request(path, { method: 'PUT',    body }),
+  delete: (path)         => Api.request(path, { method: 'DELETE' }),
+};
 
-  saveCart(cart);
-  updateCartCount();
-}
+/* ============================================================
+   SESSION / AUTH
+   ============================================================ */
+const Auth = {
+  async init() {
+    try {
+      const res = await Api.get('/auth/me');
+      State.session = res.user;
+    } catch {
+      State.session = null;
+    }
+    this.updateUI();
+  },
 
-function renderMenuItems(category) {
-  const grid = document.getElementById('menuGrid');
-  if (!grid) return;
+  updateUI() {
+    const userPill   = document.getElementById('userPill');
+    const userNameEl = document.getElementById('userName');
+    const authBtn    = document.getElementById('openAuthModal');
 
-  const items = MENU_ITEMS.filter(item => item.category === category);
-  grid.innerHTML = items.map(item => `
-    <article class="menu-card">
-      <div class="menu-image">
-        <img src="${item.image}" alt="${item.name}">
-      </div>
-      <div class="menu-content">
-        <div class="menu-item-category">${item.type}</div>
-        <div class="menu-item-name">${item.name}</div>
-        <div class="menu-item-desc">${item.description}</div>
-        <div class="menu-item-bottom">
-          <div class="menu-price">${formatPrice(item.price)}</div>
-          <button class="add-btn" data-action="add" data-id="${item.id}">Add to Cart</button>
+    if (State.session) {
+      if (userPill)   { userPill.classList.remove('hidden'); }
+      if (userNameEl) { userNameEl.textContent = State.session.name; }
+      if (authBtn)    { authBtn.style.display = 'none'; }
+    } else {
+      if (userPill)   { userPill.classList.add('hidden'); }
+      if (authBtn)    { authBtn.style.display = ''; }
+    }
+  },
+
+  async login(email, password) {
+    const res = await Api.post('/auth/login', { email, password });
+    State.session = res.user;
+    this.updateUI();
+    if (document.getElementById('cartItemsList')) {
+      await Cart.mergeServerCart();
+    }
+    if (State.intent === 'checkout') {
+      State.intent = null;
+      document.getElementById('authModal')?.classList.add('hidden');
+      await Checkout.openModal();
+    }
+    return res;
+  },
+
+  async register(name, email, phone, password) {
+    const res = await Api.post('/auth/register', { name, email, phone, password });
+    State.session = res.user;
+    this.updateUI();
+    if (document.getElementById('cartItemsList')) {
+      await Cart.mergeServerCart();
+    }
+    if (State.intent === 'checkout') {
+      State.intent = null;
+      document.getElementById('authModal')?.classList.add('hidden');
+      await Checkout.openModal();
+    }
+    return res;
+  },
+
+  async logout() {
+    await Api.post('/auth/logout', {});
+    State.session = null;
+    State.intent = null;
+    this.updateUI();
+  },
+};
+
+/* ============================================================
+   PRODUCTS MODULE (order.html only)
+   ============================================================ */
+const Products = {
+  /** Render N skeleton cards into a grid */
+  renderSkeletons(gridEl, count = 6) {
+    gridEl.innerHTML = Array.from({ length: count }).map(() => `
+      <div class="skeleton-card">
+        <div class="skeleton-img"></div>
+        <div class="skeleton-body">
+          <div class="skeleton-line short"></div>
+          <div class="skeleton-line medium"></div>
+          <div class="skeleton-line long"></div>
         </div>
-      </div>
-    </article>
-  `).join('');
-}
+      </div>`).join('');
+  },
 
-function renderCartPage() {
-  const cartContent = document.getElementById('cartContent');
-  const subtotalEl = document.getElementById('subtotal');
-  const totalEl = document.getElementById('total');
-  const checkoutBtn = document.getElementById('checkoutBtn');
+  /** Build a single product card HTML */
+  buildCard(p) {
+    const imgTag = p.image_url
+      ? `<img src="${Utils.escape(p.image_url)}" alt="${Utils.escape(p.name)}" class="product-card-img" loading="lazy" />`
+      : `<div class="product-card-img-placeholder">${Utils.categoryIcon(p.category)}</div>`;
 
-  if (!cartContent || !subtotalEl || !totalEl || !checkoutBtn) return;
+    const outOfStock = p.stock < 1;
+    const stockBadge = outOfStock ? `<span class="stock-badge">Out of stock</span>` : '';
 
-  const cart = getCart();
+    return `
+      <article class="product-card${outOfStock ? ' out-of-stock' : ''}" data-id="${p.product_id}">
+        <div class="product-card-img-wrap">${imgTag}</div>
+        <div class="product-card-body">
+          <span class="product-type-tag">${Utils.escape(p.type || p.category)}</span>
+          <h3 class="product-name">${Utils.escape(p.name)}</h3>
+          <p class="product-desc">${Utils.escape(p.description || '')}</p>
+          ${stockBadge}
+        </div>
+        <div class="product-card-footer">
+          <span class="product-price">
+            ${Utils.currency(p.price)}
+            <small>/ item</small>
+          </span>
+          <div class="dynamic-cart-controls"></div>
+        </div>
+      </article>`;
+  },
 
-  if (cart.length === 0) {
-    cartContent.innerHTML = '<div class="empty-cart">Your cart is empty.<br><br><a href="order.html" style="color:#FF5500; text-decoration:none; font-weight:700;">Continue Shopping →</a></div>';
-  } else {
-    cartContent.innerHTML = `
-      <div class="cart-items">
-        ${cart.map(item => `
-          <div class="cart-item">
-            <div class="cart-item-top">
-              <div class="cart-item-info">
-                <div class="cart-item-name">${item.name}</div>
-                <div class="cart-item-price">${formatPrice(item.price)}</div>
-              </div>
-              <button class="remove-btn" data-action="remove" data-id="${item.id}">Remove</button>
-            </div>
-            <div class="cart-item-bottom">
-              <div class="qty-controls">
-                <button class="qty-btn" data-action="decrease" data-id="${item.id}">−</button>
-                <div class="qty-num">${item.qty}</div>
-                <button class="qty-btn" data-action="increase" data-id="${item.id}">+</button>
-              </div>
-              <div class="line-total">${formatPrice(item.qty * item.price)}</div>
-            </div>
+  /** Render an array of products into a grid element */
+  renderGrid(gridEl, items) {
+    if (!items.length) {
+      gridEl.innerHTML = '<p style="color:var(--text-muted);font-size:.9rem;padding:12px 0">Nothing here yet.</p>';
+      return;
+    }
+    gridEl.innerHTML = items.map(p => this.buildCard(p)).join('');
+  },
+
+  /** Fetch all products, populate state map, render all 4 grids */
+  async loadAll() {
+    const grids = {
+      food:    document.getElementById('foodGrid'),
+      drink:   document.getElementById('drinksGrid'),
+      dessert: document.getElementById('dessertsGrid'),
+      other:   document.getElementById('otherGrid'),
+    };
+
+    // Show skeletons while loading
+    Object.values(grids).forEach(g => g && this.renderSkeletons(g));
+
+    try {
+      const res = await Api.get('/products');
+      const all = res.data || [];
+
+      // Populate global products map
+      all.forEach(p => State.products.set(p.product_id, p));
+
+      // Group by category
+      const grouped = { food: [], drink: [], dessert: [], other: [] };
+      all.forEach(p => {
+        if (grouped[p.category]) grouped[p.category].push(p);
+        else grouped.other.push(p);
+      });
+
+      Object.entries(grouped).forEach(([cat, items]) => {
+        if (grids[cat]) this.renderGrid(grids[cat], items);
+      });
+
+      // Refresh add buttons to reflect current cart
+      Cart.refreshAddButtons();
+    } catch (err) {
+      console.error('[Products.loadAll]', err);
+      Object.values(grids).forEach(g => {
+        if (g) g.innerHTML = '<p style="color:#ef4444;font-size:.9rem;padding:12px 0">Failed to load products. Please refresh.</p>';
+      });
+      Toast.error('Failed to load menu. Please refresh the page.');
+    }
+  },
+};
+
+/* ============================================================
+   CART MODULE
+   ============================================================ */
+const Cart = {
+
+  refreshState() {
+    State.cartItems = LocalCart.load();
+  },
+  
+  /** Sync State.cartItems from localStorage */
+  syncFromStorage() {
+    State.cartItems = LocalCart.load();
+  },
+
+  rememberServerItems(items) {
+    State.cartServerIds.clear();
+    items.forEach(item => {
+      if (item.cart_id) State.cartServerIds.set(Number(item.product_id), Number(item.cart_id));
+      State.products.set(item.product_id, item);
+    });
+  },
+
+  async syncServerQty(productId, qty) {
+    if (!State.session) return;
+
+    const cartId = State.cartServerIds.get(productId);
+    if (cartId) {
+      await Api.put(`/cart/${cartId}`, { qty });
+      return;
+    }
+
+    await Api.post('/cart', { product_id: productId, qty });
+  },
+
+  async removeServerItem(productId) {
+    if (!State.session) return;
+
+    const cartId = State.cartServerIds.get(productId);
+    if (!cartId) return;
+
+    await Api.delete(`/cart/${cartId}`);
+    State.cartServerIds.delete(productId);
+  },
+
+  /** Update badge count(s) in the navbar */
+  updateBadge() {
+    const count = LocalCart.count();
+    document.querySelectorAll('.cart-badge').forEach(el => {
+      el.textContent = count;
+      el.style.transform = 'scale(1.2)';
+      setTimeout(() => { el.style.transform = ''; }, 200);
+    });
+    // Hero cart count
+    const heroCount = document.getElementById('heroCartCount');
+    if (heroCount) heroCount.textContent = count > 0 ? count : '';
+  },
+
+  /** On the order page, visually mark "added" buttons for items already in cart */
+  refreshAddButtons() {``
+    document.querySelectorAll('.product-card').forEach(card => {
+      const productId = parseInt(card.dataset.id);
+
+      const item = LocalCart.load().find(i => i.product_id === productId);
+
+      const footer = card.querySelector('.product-card-footer');
+      if (!footer) return;
+
+      const existingControls = footer.querySelector('.dynamic-cart-controls');
+      if (existingControls) existingControls.remove();
+
+      let controlsHTML = '';
+
+      if (item && item.qty > 0) {
+        controlsHTML = `
+          <div class="dynamic-cart-controls cart-item-controls order-qty-controls">
+            <button
+              class="qty-btn btn-order-minus"
+              data-id="${productId}"
+              aria-label="Decrease quantity"
+            >
+              −
+            </button>
+
+            <span class="qty-display">${item.qty}</span>
+
+            <button
+              class="qty-btn btn-order-plus"
+              data-id="${productId}"
+              aria-label="Increase quantity"
+            >
+              +
+            </button>
           </div>
-        `).join('')}
-      </div>
-    `;
-  }
-
-  const subtotal = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
-  const total = subtotal + DELIVERY_FEE;
-
-  subtotalEl.textContent = formatPrice(subtotal);
-  totalEl.textContent = formatPrice(total);
-  checkoutBtn.disabled = cart.length === 0;
-}
-
-function changeQuantity(itemId, delta) {
-  const cart = getCart();
-  const item = cart.find(entry => entry.id === itemId);
-  if (!item) return;
-
-  item.qty += delta;
-  if (item.qty <= 0) {
-    const index = cart.findIndex(entry => entry.id === itemId);
-    cart.splice(index, 1);
-  }
-
-  saveCart(cart);
-  renderCartPage();
-  updateCartCount();
-}
-
-function removeItem(itemId) {
-  const cart = getCart().filter(item => item.id !== itemId);
-  saveCart(cart);
-  renderCartPage();
-  updateCartCount();
-}
-
-function handleGlobalActions(event) {
-  const target = event.target.closest('[data-action]');
-  if (!target) return;
-
-  const action = target.dataset.action;
-  const itemId = target.dataset.id;
-
-  if (action === 'add') {
-    addItemToCart(itemId);
-  }
-
-  if (action === 'increase') {
-    changeQuantity(itemId, 1);
-  }
-
-  if (action === 'decrease') {
-    changeQuantity(itemId, -1);
-  }
-
-  if (action === 'remove') {
-    removeItem(itemId);
-  }
-}
-
-function initPage(page) {
-  updateNavActive(page);
-  updateCartCount();
-
-  if (page === 'food' || page === 'drinks' || page === 'desserts' || page === 'other') {
-    renderMenuItems(page);
-  }
-}
-
-function getPageFromBody() {
-  return document.body.dataset.page || 'food';
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-  const page = getPageFromBody();
-  initPage(page);
-
-  document.body.addEventListener('click', handleGlobalActions);
-
-  const checkoutBtn = document.getElementById('checkoutBtn');
-
-  if (checkoutBtn) {
-    checkoutBtn.addEventListener('click', () => {
-
-      const cart = getCart();
-
-      if (cart.length === 0) {
-        alert("Your cart is empty.");
-        return;
+        `;
+      } else {
+        controlsHTML = `
+          <button
+            class="btn-add-cart dynamic-cart-controls"
+            data-id="${productId}"
+          >
+            + Add
+          </button>
+        `;
       }
 
-      window.location.href = "checkout.html";
-
+      footer.insertAdjacentHTML('beforeend', controlsHTML);
     });
-  }
-});
+  },
 
- // Handle tab highlighting on click
- document.addEventListener('DOMContentLoaded', () => {
-  document.querySelectorAll('.menu-tab').forEach(tab => {
-    tab.addEventListener('click', (e) => {
+  handleOrderMinus(e) {
+    const btn = e.target.closest('.btn-order-minus');
+    if (!btn) return;
+
+    const pid = parseInt(btn.dataset.id);
+
+    const item = LocalCart.load().find(i => i.product_id === pid);
+
+    if (!item) return;
+
+    if (item.qty <= 1) {
+      LocalCart.remove(pid);
+    } else {
+      LocalCart.update(pid, item.qty - 1);
+    }
+
+    this.refreshState();
+    this.updateBadge();
+    this.refreshAddButtons();
+  },
+
+  handleOrderPlus(e) {
+    const btn = e.target.closest('.btn-order-plus');
+    if (!btn) return;
+
+    const pid = parseInt(btn.dataset.id);
+
+    const item = LocalCart.load().find(i => i.product_id === pid);
+
+    if (!item) return;
+
+    LocalCart.update(pid, item.qty + 1);
+
+    this.refreshState();
+    this.updateBadge();
+    this.refreshAddButtons();
+  },
+
+  /** Handle add-to-cart click from the product grid (event delegation) */
+  handleAddToCart(e) {
+    const btn = e.target.closest('.btn-add-cart');
+    if (!btn || btn.disabled) return;
+
+    const productId = parseInt(btn.dataset.id);
+    const product   = State.products.get(productId);
+    if (!product) return;
+
+    LocalCart.add(productId, 1);
+    this.updateBadge();
+
+    // Visual feedback
+    this.refreshAddButtons();
+    Toast.success(`${product.name} added to cart!`);
+
+    // If user is logged in, also sync to server cart
+    if (State.session) {
+      Api.post('/cart', { product_id: productId, qty: 1 }).catch(err => {
+        console.warn('[Cart sync server]', err.message);
+      });
+    }
+  },
+
+  /** Initialise cart page — load items, render, bind events */
+  async initCartPage() {
+    this.syncFromStorage();
+    this.updateBadge();
+
+    // 🔥 IMPORTANT: ensure products exist BEFORE rendering
+    const res = await Api.get('/products');
+    (res.data || []).forEach(p => {
+      State.products.set(p.product_id, p);
+    });
+
+    await this.mergeServerCart();
+},
+
+  /**
+   * Merge: local cart wins when it has a selected qty; server-only items remain.
+   * This preserves the user's visible selection without adding it again on refresh.
+   */
+  async mergeServerCart() {
+    try {
+      const localItems  = LocalCart.load();
+      const localMap    = new Map(localItems.map(i => [i.product_id, i.qty]));
+      const res         = await Api.get('/cart');
+      const serverItems = res.data || [];
+      const serverMap   = new Map(serverItems.map(i => [i.product_id, { qty: i.qty, cart_id: i.cart_id }]));
+
+      this.rememberServerItems(serverItems);
+
+      const merged = [];
+      const allIds = new Set([ ...localMap.keys(), ...serverMap.keys() ]);
+
+      for (const productId of allIds) {
+        const localQty  = localMap.get(productId) || 0;
+        const serverQty = serverMap.get(productId)?.qty || 0;
+        const qty       = localMap.has(productId) ? localQty : serverQty;
+        if (qty < 1) continue;
+        merged.push({
+          product_id: productId,
+          qty,
+          cart_id: serverMap.get(productId)?.cart_id || null,
+        });
+      }
+
+      await Promise.all(merged.map(async item => {
+        if (item.cart_id) {
+          const existingQty = serverMap.get(item.product_id)?.qty || 0;
+          if (item.qty !== existingQty) {
+            await Api.put(`/cart/${item.cart_id}`, { qty: item.qty });
+          }
+        } else {
+          await Api.post('/cart', { product_id: item.product_id, qty: item.qty });
+        }
+      }));
+
+      const refreshed = await Api.get('/cart');
+      this.rememberServerItems(refreshed.data || []);
+
+      const persisted = merged.map(({ product_id, qty }) => ({ product_id, qty }));
+      LocalCart.save(persisted);
+      State.cartItems = persisted;
+    } catch (err) {
+      console.warn('[mergeServerCart]', err.message);
+    }
+
+    await this.fetchMissingProducts();
+    this.renderCartPage();
+  },
+
+  /** Fetch product details for cart items not yet in State.products */
+  async fetchMissingProducts() {
+    const missing = State.cartItems
+      .map(i => i.product_id)
+      .filter(id => !State.products.has(id));
+
+    await Promise.all(missing.map(async id => {
+      try {
+        const res = await Api.get(`/products/${id}`);
+        State.products.set(id, res.data);
+      } catch { /* item might be deleted */ }
+    }));
+  },
+
+  /** Render cart items list and summary */
+  renderCartPage() {
+    const loadingEl  = document.getElementById('cartLoading');
+    const emptyEl    = document.getElementById('cartEmpty');
+    const listEl     = document.getElementById('cartItemsList');
+    const checkoutBtn = document.getElementById('checkoutBtn');
+
+    if (!listEl) return;
+
+    if (loadingEl) loadingEl.style.display = 'none';
+
+    const items = State.cartItems;
+
+    if (!items.length) {
+      emptyEl && emptyEl.classList.remove('hidden');
+      listEl.classList.add('hidden');
+      if (checkoutBtn) checkoutBtn.disabled = true;
+      this.renderSummary([]);
+      return;
+    }
+
+    emptyEl && emptyEl.classList.add('hidden');
+    listEl.classList.remove('hidden');
+    if (checkoutBtn) checkoutBtn.disabled = false;
+
+    listEl.innerHTML = items.map(item => this.buildCartItemHTML(item)).join('');
+    this.renderSummary(items);
+    this.updateBadge();
+  },
+
+  buildCartItemHTML({ product_id, qty }) {
+    const p = State.products.get(product_id);
+    if (!p) {
+      return `
+        <div class="cart-item" data-pid="${product_id}">
+          <div class="cart-item-info">
+            <span class="cart-item-name">Loading product...</span>
+          </div>
+        </div>
+      `;
+    }
+
+    const lineTotal = parseFloat(p.price) * qty;
+    const imgTag    = p.image_url
+      ? `<img src="${Utils.escape(p.image_url)}" alt="${Utils.escape(p.name)}" class="cart-item-img" loading="lazy" />`
+      : `<div class="cart-item-img-placeholder">${Utils.categoryIcon(p.category)}</div>`;
+
+    return `
+      <div class="cart-item" data-pid="${product_id}">
+        ${imgTag}
+        <div class="cart-item-info">
+          <div class="cart-item-name">${Utils.escape(p.name)}</div>
+          <div class="cart-item-type">${Utils.escape(p.type || p.category)}</div>
+          <div class="cart-item-unit-price">${Utils.currency(p.price)} each</div>
+        </div>
+        <div class="cart-item-controls">
+          <button class="qty-btn btn-qty-minus" data-pid="${product_id}" aria-label="Decrease qty">−</button>
+          <span class="qty-display">${qty}</span>
+          <button class="qty-btn btn-qty-plus"  data-pid="${product_id}" aria-label="Increase qty">+</button>
+        </div>
+        <div class="cart-item-price">${Utils.currency(lineTotal)}</div>
+        <button class="btn-remove-item" data-pid="${product_id}" aria-label="Remove item">🗑️</button>
+      </div>`;
+  },
+
+  renderSummary(items) {
+    const subtotal = items.reduce((sum, { product_id, qty }) => {
+      const p = State.products.get(product_id);
+      return sum + (p ? parseFloat(p.price) * qty : 0);
+    }, 0);
+
+    const total = subtotal + (items.length ? DELIVERY_FEE : 0);
+
+    // Summary sidebar
+    const summaryRows  = document.getElementById('summaryRows');
+    const grandTotal   = document.getElementById('grandTotal');
+    const modalSub     = document.getElementById('modalSubtotal');
+    const modalTotalEl = document.getElementById('modalTotal');
+
+    if (summaryRows) {
+      summaryRows.innerHTML = items.map(({ product_id, qty }) => {
+        const p = State.products.get(product_id);
+        if (!p) return '';
+        return `<div class="summary-row"><span>${Utils.escape(p.name)} ×${qty}</span><span>${Utils.currency(parseFloat(p.price) * qty)}</span></div>`;
+      }).join('');
+    }
+
+    if (grandTotal)   grandTotal.textContent   = Utils.currency(total);
+    if (modalSub)     modalSub.textContent     = Utils.currency(subtotal);
+    if (modalTotalEl) modalTotalEl.textContent = Utils.currency(total);
+  },
+
+  /** Qty decrease handler */
+  handleQtyMinus(e) {
+    const btn = e.target.closest('.btn-qty-minus');
+    if (!btn) return;
+    const pid  = parseInt(btn.dataset.pid);
+    const item = LocalCart.load().find(i => i.product_id === pid);
+    if (!item) return;
+
+    if (item.qty <= 1) {
+      this.removeItem(pid);
+    } else {
+      const nextQty = item.qty - 1;
+      LocalCart.update(pid, nextQty);
+      this.refreshState();
+      this.syncServerQty(pid, nextQty).catch(err => {
+        console.warn('[Cart qty sync]', err.message);
+      });
+      this.renderCartPage();
+    }
+  },
+
+  /** Qty increase handler */
+  handleQtyPlus(e) {
+    const btn = e.target.closest('.btn-qty-plus');
+    if (!btn) return;
+    const pid  = parseInt(btn.dataset.pid);
+    const item = LocalCart.load().find(i => i.product_id === pid);
+    const p    = State.products.get(pid);
+
+    if (!item || !p) return;
+    if (item.qty >= p.stock) {
+      Toast.warning('Max stock reached for this item.');
+      return;
+    }
+
+    const nextQty = item.qty + 1;
+    LocalCart.update(pid, nextQty);
+    this.refreshState();
+    this.syncServerQty(pid, nextQty).catch(err => {
+      console.warn('[Cart qty sync]', err.message);
+    });
+    this.renderCartPage();
+  },
+
+  /** Remove item with animation */
+  removeItem(pid) {
+    const itemEl = document.querySelector(`.cart-item[data-pid="${pid}"]`);
+    if (itemEl) {
+      itemEl.classList.add('removing');
+      itemEl.addEventListener('animationend', () => {
+        LocalCart.remove(pid);
+        this.refreshState();
+        this.removeServerItem(pid).catch(err => {
+          console.warn('[Cart remove sync]', err.message);
+        });
+        this.renderCartPage();
+        this.updateBadge();
+        Toast.info('Item removed from cart.');
+      }, { once: true });
+    } else {
+      LocalCart.remove(pid);
+      this.refreshState();
+      this.removeServerItem(pid).catch(err => {
+        console.warn('[Cart remove sync]', err.message);
+      });
+      this.renderCartPage();
+      this.updateBadge();
+    }
+  },
+
+  /** Handle remove button click */
+  handleRemove(e) {
+    const btn = e.target.closest('.btn-remove-item');
+    if (!btn) return;
+    this.removeItem(parseInt(btn.dataset.pid));
+  },
+
+  /** Clear all */
+  clearAll() {
+    LocalCart.clear();
+    this.refreshState();
+    if (State.session) Api.delete('/cart').catch(() => {});
+    this.renderCartPage();
+    this.updateBadge();
+    Toast.info('Cart cleared.');
+  },
+};
+
+/* ============================================================
+   CHECKOUT MODULE (Flutterwave)
+   ============================================================ */
+
+function openAuthModal(message = '') {
+  const modal = document.getElementById('authModal');
+  if (!modal) return;
+
+  modal.classList.remove('hidden');
+
+  document.getElementById('loginTab')?.classList.add('active');
+  document.getElementById('registerTab')?.classList.remove('active');
+
+  if (message) {
+    let warn = document.getElementById('authWarning');
+
+    if (!warn) {
+      warn = document.createElement('div');
+      warn.id = 'authWarning';
+      warn.className = 'auth-warning';
+      document.getElementById('loginTab')?.prepend(warn);
+    }
+
+    warn.textContent = message;
+  }
+}
+  
+const Checkout = {
+  async openModal() {
+    await Auth.init();
+
+    if (!State.session) {
+      State.intent = 'checkout';
+      openAuthModal('⚠️ Please log in to continue checkout.');
+      Toast.warning('Please log in to continue checkout.');
+      return;
+    }
+
+    const items = LocalCart.load();
+    if (!items.length) {
+      Toast.warning('Your cart is empty.');
+      return;
+    }
+
+    Cart.renderSummary(items);
+    const modal = document.getElementById('checkoutModal');
+    if (modal) modal.classList.remove('hidden');
+  },
+
+  closeModal() {
+    const modal = document.getElementById('checkoutModal');
+    if (modal) modal.classList.add('hidden');
+  },
+
+  async proceed() {
+    const address = document.getElementById('deliveryAddress')?.value.trim();
+    const method  = document.getElementById('paymentMethod')?.value;
+    const notes   = document.getElementById('orderNotes')?.value.trim();
+
+    if (!address) {
+      Toast.error('Please enter a delivery address.');
+      return;
+    }
+
+    const items = LocalCart.load().map(({ product_id, qty }) => ({ product_id, qty }));
+    if (!items.length) {
+      Toast.error('Your cart is empty.');
+      return;
+    }
+
+    // Calculate total for Flutterwave
+    const subtotal = items.reduce((sum, { product_id, qty }) => {
+      const p = State.products.get(product_id);
+      return sum + (p ? parseFloat(p.price) * qty : 0);
+    }, 0);
+    const total = subtotal + DELIVERY_FEE;
+
+    if (method === 'cash') {
+      // Skip Flutterwave for COD
+      await this.placeOrder(items, address, method, notes, null, null);
+    } else {
+      // Launch Flutterwave
+      this.launchFlutterwave(total, method, items, address, notes);
+    }
+  },
+
+  launchFlutterwave(total, paymentMethod, items, address, notes) {
+    if (typeof FlutterwaveCheckout === 'undefined') {
+      Toast.error('Payment gateway not loaded. Please refresh.');
+      return;
+    }
+
+    const txRef = `zesto_${Date.now()}_${State.session.user_id}`;
+
+    FlutterwaveCheckout({
+      public_key: window.__FLW_PUBLIC_KEY__ || 'FLWPUBK_TEST-REPLACE_WITH_REAL_KEY',
+      tx_ref:     txRef,
+      amount:     total,
+      currency:   'UGX',
+      payment_options: paymentMethod === 'card' ? 'card' : 'mobilemoneyuganda',
+      customer: {
+        email: State.session.email,
+        name:  State.session.name,
+      },
+      customizations: {
+        title:       'Zesto Food Ordering',
+        description: 'Pay for your Zesto order',
+        logo:        `${window.location.origin}/images/logo.png`,
+      },
+      meta: { delivery_address: address },
+      callback: async (data) => {
+        if (data.status === 'successful') {
+          await this.placeOrder(items, address, paymentMethod, notes, data.transaction_id, txRef);
+        } else {
+          Toast.error('Payment was not completed.');
+        }
+      },
+      onclose: () => {},
+    });
+  },
+
+  async placeOrder(items, deliveryAddress, paymentMethod, notes, transactionId, txRef) {
+    const proceedBtn = document.getElementById('proceedPaymentBtn');
+    if (proceedBtn) { proceedBtn.disabled = true; proceedBtn.textContent = 'Placing order…'; }
+
+    try {
+      const res = await Api.post('/orders', {
+        items,
+        delivery_address: deliveryAddress,
+        payment_method:   paymentMethod,
+        notes,
+      });
+
+      // Verify payment server-side if paid online
+      if (transactionId) {
+        await Api.post(`/orders/${res.order_id}/verify`, {
+          transaction_id: transactionId,
+          tx_ref:         txRef,
+        }).catch(err => console.warn('Payment verify:', err.message));
+      }
+
+      // Clear cart
+      LocalCart.clear();
+      this.refreshState();
+      Cart.updateBadge();
+      this.closeModal();
+
+      Toast.success(`Order #${res.order_id} placed! 🎉 We'll start preparing it now.`);
+
+      // Redirect after short delay
+      setTimeout(() => { window.location.href = 'order.html'; }, 2200);
+    } catch (err) {
+      Toast.error(err.message || 'Failed to place order. Please try again.');
+    } finally {
+      if (proceedBtn) { proceedBtn.disabled = false; proceedBtn.textContent = '💳 Proceed to Payment'; }
+    }
+  },
+};
+
+/* ============================================================
+   AUTH MODAL
+   ============================================================ */
+const AuthModal = {
+  init() {
+    const overlay       = document.getElementById('authModal');
+    const openBtn       = document.getElementById('openAuthModal');
+    const closeBtn      = document.getElementById('closeAuthModal');
+    const loginTab      = document.getElementById('loginTab');
+    const registerTab   = document.getElementById('registerTab');
+    const switchToReg   = document.getElementById('switchToRegister');
+    const switchToLogin = document.getElementById('switchToLogin');
+    const loginBtn      = document.getElementById('loginBtn');
+    const registerBtn   = document.getElementById('registerBtn');
+    const logoutBtn     = document.getElementById('logoutBtn');
+
+    if (!overlay) return;
+
+    openBtn   ?.addEventListener('click', () => overlay.classList.remove('hidden'));
+    closeBtn  ?.addEventListener('click', () => overlay.classList.add('hidden'));
+    overlay   .addEventListener('click', e => { if (e.target === overlay) overlay.classList.add('hidden'); });
+
+    switchToReg?.addEventListener('click', e => {
       e.preventDefault();
-      const tabSection = tab.getAttribute('href').substring(1);
-      
-      // Remove active class from all tabs
-      document.querySelectorAll('.menu-tab').forEach(t => t.classList.remove('active'));
-      // Add active class to clicked tab
-      tab.classList.add('active');
-      
-      // Scroll to section
-      const section = document.getElementById(tabSection);
-      if (section) {
-        section.scrollIntoView({ behavior: 'smooth' });
+      loginTab    ?.classList.remove('active'); loginTab    ?.classList.add('hidden');
+      registerTab ?.classList.add('active');    registerTab ?.classList.remove('hidden');
+    });
+    switchToLogin?.addEventListener('click', e => {
+      e.preventDefault();
+      registerTab ?.classList.remove('active'); registerTab ?.classList.add('hidden');
+      loginTab    ?.classList.add('active');    loginTab    ?.classList.remove('hidden');
+    });
+
+    loginBtn?.addEventListener('click', async () => {
+      const email    = document.getElementById('loginEmail')?.value.trim();
+      const password = document.getElementById('loginPassword')?.value;
+      if (!email || !password) { Toast.error('Please fill in all fields.'); return; }
+      try {
+        loginBtn.disabled = true; loginBtn.textContent = 'Logging in…';
+        const res = await Auth.login(email, password);
+        overlay.classList.add('hidden');
+        Toast.success(res.message || 'Logged in!');
+      } catch (err) {
+        Toast.error(err.message || 'Login failed.');
+      } finally {
+        loginBtn.disabled = false; loginBtn.textContent = 'Log In';
       }
     });
-  });
-});
 
-document.addEventListener('DOMContentLoaded', () => {
-  renderCartPage();
-  updateCartCount();
-  document.body.addEventListener('click', handleGlobalActions);
-
-  // Handle tab clicks
-  document.querySelectorAll('.menu-tab').forEach(tab => {
-    tab.addEventListener('click', (e) => {
-      document.querySelectorAll('.menu-tab').forEach(t => t.classList.remove('active'));
-      tab.classList.add('active');
+    registerBtn?.addEventListener('click', async () => {
+      const name     = document.getElementById('regName')?.value.trim();
+      const email    = document.getElementById('regEmail')?.value.trim();
+      const phone    = document.getElementById('regPhone')?.value.trim();
+      const password = document.getElementById('regPassword')?.value;
+      if (!name || !email || !password) { Toast.error('Please fill in all required fields.'); return; }
+      if (password.length < 6) { Toast.error('Password must be at least 6 characters.'); return; }
+      try {
+        registerBtn.disabled = true; registerBtn.textContent = 'Creating account…';
+        const res = await Auth.register(name, email, phone, password);
+        overlay.classList.add('hidden');
+        Toast.success(res.message || 'Account created!');
+      } catch (err) {
+        Toast.error(err.message || 'Registration failed.');
+      } finally {
+        registerBtn.disabled = false; registerBtn.textContent = 'Create Account';
+      }
     });
-  });
 
-  document.body.addEventListener('click', handleGlobalActions);
+    logoutBtn?.addEventListener('click', async () => {
+      try {
+        await Auth.logout();
+        Cart.updateBadge();
+        Toast.info('Logged out successfully.');
+      } catch { Toast.error('Logout failed.'); }
+    });
+  },
+};
 
-  const checkoutBtn = document.getElementById('checkoutBtn');
+/* ============================================================
+   CATEGORY TABS (order.html)
+   ============================================================ */
+const CategoryTabs = {
+  init() {
+    const tabsEl = document.querySelector('.tabs-inner');
+    if (!tabsEl) return;
 
-  if (checkoutBtn) {
-    checkoutBtn.addEventListener('click', () => {
+    tabsEl.addEventListener('click', e => {
+      const btn = e.target.closest('.tab-btn');
+      if (!btn) return;
 
-      const cart = getCart();
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
 
-      if (cart.length === 0) {
-        alert("Your cart is empty.");
-        return;
+      const cat = btn.dataset.category;
+      document.querySelectorAll('.menu-section').forEach(sec => {
+        if (cat === 'all') {
+          sec.classList.remove('hidden');
+        } else {
+          // Show section if its id matches the category or is "drinks" for "drink"
+          const matches = sec.id === cat || sec.id === cat + 's' ||
+            (cat === 'drink' && sec.id === 'drinks') ||
+            (cat === 'dessert' && sec.id === 'desserts');
+          sec.classList.toggle('hidden', !matches);
+        }
+      });
+    });
+  },
+};
+
+/* ============================================================
+   SOCKET.IO — real-time updates
+   ============================================================ */
+const SocketManager = {
+  socket: null,
+
+  init() {
+    if (typeof io === 'undefined') return;
+    try {
+      this.socket = io({ autoConnect: true, reconnectionAttempts: 5 });
+
+      this.socket.on('connect', () => {
+        if (State.session) {
+          this.socket.emit('join', State.session.user_id);
+        }
+      });
+
+      this.socket.on('order:new', (data) => {
+        Toast.success(`Order #${data.order_id} received! Total: ${Utils.currency(data.total)}`);
+      });
+
+      this.socket.on('order:status', (data) => {
+        const labels = {
+          confirmed:         '✅ Order confirmed!',
+          preparing:         '👨‍🍳 Your order is being prepared!',
+          out_for_delivery:  '🚀 Your order is on its way!',
+          delivered:         '🎉 Order delivered! Enjoy your meal!',
+          cancelled:         '❌ Your order was cancelled.',
+        };
+        const msg = labels[data.status] || `Order status: ${data.status}`;
+        Toast.info(msg, 6000);
+      });
+    } catch (err) {
+      console.warn('[SocketManager]', err);
+    }
+  },
+};
+
+/* ============================================================
+   NAVBAR SCROLL EFFECT
+   ============================================================ */
+function initNavScroll() {
+  const nav = document.getElementById('mainNav');
+  if (!nav) return;
+  window.addEventListener('scroll', Utils.debounce(() => {
+    nav.style.boxShadow = window.scrollY > 10
+      ? '0 4px 28px rgba(0,0,0,.12)'
+      : '0 2px 20px rgba(0,0,0,.06)';
+  }, 50));
+}
+
+/* ============================================================
+   PAGE ROUTER — detect which page we're on and initialise
+   ============================================================ */
+async function bootPage() {
+  Toast.init();
+
+  // Shared init across all pages
+  await Auth.init();
+  Cart.syncFromStorage();
+  Cart.updateBadge();
+  AuthModal.init();
+  SocketManager.init();
+  initNavScroll();
+
+  const isCartPage  = !!document.getElementById('cartItemsList');
+  const isOrderPage = !!document.getElementById('foodGrid');
+
+  /* ── ORDER PAGE ───────────────────────────────────────────── */
+  if (isOrderPage) {
+    CategoryTabs.init();
+    await Products.loadAll();
+
+    // Event delegation for add-to-cart
+    document.querySelector('.menu-main')?.addEventListener('click', e => {
+
+      if (e.target.closest('.btn-add-cart')) {
+        Cart.handleAddToCart(e);
       }
 
-      window.location.href = "checkout.html";
+      else if (e.target.closest('.btn-order-minus')) {
+        Cart.handleOrderMinus(e);
+      }
+
+      else if (e.target.closest('.btn-order-plus')) {
+        Cart.handleOrderPlus(e);
+      }
 
     });
   }
-});
+
+  /* ── CART PAGE ────────────────────────────────────────────── */
+  if (isCartPage) {
+    await Cart.initCartPage();
+
+    // Event delegation for qty controls and remove buttons
+    const listEl = document.getElementById('cartItemsList');
+    listEl?.addEventListener('click', e => {
+      if (e.target.closest('.btn-qty-minus')) Cart.handleQtyMinus(e);
+      else if (e.target.closest('.btn-qty-plus')) Cart.handleQtyPlus(e);
+      else if (e.target.closest('.btn-remove-item')) Cart.handleRemove(e);
+    });
+
+    // Clear all button
+    document.getElementById('clearCartBtn')?.addEventListener('click', () => {
+      if (confirm('Remove all items from your cart?')) Cart.clearAll();
+    });
+
+    // Checkout button → open checkout modal
+    document.getElementById('checkoutBtn')?.addEventListener('click', () => Checkout.openModal());
+
+    // Checkout modal close
+    document.getElementById('closeCheckoutModal')?.addEventListener('click', () => Checkout.closeModal());
+
+    // Proceed to payment
+    document.getElementById('proceedPaymentBtn')?.addEventListener('click', () => Checkout.proceed());
+
+    // Close modal on overlay click
+    document.getElementById('checkoutModal')?.addEventListener('click', e => {
+      if (e.target === document.getElementById('checkoutModal')) Checkout.closeModal();
+    });
+  }
+}
+
+/* ── Single DOMContentLoaded entry point ──────────────────── */
+document.addEventListener('DOMContentLoaded', bootPage);
