@@ -49,7 +49,34 @@ const Utils = {
 
   /** Emoji icon per category */
   categoryIcon(cat) {
-    return { food: '🍔', drink: '🥤', dessert: '🍰', other: '🎁' }[cat] || '🍽️';
+    const key = String(cat || '').toLowerCase();
+    return {
+      food: '🍔',
+      drink: '🥤',
+      drinks: '🥤',
+      dessert: '🍰',
+      desserts: '🍰',
+      other: '🎁',
+      combos: '🎁',
+    }[key] || '🍽️';
+  },
+
+  normalizeCategory(cat) {
+    const key = String(cat || '').toLowerCase().trim();
+    if (key === 'drinks') return 'drink';
+    if (key === 'desserts') return 'dessert';
+    if (key === 'combos') return 'other';
+    if (['food', 'drink', 'dessert', 'other'].includes(key)) return key;
+    return 'other';
+  },
+
+  normalizeCategory(cat) {
+    const key = String(cat || '').toLowerCase().trim();
+    if (key === 'drinks') return 'drink';
+    if (key === 'desserts') return 'dessert';
+    if (key === 'combos') return 'other';
+    if (['food', 'drink', 'dessert', 'other'].includes(key)) return key;
+    return 'other';
   },
 
   /** Escape HTML to prevent XSS when injecting user-supplied strings */
@@ -271,7 +298,7 @@ const Products = {
   buildCard(p) {
     const imgTag = p.image_url
       ? `<img src="${Utils.escape(p.image_url)}" alt="${Utils.escape(p.name)}" class="product-card-img" loading="lazy" />`
-      : `<div class="product-card-img-placeholder">${Utils.categoryIcon(p.category)}</div>`;
+      : `<div class="product-card-img-placeholder">${Utils.categoryIcon(Utils.normalizeCategory(p.category))}</div>`;
 
     const outOfStock = p.stock < 1;
     const stockBadge = outOfStock ? `<span class="stock-badge">Out of stock</span>` : '';
@@ -326,8 +353,8 @@ const Products = {
       // Group by category
       const grouped = { food: [], drink: [], dessert: [], other: [] };
       all.forEach(p => {
-        if (grouped[p.category]) grouped[p.category].push(p);
-        else grouped.other.push(p);
+        const normalized = Utils.normalizeCategory(p.category);
+        grouped[normalized].push(p);
       });
 
       Object.entries(grouped).forEach(([cat, items]) => {

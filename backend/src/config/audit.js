@@ -1,7 +1,9 @@
 /**
- * server/config/audit.js
+ * backend/src/config/audit.js
  * Writes structured entries to audit_logs table.
  * Never throws — audit failure should not break business logic.
+ *
+ * REPLACE your existing backend/src/config/audit.js with this file.
  */
 
 'use strict';
@@ -50,31 +52,48 @@ async function log({
 
 /* Named action constants — import in routes to avoid typos */
 const ACTIONS = {
-  // Auth
-  USER_REGISTER:          'USER_REGISTER',
-  USER_LOGIN:             'USER_LOGIN',
-  USER_LOGOUT:            'USER_LOGOUT',
-  USER_LOGIN_FAILED:      'USER_LOGIN_FAILED',
+  // ── Auth ────────────────────────────────────────────────────
+  USER_REGISTER:              'USER_REGISTER',
+  USER_LOGIN:                 'USER_LOGIN',
+  USER_LOGOUT:                'USER_LOGOUT',
+  USER_LOGIN_FAILED:          'USER_LOGIN_FAILED',
 
-  // Orders
-  ORDER_CREATED:          'ORDER_CREATED',
-  ORDER_STATUS_UPDATE:    'ORDER_STATUS_UPDATE',
-  ORDER_CANCELLED:        'ORDER_CANCELLED',
+  // ── Orders ──────────────────────────────────────────────────
+  ORDER_CREATED:              'ORDER_CREATED',
+  ORDER_STATUS_UPDATE:        'ORDER_STATUS_UPDATE',
+  ORDER_CANCELLED:            'ORDER_CANCELLED',
 
-  // Payments
-  PAYMENT_INITIATED:      'PAYMENT_INITIATED',
-  PAYMENT_VERIFIED:       'PAYMENT_VERIFIED',
-  PAYMENT_FAILED:         'PAYMENT_FAILED',
-  PAYMENT_REPLAY_BLOCKED: 'PAYMENT_REPLAY_BLOCKED',
+  // ── Payments ────────────────────────────────────────────────
+  PAYMENT_INITIATED:          'PAYMENT_INITIATED',
+  PAYMENT_VERIFIED:           'PAYMENT_VERIFIED',
+  PAYMENT_FAILED:             'PAYMENT_FAILED',
+  PAYMENT_REPLAY_BLOCKED:     'PAYMENT_REPLAY_BLOCKED',
 
-  // Products (admin)
-  PRODUCT_CREATED:        'PRODUCT_CREATED',
-  PRODUCT_UPDATED:        'PRODUCT_UPDATED',
-  PRODUCT_DELETED:        'PRODUCT_DELETED',
-  STOCK_UPDATED:          'STOCK_UPDATED',
+  // ── Products ────────────────────────────────────────────────
+  PRODUCT_CREATED:            'PRODUCT_CREATED',
+  PRODUCT_UPDATED:            'PRODUCT_UPDATED',
+  PRODUCT_DELETED:            'PRODUCT_DELETED',
+  STOCK_UPDATED:              'STOCK_UPDATED',
 
-  // Admin
-  ADMIN_ACTION:           'ADMIN_ACTION',
+  // ── Restaurants (new) ───────────────────────────────────────
+  RESTAURANT_CREATED:         'RESTAURANT_CREATED',
+  RESTAURANT_UPDATED:         'RESTAURANT_UPDATED',
+  RESTAURANT_APPROVED:        'RESTAURANT_APPROVED',
+  RESTAURANT_SUSPENDED:       'RESTAURANT_SUSPENDED',
+
+  // ── Riders (new) ────────────────────────────────────────────
+  RIDER_APPROVED:             'RIDER_APPROVED',
+  RIDER_SUSPENDED:            'RIDER_SUSPENDED',
+
+  // ── Deliveries (new) ────────────────────────────────────────
+  DELIVERY_ASSIGNED:          'DELIVERY_ASSIGNED',
+  DELIVERY_STATUS_UPDATE:     'DELIVERY_STATUS_UPDATE',
+
+  // ── Platform settings (new) ─────────────────────────────────
+  PLATFORM_SETTINGS_UPDATED:  'PLATFORM_SETTINGS_UPDATED',
+
+  // ── Admin ───────────────────────────────────────────────────
+  ADMIN_ACTION:               'ADMIN_ACTION',
 };
 
 module.exports = { log, ACTIONS };

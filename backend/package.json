@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node src/index.js",
     "dev": "nodemon src/index.js",
-    "db:seed": "mysql -u root -p zesto_db < sql/schema.sql",
+    "db:seed": "mysql -u root -p < sql/schema.sql",
     "test": "echo \"No automated tests configured\""
   },
   "keywords": [],
