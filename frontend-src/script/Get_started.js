@@ -387,7 +387,7 @@ async function handleSignup(e) {
   } catch (err) {
     // Map known server messages to friendly copy
     let msg = err.message;
-    if (msg.includes('already registered') || msg.includes('Duplicate'))
+    if (msg.includes('Duplicate'))
       msg = 'An account with this email or phone already exists. <a href="signin.html" style="color:var(--or);font-weight:700;">Sign in instead?</a>';
     if (msg.includes('Too many registration'))
       msg = 'Too many attempts. Please wait a few minutes and try again.';
