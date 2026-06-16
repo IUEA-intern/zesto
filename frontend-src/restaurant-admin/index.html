@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Zesto — Restaurant Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Knewave&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="../css/admin.css"/>
+</head>
+<body>
+
+    <div id="toastContainer" class="toast-container" aria-live="polite"></div>
+
+    <!-- Auth Gate -->
+    <div id="authGate" class="auth-gate hidden">
+    <div class="auth-gate-card">
+        <div class="auth-gate-logo">
+        <span class="brand-logo">Zes<span class="brand-accent">to</span></span>
+        <span class="admin-badge">Restaurant</span>
+        </div>
+        <h2>Restaurant Sign In</h2>
+        <p class="auth-sub">Manage your restaurant, orders and menu</p>
+        <div class="form-group"><label>Email</label><input type="email" id="agEmail" placeholder="you@restaurant.com"/></div>
+        <div class="form-group"><label>Password</label><input type="password" id="agPassword" placeholder="••••••••"/></div>
+        <button class="btn-primary full-w" id="agLoginBtn">Sign In</button>
+    </div>
+    </div>
+
+    <!-- App Shell -->
+    <div id="appShell" class="app-shell hidden">
+
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-brand">
+        <span class="brand-logo">Zes<span class="brand-accent">to</span></span>
+        <span class="admin-badge">Restaurant</span>
+        </div>
+
+        <nav class="sidebar-nav">
+        <button class="nav-item active" data-page="dashboard">
+            <span class="nav-icon">📊</span><span>Dashboard</span>
+        </button>
+        <button class="nav-item" data-page="orders">
+            <span class="nav-icon">📦</span><span>Orders</span>
+            <span class="nav-badge hidden" id="pendingOrdersBadge">0</span>
+        </button>
+        <button class="nav-item" data-page="products">
+            <span class="nav-icon">🍔</span><span>Products</span>
+        </button>
+        <button class="nav-item" data-page="analytics">
+            <span class="nav-icon">📈</span><span>Analytics</span>
+        </button>
+        <button class="nav-item" data-page="settings">
+            <span class="nav-icon">⚙️</span><span>Settings</span>
+        </button>
+        </nav>
+
+        <div class="sidebar-footer">
+        <div class="sidebar-user" id="sidebarUser"></div>
+        <button class="btn-logout-admin" id="adminLogout">↩ Sign Out</button>
+        </div>
+    </aside>
+
+    <div class="main-wrap">
+        <header class="topbar">
+        <button class="sidebar-toggle" id="sidebarToggle">☰</button>
+        <h1 class="topbar-title" id="topbarTitle">Dashboard</h1>
+        <div class="topbar-actions">
+            <div class="live-indicator" id="liveIndicator">
+            <span class="live-dot"></span> Live
+            </div>
+        </div>
+        </header>
+
+        <main class="content-area">
+
+        <!-- ── DASHBOARD ──────────────────────────────────────── -->
+        <section id="page-dashboard" class="page active">
+            <div class="kpi-grid">
+            <div class="kpi-card">
+                <div class="kpi-icon">📦</div>
+                <div class="kpi-body">
+                <div class="kpi-label">Today's Orders</div>
+                <div class="kpi-value" id="kpiTodayOrders">—</div>
+                </div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-icon">💰</div>
+                <div class="kpi-body">
+                <div class="kpi-label">Today's Revenue</div>
+                <div class="kpi-value" id="kpiTodayRevenue">—</div>
+                </div>
+            </div>
+            <div class="kpi-card kpi-warn">
+                <div class="kpi-icon">⏳</div>
+                <div class="kpi-body">
+                <div class="kpi-label">Pending Orders</div>
+                <div class="kpi-value" id="kpiPending">—</div>
+                </div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-icon">🍔</div>
+                <div class="kpi-body">
+                <div class="kpi-label">Products</div>
+                <div class="kpi-value" id="kpiProducts">—</div>
+                </div>
+            </div>
+            <div class="kpi-card kpi-warn">
+                <div class="kpi-icon">📉</div>
+                <div class="kpi-body">
+                <div class="kpi-label">Low Stock</div>
+                <div class="kpi-value" id="kpiLowStock">—</div>
+                </div>
+            </div>
+            </div>
+
+            <div class="dash-grid">
+            <div class="dash-card">
+                <div class="dash-card-header">
+                <h3>🔴 Live Orders</h3>
+                <span class="live-dot-sm"></span>
+                </div>
+                <div class="live-feed" id="liveFeed">
+                <div class="feed-empty">No recent orders</div>
+                </div>
+            </div>
+            <div class="dash-card">
+                <div class="dash-card-header"><h3>🏆 Top Products (30 days)</h3></div>
+                <div id="topProductsList" class="top-products">
+                <div class="skeleton-row"></div>
+                <div class="skeleton-row"></div>
+                <div class="skeleton-row"></div>
+                </div>
+            </div>
+            </div>
+        </section>
+
+        <!-- ── ORDERS ─────────────────────────────────────────── -->
+        <section id="page-orders" class="page">
+            <div class="page-toolbar">
+            <div class="filter-tabs">
+                <button class="filter-tab active" data-status="">All</button>
+                <button class="filter-tab" data-status="pending">Pending</button>
+                <button class="filter-tab" data-status="processing">Processing</button>
+                <button class="filter-tab" data-status="preparing">Preparing</button>
+                <button class="filter-tab" data-status="out_for_delivery">Out for Delivery</button>
+                <button class="filter-tab" data-status="delivered">Delivered</button>
+                <button class="filter-tab" data-status="cancelled">Cancelled</button>
+            </div>
+            </div>
+            <div class="table-card">
+            <table class="data-table">
+                <thead>
+                <tr>
+                    <th>Order #</th>
+                    <th>Customer</th>
+                    <th>Phone</th>
+                    <th>Total</th>
+                    <th>Status</th>
+                    <th>Date</th>
+                    <th>Actions</th>
+                </tr>
+                </thead>
+                <tbody id="ordersBody">
+                <tr><td colspan="7" class="table-loading">Loading orders…</td></tr>
+                </tbody>
+            </table>
+            </div>
+            <div class="pagination" id="ordersPagination"></div>
+        </section>
+
+        <!-- ── PRODUCTS ───────────────────────────────────────── -->
+        <section id="page-products" class="page">
+            <div class="page-toolbar">
+            <button class="btn-primary" id="addProductBtn">+ Add Product</button>
+            </div>
+            <div class="table-card">
+            <table class="data-table">
+                <thead>
+                <tr>
+                    <th>Image</th>
+                    <th>Name</th>
+                    <th>Category</th>
+                    <th>Price</th>
+                    <th>Stock</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+                </thead>
+                <tbody id="productsBody">
+                <tr><td colspan="7" class="table-loading">Loading products…</td></tr>
+                </tbody>
+            </table>
+            </div>
+        </section>
+
+        <!-- ── ANALYTICS ──────────────────────────────────────── -->
+        <section id="page-analytics" class="page">
+            <div class="page-toolbar">
+            <div class="filter-tabs">
+                <button class="filter-tab active" data-days="30">30 Days</button>
+                <button class="filter-tab" data-days="7">7 Days</button>
+                <button class="filter-tab" data-days="90">90 Days</button>
+            </div>
+            </div>
+            <div class="analytics-grid">
+            <div class="dash-card analytics-chart-card">
+                <div class="dash-card-header"><h3>📈 Daily Sales</h3></div>
+                <canvas id="salesChart" height="260"></canvas>
+            </div>
+            <div class="dash-card">
+                <div class="dash-card-header"><h3>🏆 Top Selling Products</h3></div>
+                <div id="analyticsTopProducts" class="top-products"></div>
+            </div>
+            </div>
+            <div class="dash-grid" style="margin-top:20px">
+            <div class="dash-card">
+                <div class="dash-card-header"><h3>📊 Order Status Breakdown</h3></div>
+                <div id="statusBreakdown" style="padding:20px;"></div>
+            </div>
+            </div>
+        </section>
+
+        <!-- ── SETTINGS ───────────────────────────────────────── -->
+        <section id="page-settings" class="page">
+            <div style="max-width:680px;">
+
+            <div class="dash-card" style="margin-bottom:20px;">
+                <div class="dash-card-header"><h3>🏪 Restaurant Profile</h3></div>
+                <div style="padding:20px;">
+                <div class="form-row">
+                    <div class="form-group"><label>Restaurant Name</label><input type="text" id="set_name"/></div>
+                    <div class="form-group"><label>Phone</label><input type="tel" id="set_phone"/></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>Email</label><input type="email" id="set_email"/></div>
+                    <div class="form-group"><label>Logo URL</label><input type="url" id="set_logo_url"/></div>
+                </div>
+                <div class="form-group"><label>Address</label><input type="text" id="set_address"/></div>
+                <div class="form-group"><label>Description</label><textarea id="set_description" rows="3"></textarea></div>
+                </div>
+            </div>
+
+            <button class="btn-primary" id="saveSettingsBtn" style="min-width:160px;">💾 Save Profile</button>
+            </div>
+        </section>
+
+        </main>
+    </div>
+    </div>
+
+    <!-- Product Modal -->
+    <div id="productModal" class="modal-overlay hidden">
+    <div class="modal-card wide-card">
+        <button class="modal-close" id="closeProductModal">&times;</button>
+        <h2 class="modal-title" id="productModalTitle">Add Product</h2>
+        <input type="hidden" id="editProductId"/>
+        <div class="form-row">
+        <div class="form-group"><label>Name *</label><input type="text" id="pName" placeholder="Product name"/></div>
+        <div class="form-group"><label>Category</label>
+            <select id="pCategory">
+            <option value="1">🍔 Food</option>
+            <option value="2">🥤 Drinks</option>
+            <option value="3">🍰 Desserts</option>
+            <option value="4">🎁 Combos</option>
+            </select>
+        </div>
+        </div>
+        <div class="form-row">
+        <div class="form-group"><label>Type</label><input type="text" id="pType" placeholder="e.g. burger, pizza"/></div>
+        <div class="form-group"><label>Price (UGX) *</label><input type="number" id="pPrice" min="0" placeholder="0"/></div>
+        </div>
+        <div class="form-row">
+        <div class="form-group"><label>Stock</label><input type="number" id="pStock" min="0" placeholder="0"/></div>
+        <div class="form-group"><label>Image URL</label><input type="url" id="pImageUrl" placeholder="https://…"/></div>
+        </div>
+        <div class="form-group"><label>Description</label><textarea id="pDescription" rows="3" placeholder="Describe the product…"></textarea></div>
+        <div class="form-check-row">
+        <label class="check-label"><input type="checkbox" id="pFeatured"/> Featured</label>
+        <label class="check-label"><input type="checkbox" id="pActive" checked/> Active</label>
+        </div>
+        <button class="btn-primary full-w" id="saveProductBtn">Save Product</button>
+    </div>
+    </div>
+
+    <!-- Order Detail Modal -->
+    <div id="orderDetailModal" class="modal-overlay hidden">
+    <div class="modal-card wide-card">
+        <button class="modal-close" id="closeOrderModal">&times;</button>
+        <h2 class="modal-title" id="orderDetailTitle">Order Details</h2>
+        <div id="orderDetailContent"></div>
+    </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="restaurant-admin.js"></script>
+</body>
+</html>

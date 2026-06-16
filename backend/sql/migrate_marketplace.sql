@@ -1,0 +1,7 @@
+-- Marketplace migration removed.
+--
+-- The marketplace tables and schema changes are now built directly into
+-- backend/sql/schema.sql for the zesto_db_2 database.
+--
+-- Use:
+--   mysql -u root -p < backend/sql/schema.sql

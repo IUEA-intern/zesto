@@ -23,7 +23,7 @@ const { query } = require('../config/db');
 const { requireAuth, requireAdmin } = require('../middleware/auth');
 const { log, ACTIONS } = require('../config/audit');
 
-const DB_NAME = process.env.DB_NAME || 'zesto_db';
+const DB_NAME = process.env.DB_NAME || 'zesto_db_2';
 
 const PRODUCT_CATEGORY_MAP = {
   food:    { id: 1, name: 'Food' },

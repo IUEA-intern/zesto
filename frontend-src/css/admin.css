@@ -435,3 +435,142 @@ button, input, select, textarea { font-family: inherit; }
   .data-table { font-size: .78rem; }
   .data-table th, .data-table td { padding: 9px 10px; }
 }
+
+/* ============================================================
+   admin.css — MARKETPLACE ADDITIONS
+   Append these rules to the END of your existing admin.css
+   File: frontend-src/css/admin.css
+   ============================================================ */
+
+/* ── Status pills — restaurant/rider ───────────────────────── */
+.status-approved  { background: #dcfce7; color: #166534; }
+.status-suspended { background: #fee2e2; color: #991b1b; }
+.status-ready_for_pickup { background: #ede9fe; color: #5b21b6; }
+
+/* ── Analytics chart canvas fix ────────────────────────────── */
+#salesChart,
+#revenueChart {
+  display: block;
+  width: 100% !important;
+  padding: 0 16px 8px;
+}
+
+/* ── Analytics grid (restaurant dashboard) ──────────────────── */
+.analytics-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 20px;
+}
+.analytics-chart-card { padding-bottom: 16px; }
+
+/* ── Settings form layout ───────────────────────────────────── */
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-bottom: 4px;
+}
+
+/* ── Sidebar badge (already in CSS, ensure hidden util works) ── */
+.nav-badge.hidden { display: none !important; }
+
+/* ── KPI warn left-border variant ───────────────────────────── */
+.kpi-card.kpi-warn { border-left: 3px solid var(--warning); }
+
+/* ── Wide modal card ────────────────────────────────────────── */
+.wide-card { max-width: 640px; }
+
+/* ── Order detail grid ──────────────────────────────────────── */
+.order-detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+.detail-group label {
+  font-size: .76rem; font-weight: 700;
+  color: var(--text-sec); text-transform: uppercase;
+  letter-spacing: .5px; display: block; margin-bottom: 3px;
+}
+.detail-group .detail-val { font-size: .92rem; font-weight: 600; }
+
+/* ── Order items list ───────────────────────────────────────── */
+.order-items-list {
+  border: 1px solid var(--border);
+  border-radius: 10px; overflow: hidden;
+}
+.order-item-row {
+  display: flex; align-items: center;
+  padding: 10px 14px; border-bottom: 1px solid var(--border); gap: 10px;
+}
+.order-item-row:last-child { border-bottom: none; }
+.oi-name { flex: 1; font-size: .88rem; font-weight: 700; }
+.oi-qty  { font-size: .82rem; color: var(--text-sec); }
+.oi-sub  { font-weight: 800; color: var(--orange); font-size: .9rem; }
+
+/* ── Product thumbnail in table ────────────────────────────── */
+.product-thumb {
+  width: 42px; height: 42px;
+  border-radius: 8px; object-fit: cover;
+  background: var(--orange-pale);
+}
+.product-thumb-placeholder {
+  width: 42px; height: 42px; border-radius: 8px;
+  background: var(--orange-pale);
+  display: flex; align-items: center;
+  justify-content: center; font-size: 1.2rem;
+}
+
+/* ── Stock indicator colours ───────────────────────────────── */
+.stock-ok  { color: var(--success); font-weight: 700; }
+.stock-low { color: var(--warning); font-weight: 700; }
+.stock-out { color: var(--danger);  font-weight: 700; }
+
+/* ── Checkbox form row ──────────────────────────────────────── */
+.form-check-row {
+  display: flex; gap: 20px; margin-bottom: 16px; align-items: center;
+}
+.check-label {
+  display: flex; align-items: center; gap: 7px;
+  font-size: .86rem; font-weight: 700; cursor: pointer;
+}
+.check-label input {
+  accent-color: var(--orange); width: 16px; height: 16px;
+  /* override the full-width rule from .form-group input */
+  width: 16px !important;
+}
+
+/* ── Auth sub-heading ───────────────────────────────────────── */
+.auth-sub {
+  font-size: .84rem; color: var(--text-sec); margin-bottom: 24px;
+}
+
+/* ── Pagination ─────────────────────────────────────────────── */
+.pagination { display: flex; gap: 6px; justify-content: center; padding: 10px 0; }
+.page-btn {
+  background: var(--surface); border: 1.5px solid var(--border);
+  border-radius: 8px; padding: 6px 12px;
+  font-size: .82rem; font-weight: 700; cursor: pointer;
+  transition: var(--transition);
+}
+.page-btn:hover  { border-color: var(--orange); color: var(--orange); }
+.page-btn.active { background: var(--orange); color: #fff; border-color: var(--orange); }
+
+/* ── Skeleton shimmer rows ──────────────────────────────────── */
+.skeleton-row {
+  height: 40px; border-radius: 8px; margin-bottom: 8px;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e4e4e4 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite;
+}
+@keyframes shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ── Responsive additions ───────────────────────────────────── */
+@media (max-width: 900px) {
+  .analytics-grid { grid-template-columns: 1fr; }
+  .form-row       { grid-template-columns: 1fr; }
+  .order-detail-grid { grid-template-columns: 1fr; }
+}
