@@ -173,6 +173,10 @@ function navigateTo(page) {
   document.querySelector(`.nav-item[data-page="${page}"]`)?.classList.add('active');
   document.getElementById('topbarTitle').textContent = PAGE_TITLES[page] || page;
   State.currentPage = page;
+
+  // Mobile: Close sidebar on navigate
+  document.getElementById('sidebar')?.classList.remove('open');
+
   const loaders = {
     dashboard: loadDashboard,
     orders:    loadOrders,
@@ -690,7 +694,15 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Mobile sidebar
   document.getElementById('sidebarToggle')?.addEventListener('click', () => {
-    document.getElementById('sidebar').classList.toggle('open');
+    document.getElementById('sidebar').classList.add('open');
+  });
+
+  document.getElementById('sidebarClose')?.addEventListener('click', () => {
+    document.getElementById('sidebar').classList.remove('open');
+  });
+
+  document.getElementById('sidebarOverlay')?.addEventListener('click', () => {
+    document.getElementById('sidebar').classList.remove('open');
   });
 
   // Orders filter tabs
