@@ -32,6 +32,7 @@
     <div id="appShell" class="app-shell hidden">
 
     <aside class="sidebar" id="sidebar">
+        <button class="sidebar-close" id="sidebarClose">&times;</button>
         <div class="sidebar-brand">
         <span class="brand-logo">Zes<span class="brand-accent">to</span></span>
         <span class="admin-badge">Restaurant</span>
@@ -61,6 +62,7 @@
         <button class="btn-logout-admin" id="adminLogout">↩ Sign Out</button>
         </div>
     </aside>
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
     <div class="main-wrap">
         <header class="topbar">
@@ -224,7 +226,7 @@
 
         <!-- ── SETTINGS ───────────────────────────────────────── -->
         <section id="page-settings" class="page">
-            <div style="max-width:680px;">
+            <div style="max-width:680px; margin: 0 auto;">
 
             <div class="dash-card" style="margin-bottom:20px;">
                 <div class="dash-card-header"><h3>🏪 Restaurant Profile</h3></div>
