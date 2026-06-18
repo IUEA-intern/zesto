@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>List Your Restaurant — Zesto</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Knewave&family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --orange: #FF5500;
+    --orange-light: #FF7733;
+    --orange-dim: rgba(255,85,0,0.12);
+    --dark: #0E0C0A;
+    --surface: #F7F4F0;
+    --card: #FFFFFF;
+    --border: #E4E0D8;
+    --text-muted: #6B6560;
+    --text-soft: #9B9490;
+    --font: 'Plus Jakarta Sans', sans-serif;
+    --display: 'Knewave', cursive;
+  }
+
+  body {
+    font-family: var(--font);
+    background: var(--surface);
+    color: var(--dark);
+    min-height: 100vh;
+    line-height: 1.6;
+  }
+
+  /* ── NAV ── */
+  .nav { background: #fff; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100; }
+  .container { max-width: 1180px; margin: 0 auto; padding: 0 24px; }
+  .nav-inner { display: flex; align-items: center; justify-content: space-between; height: 64px; }
+  .nav-logo { display: flex; align-items: center; gap: 8px; text-decoration: none; }
+  .logo-mark { width: 32px; height: 32px; background: var(--orange); border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+  .logo-mark svg { width: 18px; height: 18px; fill: #fff; }
+  .logo-text { font-family: var(--display); font-size: 22px; color: var(--dark); }
+  .logo-text span { color: var(--orange); }
+  .nav-links { display: flex; gap: 28px; align-items: center; }
+  .nav-link { font-size: 14px; font-weight: 600; color: var(--text-muted); text-decoration: none; transition: color 0.2s; }
+  .nav-link:hover, .nav-link.active { color: var(--orange); }
+  .nav-actions { display: flex; gap: 10px; align-items: center; }
+  .btn-signin { font-size: 13px; font-weight: 700; color: var(--dark); text-decoration: none; padding: 8px 16px; border-radius: 8px; transition: background 0.2s; }
+  .btn-signin:hover { background: var(--surface); }
+  .btn-signup { font-size: 13px; font-weight: 700; color: #fff; background: var(--orange); text-decoration: none; padding: 8px 18px; border-radius: 8px; transition: background 0.2s; }
+  .btn-signup:hover { background: var(--orange-light); }
+
+  /* ── HERO ── */
+  .hero { background: var(--dark); padding: 80px 0 64px; position: relative; overflow: hidden; }
+  .hero::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse 60% 60% at 80% 50%, rgba(255,85,0,0.18) 0%, transparent 70%);
+  }
+  .hero-inner { display: grid; grid-template-columns: 1fr 1fr; gap: 56px; align-items: center; position: relative; z-index: 1; }
+  .hero-eyebrow { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; color: var(--orange); margin-bottom: 16px; }
+  .hero-h1 { font-size: clamp(38px, 5vw, 58px); font-weight: 800; color: #fff; line-height: 1.1; margin-bottom: 20px; }
+  .hero-h1 span { color: var(--orange); }
+  .hero-sub { font-size: 16px; color: rgba(255,255,255,0.6); line-height: 1.7; margin-bottom: 32px; max-width: 420px; }
+  .hero-badges { display: flex; gap: 10px; flex-wrap: wrap; }
+  .hero-badge { font-size: 12px; font-weight: 700; color: var(--orange); background: rgba(255,85,0,0.14); padding: 6px 14px; border-radius: 99px; border: 1px solid rgba(255,85,0,0.3); }
+  .hero-stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .hero-stat-card { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 14px; padding: 24px 20px; }
+  .stat-num { font-family: var(--display); font-size: 36px; color: var(--orange); line-height: 1; margin-bottom: 4px; }
+  .stat-label { font-size: 13px; color: rgba(255,255,255,0.5); font-weight: 600; }
+
+  /* ── MAIN LAYOUT ── */
+  .main-section { padding: 56px 0 80px; }
+  .main-grid { display: grid; grid-template-columns: 1fr 380px; gap: 32px; align-items: start; }
+
+  /* ── FORM CARD ── */
+  .form-card { background: var(--card); border-radius: 20px; border: 1px solid var(--border); overflow: hidden; }
+  .form-card-header { background: var(--dark); padding: 28px 32px; }
+  .form-card-title { font-size: 20px; font-weight: 800; color: #fff; margin-bottom: 4px; }
+  .form-card-sub { font-size: 13px; color: rgba(255,255,255,0.5); }
+  .form-card-body { padding: 32px; }
+
+  .form-section-label {
+    font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em;
+    color: var(--orange); margin: 28px 0 16px; display: block;
+  }
+  .form-section-label:first-child { margin-top: 0; }
+
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+  /* floating label inputs */
+  .floating-group { position: relative; margin-bottom: 16px; }
+  .floating-input, .floating-select { 
+    width: 100%; padding: 18px 14px 8px; 
+    border: 1.5px solid var(--border); border-radius: 10px;
+    font-family: var(--font); font-size: 15px; font-weight: 600; color: var(--dark);
+    background: #fff; outline: none; transition: border-color 0.2s; appearance: none;
+  }
+  .floating-input:focus, .floating-select:focus { border-color: var(--orange); }
+  .floating-label {
+    position: absolute; top: 14px; left: 14px;
+    font-size: 14px; color: var(--text-soft); pointer-events: none;
+    transition: all 0.18s; font-weight: 600;
+  }
+  .floating-input:focus ~ .floating-label,
+  .floating-input:not(:placeholder-shown) ~ .floating-label,
+  .floating-select:focus ~ .floating-label,
+  .floating-select.has-value ~ .floating-label {
+    top: 6px; font-size: 11px; color: var(--orange);
+  }
+  .floating-select-wrap { position: relative; }
+  .floating-select-wrap::after { content: '▾'; position: absolute; right: 14px; top: 50%; transform: translateY(-50%); color: var(--text-muted); pointer-events: none; font-size: 13px; }
+
+  /* time grid */
+  .time-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .time-block { background: var(--surface); border: 1.5px solid var(--border); border-radius: 10px; padding: 12px 14px; }
+  .time-block label { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.07em; display: block; margin-bottom: 4px; }
+  .time-block input { border: none; background: transparent; font-family: var(--font); font-size: 15px; font-weight: 700; color: var(--dark); outline: none; width: 100%; }
+
+  /* cuisine checkboxes */
+  .cuisine-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .cuisine-chip { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border: 1.5px solid var(--border); border-radius: 9px; cursor: pointer; transition: all 0.18s; }
+  .cuisine-chip:hover { border-color: var(--orange); background: var(--orange-dim); }
+  .cuisine-chip input { display: none; }
+  .cuisine-chip.checked { border-color: var(--orange); background: var(--orange-dim); }
+  .cuisine-chip span { font-size: 13px; font-weight: 700; color: var(--dark); }
+  .cuisine-chip .chip-icon { font-size: 16px; }
+
+  /* checkbox row */
+  .agreement { display: flex; gap: 12px; align-items: flex-start; margin: 20px 0 24px; }
+  .agreement input { width: 18px; height: 18px; accent-color: var(--orange); flex-shrink: 0; margin-top: 2px; cursor: pointer; }
+  .agreement-text { font-size: 13px; color: var(--text-muted); line-height: 1.6; }
+  .agreement-text a { color: var(--orange); }
+
+  /* submit btn */
+  .btn-submit {
+    width: 100%; padding: 16px; background: var(--orange);
+    color: #fff; font-family: var(--font); font-size: 15px; font-weight: 800;
+    border: none; border-radius: 12px; cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+    letter-spacing: 0.02em;
+  }
+  .btn-submit:hover { background: var(--orange-light); }
+  .btn-submit:active { transform: scale(0.99); }
+
+  /* ── RIGHT STACK ── */
+  .right-stack { display: flex; flex-direction: column; gap: 20px; }
+
+  .info-card { background: var(--card); border-radius: 16px; border: 1px solid var(--border); padding: 24px; }
+  .info-card-eyebrow { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--orange); margin-bottom: 10px; }
+  .info-card h3 { font-size: 17px; font-weight: 800; color: var(--dark); margin-bottom: 14px; }
+
+  /* steps */
+  .steps-list { display: flex; flex-direction: column; gap: 16px; }
+  .step-row { display: flex; gap: 14px; align-items: flex-start; }
+  .step-dot { width: 28px; height: 28px; border-radius: 50%; background: var(--orange-dim); border: 2px solid var(--orange); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800; color: var(--orange); flex-shrink: 0; margin-top: 1px; }
+  .step-text strong { font-size: 14px; font-weight: 800; color: var(--dark); display: block; margin-bottom: 2px; }
+  .step-text span { font-size: 13px; color: var(--text-muted); }
+
+  /* commission card */
+  .commission-card { background: var(--dark); border-radius: 16px; padding: 24px; }
+  .commission-card .info-card-eyebrow { color: var(--orange); }
+  .commission-card h3 { color: #fff; }
+  .commission-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.08); }
+  .commission-row:last-child { border-bottom: none; }
+  .commission-label { font-size: 13px; color: rgba(255,255,255,0.55); font-weight: 600; }
+  .commission-val { font-size: 14px; font-weight: 800; color: #fff; }
+  .commission-val.highlight { color: var(--orange); }
+
+  /* contact card */
+  .contact-link { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border); text-decoration: none; color: var(--dark); transition: color 0.2s; }
+  .contact-link:last-child { border-bottom: none; padding-bottom: 0; }
+  .contact-link:hover { color: var(--orange); }
+  .contact-link-icon { width: 36px; height: 36px; background: var(--surface); border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+  .contact-link-text strong { font-size: 13px; font-weight: 700; display: block; }
+  .contact-link-text span { font-size: 12px; color: var(--text-muted); }
+
+  /* ── SUCCESS OVERLAY ── */
+  .success-overlay { display: none; position: fixed; inset: 0; background: rgba(14,12,10,0.7); z-index: 999; align-items: center; justify-content: center; }
+  .success-overlay.visible { display: flex; }
+  .success-box { background: #fff; border-radius: 20px; padding: 48px 40px; text-align: center; max-width: 420px; width: 90%; }
+  .success-icon { font-size: 52px; margin-bottom: 16px; }
+  .success-box h2 { font-size: 24px; font-weight: 800; color: var(--dark); margin-bottom: 10px; }
+  .success-box p { font-size: 14px; color: var(--text-muted); margin-bottom: 28px; line-height: 1.7; }
+  .btn-close-success { background: var(--orange); color: #fff; border: none; padding: 13px 32px; border-radius: 10px; font-family: var(--font); font-size: 14px; font-weight: 800; cursor: pointer; }
+
+  /* ── FOOTER ── */
+  .footer { background: var(--dark); padding: 56px 0 32px; }
+  .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 40px; margin-bottom: 40px; }
+  .footer-logo { font-family: var(--display); font-size: 26px; color: #fff; margin-bottom: 12px; }
+  .footer-logo span { color: var(--orange); }
+  .footer-tagline { font-size: 13px; color: rgba(255,255,255,0.45); max-width: 280px; line-height: 1.7; }
+  .footer-col-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--orange); margin-bottom: 14px; }
+  .footer-links { display: flex; flex-direction: column; gap: 10px; }
+  .footer-link { color: rgba(255,255,255,0.5); font-size: 13px; text-decoration: none; font-weight: 600; transition: color 0.2s; }
+  .footer-link:hover { color: var(--orange); }
+  .footer-bottom { border-top: 1px solid rgba(255,255,255,0.08); padding-top: 24px; text-align: center; }
+  .footer-copy { font-size: 13px; color: rgba(255,255,255,0.3); }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 960px) {
+    .main-grid { grid-template-columns: 1fr; }
+    .right-stack { order: -1; display: grid; grid-template-columns: 1fr 1fr; }
+    .hero-inner { grid-template-columns: 1fr; }
+    .hero-stat-grid { grid-template-columns: repeat(4, 1fr); }
+    .footer-grid { grid-template-columns: 1fr 1fr; }
+  }
+  @media (max-width: 640px) {
+    .form-row { grid-template-columns: 1fr; }
+    .cuisine-grid { grid-template-columns: 1fr 1fr; }
+    .right-stack { grid-template-columns: 1fr; }
+    .hero-stat-grid { grid-template-columns: 1fr 1fr; }
+    .hero-h1 { font-size: 36px; }
+    .footer-grid { grid-template-columns: 1fr; gap: 28px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<header class="nav">
+  <div class="container">
+    <nav class="nav-inner">
+      <a href="index.html" class="nav-logo">
+        <div class="logo-mark">
+          <svg viewBox="0 0 24 24"><path d="M13 2L4 13h7l-1 9 10-12h-7l1-8z"/></svg>
+        </div>
+        <span class="logo-text">Zes<span>to</span></span>
+      </a>
+      <div class="nav-links">
+        <a href="restaurant.html" class="nav-link active">Restaurants</a>
+        <a href="become-a-rider.html" class="nav-link">Become a Rider</a>
+      </div>
+      <div class="nav-actions">
+        <a href="login.html" class="btn-signin">Sign In</a>
+        <a href="signup.html" class="btn-signup">Sign Up</a>
+      </div>
+    </nav>
+  </div>
+</header>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="container">
+    <div class="hero-inner">
+      <div>
+        <div class="hero-eyebrow">Partner with Zesto</div>
+        <h1 class="hero-h1">More Orders.<br><span>More Revenue.</span></h1>
+        <p class="hero-sub">Join hundreds of restaurants across Kampala reaching thousands of hungry customers every day. No hidden fees, no complicated setup.</p>
+        <div class="hero-badges">
+          <span class="hero-badge">🚀 Live in 24hrs</span>
+          <span class="hero-badge">📦 Real-time tracking</span>
+          <span class="hero-badge">💳 Weekly payouts</span>
+        </div>
+      </div>
+      <div class="hero-stat-grid">
+        <div class="hero-stat-card">
+          <div class="stat-num">50K+</div>
+          <div class="stat-label">Active customers</div>
+        </div>
+        <div class="hero-stat-card">
+          <div class="stat-num">800+</div>
+          <div class="stat-label">Partner restaurants</div>
+        </div>
+        <div class="hero-stat-card">
+          <div class="stat-num">18min</div>
+          <div class="stat-label">Avg. delivery time</div>
+        </div>
+        <div class="hero-stat-card">
+          <div class="stat-num">4.8★</div>
+          <div class="stat-label">Platform rating</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- MAIN -->
+<section class="main-section">
+  <div class="container">
+    <div class="main-grid">
+
+      <!-- FORM CARD -->
+      <div class="form-card">
+        <div class="form-card-header">
+          <div class="form-card-title">Restaurant Registration</div>
+          <div class="form-card-sub">Fill in your details to get your restaurant live on Zesto</div>
+        </div>
+        <div class="form-card-body">
+          <form id="restaurantForm" onsubmit="handleSubmit(event)">
+
+            <span class="form-section-label">Restaurant Details</span>
+
+            <div class="floating-group">
+              <input type="text" class="floating-input" placeholder=" " id="restName" required>
+              <label class="floating-label" for="restName">Restaurant Name</label>
+            </div>
+
+            <div class="form-row">
+              <div class="floating-group">
+                <input type="email" class="floating-input" placeholder=" " id="restEmail" required>
+                <label class="floating-label" for="restEmail">Business Email</label>
+              </div>
+              <div class="floating-group">
+                <input type="tel" class="floating-input" placeholder=" " id="restPhone" required>
+                <label class="floating-label" for="restPhone">Phone Number</label>
+              </div>
+            </div>
+
+            <div class="floating-group">
+              <input type="text" class="floating-input" placeholder=" " id="restAddress" required>
+              <label class="floating-label" for="restAddress">Restaurant Address</label>
+            </div>
+
+            <div class="form-row">
+              <div class="floating-group floating-select-wrap">
+                <select class="floating-select" id="restCity" required onchange="this.classList.add('has-value')">
+                  <option value="" disabled selected hidden></option>
+                  <option>Kampala Central</option>
+                  <option>Nakawa</option>
+                  <option>Makindye</option>
+                  <option>Kawempe</option>
+                  <option>Rubaga</option>
+                  <option>Wakiso</option>
+                  <option>Entebbe</option>
+                </select>
+                <label class="floating-label" for="restCity">District / Area</label>
+              </div>
+              <div class="floating-group floating-select-wrap">
+                <select class="floating-select" id="restSize" required onchange="this.classList.add('has-value')">
+                  <option value="" disabled selected hidden></option>
+                  <option>Solo / Home Kitchen</option>
+                  <option>Small (1–10 staff)</option>
+                  <option>Medium (11–50 staff)</option>
+                  <option>Large (50+ staff)</option>
+                  <option>Multi-location chain</option>
+                </select>
+                <label class="floating-label" for="restSize">Business Size</label>
+              </div>
+            </div>
+
+            <span class="form-section-label">Cuisine & Menu</span>
+
+            <div class="cuisine-grid" id="cuisineGrid">
+              <label class="cuisine-chip" onclick="toggleChip(this)">
+                <input type="checkbox" name="cuisine" value="ugandan">
+                <span class="chip-icon">🍲</span>
+                <span>Ugandan</span>
+              </label>
+              <label class="cuisine-chip" onclick="toggleChip(this)">
+                <input type="checkbox" name="cuisine" value="grills">
+                <span class="chip-icon">🔥</span>
+                <span>Grills & BBQ</span>
+              </label>
+              <label class="cuisine-chip" onclick="toggleChip(this)">
+                <input type="checkbox" name="cuisine" value="pizza">
+                <span class="chip-icon">🍕</span>
+                <span>Pizza</span>
+              </label>
+              <label class="cuisine-chip" onclick="toggleChip(this)">
+                <input type="checkbox" name="cuisine" value="chicken">
+                <span class="chip-icon">🍗</span>
+                <span>Chicken</span>
+              </label>
+              <label class="cuisine-chip" onclick="toggleChip(this)">
+                <input type="checkbox" name="cuisine" value="chinese">
+                <span class="chip-icon">🥡</span>
+                <span>Chinese</span>
+              </label>
+              <label class="cuisine-chip" onclick="toggleChip(this)">
+                <input type="checkbox" name="cuisine" value="indian">
+                <span class="chip-icon">🍛</span>
+                <span>Indian</span>
+              </label>
+              <label class="cuisine-chip" onclick="toggleChip(this)">
+                <input type="checkbox" name="cuisine" value="burgers">
+                <span class="chip-icon">🍔</span>
+                <span>Burgers</span>
+              </label>
+              <label class="cuisine-chip" onclick="toggleChip(this)">
+                <input type="checkbox" name="cuisine" value="seafood">
+                <span class="chip-icon">🦞</span>
+                <span>Seafood</span>
+              </label>
+              <label class="cuisine-chip" onclick="toggleChip(this)">
+                <input type="checkbox" name="cuisine" value="healthy">
+                <span class="chip-icon">🥗</span>
+                <span>Healthy</span>
+              </label>
+            </div>
+
+            <div class="floating-group" style="margin-top: 16px;">
+              <input type="number" class="floating-input" placeholder=" " id="avgPrice" min="0">
+              <label class="floating-label" for="avgPrice">Average Order Value (UGX)</label>
+            </div>
+
+            <span class="form-section-label">Operating Hours</span>
+
+            <div class="time-grid">
+              <div class="time-block">
+                <label>Opening Time</label>
+                <input type="time" id="openTime" value="08:00">
+              </div>
+              <div class="time-block">
+                <label>Closing Time</label>
+                <input type="time" id="closeTime" value="22:00">
+              </div>
+            </div>
+
+            <div class="floating-group" style="margin-top: 16px;">
+              <select class="floating-select" id="deliveryRadius" onchange="this.classList.add('has-value')">
+                <option value="" disabled selected hidden></option>
+                <option>Up to 3 km</option>
+                <option>Up to 5 km</option>
+                <option>Up to 10 km</option>
+                <option>Citywide</option>
+              </select>
+              <label class="floating-label" for="deliveryRadius">Preferred Delivery Radius</label>
+            </div>
+
+            <label class="agreement">
+              <input type="checkbox" id="agreeCheck" required>
+              <span class="agreement-text">
+                I confirm that all provided information is accurate, and I agree to Zesto's 
+                <a href="terms-of-service.html" target="_blank">Partner Terms of Service</a> and 
+                <a href="privacy-policy.html" target="_blank">Privacy Policy</a>.
+              </span>
+            </label>
+
+            <button type="submit" class="btn-submit">Submit Restaurant Application →</button>
+          </form>
+        </div>
+      </div>
+
+      <!-- RIGHT STACK -->
+      <div class="right-stack">
+
+        <!-- Steps -->
+        <div class="info-card">
+          <div class="info-card-eyebrow">How it works</div>
+          <h3>Get live in 3 steps</h3>
+          <div class="steps-list">
+            <div class="step-row">
+              <div class="step-dot">1</div>
+              <div class="step-text">
+                <strong>Submit your application</strong>
+                <span>Fill in your restaurant details and upload required documents.</span>
+              </div>
+            </div>
+            <div class="step-row">
+              <div class="step-dot">2</div>
+              <div class="step-text">
+                <strong>We verify & onboard</strong>
+                <span>Our team reviews your submission and sets up your menu within 24 hours.</span>
+              </div>
+            </div>
+            <div class="step-row">
+              <div class="step-dot">3</div>
+              <div class="step-text">
+                <strong>Start receiving orders</strong>
+                <span>Go live on the Zesto app and start earning from day one.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Commission -->
+        <div class="commission-card">
+          <div class="info-card-eyebrow">Partner plans</div>
+          <h3>Transparent pricing</h3>
+          <div class="commission-row">
+            <span class="commission-label">Standard commission</span>
+            <span class="commission-val highlight">15%</span>
+          </div>
+          <div class="commission-row">
+            <span class="commission-label">Setup fee</span>
+            <span class="commission-val highlight">Free</span>
+          </div>
+          <div class="commission-row">
+            <span class="commission-label">Payout schedule</span>
+            <span class="commission-val">Weekly</span>
+          </div>
+          <div class="commission-row">
+            <span class="commission-label">Payment methods</span>
+            <span class="commission-val">MTN / Airtel / Bank</span>
+          </div>
+          <div class="commission-row">
+            <span class="commission-label">Contract lock-in</span>
+            <span class="commission-val highlight">None</span>
+          </div>
+        </div>
+
+        <!-- Contact -->
+        <div class="info-card">
+          <div class="info-card-eyebrow">Need help?</div>
+          <h3>Talk to our team</h3>
+          <a href="mailto:partners@zesto.ug" class="contact-link">
+            <div class="contact-link-icon">📧</div>
+            <div class="contact-link-text">
+              <strong>Email us</strong>
+              <span>partners@zesto.ug</span>
+            </div>
+          </a>
+          <a href="tel:+256800100200" class="contact-link">
+            <div class="contact-link-icon">📞</div>
+            <div class="contact-link-text">
+              <strong>Call us</strong>
+              <span>0800 100 200 (toll-free)</span>
+            </div>
+          </a>
+          <a href="Help-center.html" class="contact-link">
+            <div class="contact-link-icon">💬</div>
+            <div class="contact-link-text">
+              <strong>Help Center</strong>
+              <span>Browse partner FAQs</span>
+            </div>
+          </a>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SUCCESS OVERLAY -->
+<div class="success-overlay" id="successOverlay">
+  <div class="success-box">
+    <div class="success-icon">🎉</div>
+    <h2>Application Submitted!</h2>
+    <p>Thanks for partnering with Zesto. Our onboarding team will review your application and reach out within 24 hours to get you live.</p>
+    <button class="btn-close-success" onclick="document.getElementById('successOverlay').classList.remove('visible')">Back to Home</button>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <div class="footer-logo">Zes<span>to</span></div>
+        <p class="footer-tagline">High-velocity food delivery connecting restaurants with hungry customers across East Africa.</p>
+      </div>
+      <div>
+        <div class="footer-col-title">Partners</div>
+        <div class="footer-links">
+          <a href="restaurant.html" class="footer-link">List your restaurant</a>
+          <a href="become-a-rider.html" class="footer-link">Become a rider</a>
+          <a href="#" class="footer-link">Enterprise</a>
+        </div>
+      </div>
+      <div>
+        <div class="footer-col-title">Help</div>
+        <div class="footer-links">
+          <a href="Help-center.html" class="footer-link">Help Center</a>
+          <a href="privacy-policy.html" class="footer-link">Privacy Policy</a>
+          <a href="terms-of-service.html" class="footer-link">Terms of Service</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span class="footer-copy">© 2026 Zesto Technologies Inc. All rights reserved.</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+  function toggleChip(el) {
+    el.classList.toggle('checked');
+  }
+
+  function handleSubmit(e) {
+    e.preventDefault();
+    document.getElementById('successOverlay').classList.add('visible');
+  }
+</script>
+
+</body>
+</html>
