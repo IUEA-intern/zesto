@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Blog — Zesto</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Knewave&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="./css/index.css"/>
+<style>
+/* ── PAGE HERO ── */
+.page-hero{background:var(--wh);padding:72px 0 60px;border-bottom:1px solid var(--lt2);}
+.hero-flex{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;flex-wrap:wrap;}
+.page-tag{display:inline-flex;align-items:center;gap:8px;background:var(--or-lt);border:1.5px solid var(--or-mid);color:var(--or);font-size:12px;font-weight:700;padding:5px 14px;border-radius:var(--r50);margin-bottom:20px;letter-spacing:.08em;text-transform:uppercase;}
+.page-h1{font-family:'Plus Jakarta Sans',sans-serif;font-size:clamp(38px,6vw,72px);color:var(--dk);line-height:1.05;letter-spacing:-.5px;font-weight:800;margin-bottom:8px;}
+.page-sub{font-size:16px;color:var(--mid);line-height:1.65;max-width:500px;}
+.newsletter-box{background:var(--dk);border-radius:var(--r20);padding:24px;min-width:280px;flex-shrink:0;}
+.nl-title{font-size:14px;font-weight:700;color:white;margin-bottom:4px;}
+.nl-sub{font-size:12px;color:rgba(255,255,255,.4);margin-bottom:14px;}
+.nl-row{display:flex;gap:8px;}
+.nl-input{flex:1;border:none;background:rgba(255,255,255,.08);border-radius:var(--r6);padding:10px 14px;font-size:13px;color:white;font-family:'Plus Jakarta Sans',sans-serif;outline:none;}
+.nl-input::placeholder{color:rgba(255,255,255,.3);}
+.nl-btn{background:var(--or);color:white;border:none;border-radius:var(--r6);padding:10px 16px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;white-space:nowrap;transition:background .18s;}
+.nl-btn:hover{background:var(--or-dk);}
+
+/* ── FEATURED POST ── */
+.featured-section{padding:60px 0 0;background:white;}
+.featured-card{background:var(--dk);border-radius:var(--r20);overflow:hidden;display:grid;grid-template-columns:1fr 1fr;cursor:pointer;transition:transform .2s;margin-bottom:60px;}
+.featured-card:hover{transform:scale(1.01);}
+.featured-visual{background:linear-gradient(135deg,#FF5500,#FF8C40);display:flex;align-items:center;justify-content:center;font-size:80px;min-height:320px;}
+.featured-body{padding:40px;}
+.featured-tag{display:inline-flex;background:rgba(255,85,0,.2);color:var(--or);font-size:11px;font-weight:700;padding:4px 12px;border-radius:var(--r50);margin-bottom:16px;letter-spacing:.06em;text-transform:uppercase;}
+.featured-title{font-size:clamp(22px,3vw,32px);font-weight:800;color:white;line-height:1.25;margin-bottom:14px;}
+.featured-excerpt{font-size:14px;color:rgba(255,255,255,.5);line-height:1.7;margin-bottom:24px;}
+.featured-meta{display:flex;align-items:center;gap:12px;}
+.author-av{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;flex-shrink:0;}
+.author-name{font-size:13px;font-weight:700;color:white;}
+.author-date{font-size:11px;color:rgba(255,255,255,.35);}
+
+/* ── TOPIC FILTERS ── */
+.blog-topics{display:flex;gap:8px;margin-bottom:36px;overflow-x:auto;scrollbar-width:none;padding-bottom:4px;}
+.blog-topics::-webkit-scrollbar{display:none;}
+.topic-pill{font-size:12px;font-weight:600;color:var(--mid);background:white;border:1.5px solid var(--lt2);border-radius:var(--r50);padding:6px 16px;cursor:pointer;white-space:nowrap;transition:all .18s;}
+.topic-pill.active,.topic-pill:hover{background:var(--or);border-color:var(--or);color:white;}
+
+/* ── BLOG GRID ── */
+.blog-section{padding:0 0 80px;background:white;}
+.blog-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;}
+.blog-card{background:var(--lt);border-radius:var(--r20);overflow:hidden;cursor:pointer;transition:all .2s;}
+.blog-card:hover{box-shadow:var(--shadow-lg);transform:translateY(-3px);}
+.blog-thumb{height:160px;display:flex;align-items:center;justify-content:center;font-size:48px;position:relative;}
+.blog-cat{position:absolute;bottom:12px;left:12px;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--or);background:white;padding:3px 10px;border-radius:var(--r50);}
+.blog-body{padding:20px;}
+.blog-title{font-size:15px;font-weight:700;color:var(--dk);line-height:1.4;margin-bottom:8px;}
+.blog-excerpt{font-size:12px;color:var(--mid);line-height:1.6;margin-bottom:16px;}
+.blog-author{display:flex;align-items:center;gap:8px;}
+.blog-av{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;flex-shrink:0;}
+.blog-by{font-size:11px;font-weight:700;color:var(--dk);}
+.blog-dt{font-size:10px;color:var(--mid);}
+.blog-read{font-size:10px;color:var(--mid);margin-left:auto;}
+
+/* ── SIDEBAR SECTION ── */
+.content-area{display:grid;grid-template-columns:1fr 300px;gap:40px;align-items:start;}
+.sidebar{position:sticky;top:84px;}
+.sidebar-box{background:var(--lt);border-radius:var(--r20);padding:24px;margin-bottom:16px;}
+.sidebar-title{font-size:13px;font-weight:700;color:var(--dk);margin-bottom:16px;}
+.trending-item{display:flex;gap:12px;padding:10px 0;border-bottom:1px solid var(--lt2);cursor:pointer;}
+.trending-item:last-child{border-bottom:none;}
+.trending-num{font-family:'Knewave',cursive;font-size:22px;color:var(--or-mid);flex-shrink:0;line-height:1;}
+.trending-ttl{font-size:12px;font-weight:600;color:var(--dk);line-height:1.45;}
+.trending-meta{font-size:10px;color:var(--mid);margin-top:3px;}
+
+/* ── CTA ── */
+.blog-cta{background:var(--or);border-radius:var(--r20);padding:28px;text-align:center;}
+.blog-cta-title{font-family:'Knewave',cursive;font-size:24px;color:white;margin-bottom:8px;}
+.blog-cta-sub{font-size:12px;color:rgba(255,255,255,.7);margin-bottom:16px;line-height:1.55;}
+.blog-cta-btn{display:inline-block;background:white;color:var(--or);font-size:12px;font-weight:700;padding:10px 20px;border-radius:var(--r6);cursor:pointer;transition:all .18s;}
+.blog-cta-btn:hover{background:var(--dk);color:white;}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(24px);}to{opacity:1;transform:translateY(0);}}
+.page-hero .hero-flex>*{animation:fadeUp .6s ease both;}
+
+@media(max-width:1024px){
+  .content-area{grid-template-columns:1fr;}
+  .sidebar{position:static;}
+  .blog-grid{grid-template-columns:1fr 1fr;}
+  .featured-card{grid-template-columns:1fr;}
+  .featured-visual{min-height:200px;}
+}
+@media(max-width:768px){
+  .blog-grid{grid-template-columns:1fr;}
+  .hero-flex{flex-direction:column;}
+  .newsletter-box{width:100%;}
+}
+</style>
+</head>
+<body>
+
+<!-- MOBILE MENU -->
+<div class="mobile-menu" id="mobileMenu">
+  <div class="mobile-menu-header">
+    <div class="nav-logo">
+      <div class="logo-mark"><svg viewBox="0 0 24 24"><path d="M13 2L4 13h7l-1 9 10-12h-7l1-8z"/></svg></div>
+      <span class="logo-text">Zes<span>to</span></span>
+    </div>
+    <button class="mobile-close" onclick="document.getElementById('mobileMenu').classList.remove('open')">✕</button>
+  </div>
+  <div class="mobile-links">
+    <a class="mobile-link" href="restaurant.html">Restaurants</a>
+    <a class="mobile-link" href="for-busines.html">For Business</a>
+    <a class="mobile-link" href="about.html">About us</a>
+    <a class="mobile-link" href="Blog.html">Blog</a>
+  </div>
+  <div class="mobile-actions" style="margin-top:24px;">
+    <a href="login.html" class="btn btn-ghost" style="justify-content:center;padding:14px;">Sign in</a>
+    <a href="Get_Started.html" class="btn btn-primary" style="justify-content:center;padding:14px;border-radius:var(--r12);">Get started</a>
+  </div>
+</div>
+
+<!-- NAV -->
+<header class="nav">
+  <div class="container">
+    <nav class="nav-inner">
+      <a href="index.html" class="nav-logo">
+        <div class="logo-mark"><svg viewBox="0 0 24 24"><path d="M13 2L4 13h7l-1 9 10-12h-7l1-8z"/></svg></div>
+        <span class="logo-text">Zes<span>to</span></span>
+      </a>
+      <div class="nav-links">
+        <a href="restaurant.html" class="nav-link">Restaurants</a>
+        <a href="for-busines.html" class="nav-link">For Business</a>
+        <a href="about.html" class="nav-link">About us</a>
+        <a href="Blog.html" class="nav-link active">Blog</a>
+      </div>
+      <a href="#" class="nav-loc">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M8 1.5A4.5 4.5 0 0 1 12.5 6c0 3.2-4.5 8.5-4.5 8.5S3.5 9.2 3.5 6A4.5 4.5 0 0 1 8 1.5z"/><circle cx="8" cy="6" r="1.6"/></svg>
+        Kampala, UG
+        <svg viewBox="0 0 10 6" fill="none" stroke="currentColor" stroke-width="1.5" style="width:10px;height:10px;"><path d="M1 1l4 4 4-4"/></svg>
+      </a>
+      <div class="nav-actions">
+        <a href="login.html" class="btn btn-ghost">Sign in</a>
+        <a href="Get_Started.html" class="btn btn-primary">Get started</a>
+      </div>
+      <button class="nav-hamburger" onclick="document.getElementById('mobileMenu').classList.add('open')" aria-label="Open menu">
+        <span></span><span></span><span></span>
+      </button>
+    </nav>
+  </div>
+</header>
+
+<!-- PAGE HERO -->
+<section class="page-hero">
+  <div class="container">
+    <div class="hero-flex">
+      <div>
+        <div class="page-tag">✍️ Zesto Blog</div>
+        <h1 class="page-h1">Stories, insights<br>& food culture</h1>
+        <p class="page-sub">From delivery logistics to local food culture — ideas and stories from the Zesto team.</p>
+      </div>
+      <div class="newsletter-box">
+        <div class="nl-title">Weekly digest 📬</div>
+        <div class="nl-sub">New posts, food stories & product updates — every Tuesday.</div>
+        <div class="nl-row">
+          <input class="nl-input" type="email" placeholder="your@email.com"/>
+          <button class="nl-btn">Subscribe</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURED -->
+<section class="featured-section">
+  <div class="container">
+    <div class="section-label" style="margin-bottom:20px;">Featured post</div>
+    <div class="featured-card">
+      <div class="featured-visual">🌍</div>
+      <div class="featured-body">
+        <div class="featured-tag">Company</div>
+        <div class="featured-title">How we built Zesto's 30-minute delivery promise across 3 cities</div>
+        <div class="featured-excerpt">Behind the logistics, the tech, and the riders that make every delivery possible. A look at how we cracked sub-30-minute delivery in Kampala, Accra, and Abidjan.</div>
+        <div class="featured-meta">
+          <div class="author-av" style="background:#FF5500;color:white;">AM</div>
+          <div>
+            <div class="author-name">Amara Mensah</div>
+            <div class="author-date">May 20, 2026 · 8 min read</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- BLOG + SIDEBAR -->
+<section class="blog-section">
+  <div class="container">
+    <div class="content-area">
+      <div>
+        <div class="blog-topics">
+          <button class="topic-pill active">All</button>
+          <button class="topic-pill">Product</button>
+          <button class="topic-pill">Engineering</button>
+          <button class="topic-pill">Food Culture</button>
+          <button class="topic-pill">Riders</button>
+          <button class="topic-pill">Restaurants</button>
+          <button class="topic-pill">Community</button>
+        </div>
+
+        <div class="blog-grid">
+          <div class="blog-card">
+            <div class="blog-thumb" style="background:#EDF7EE;">🛵<div class="blog-cat">Riders</div></div>
+            <div class="blog-body">
+              <div class="blog-title">A day in the life of a Zesto rider in Kampala</div>
+              <div class="blog-excerpt">We spent 12 hours with David Ochieng, one of our top riders, to understand what the job really looks like.</div>
+              <div class="blog-author">
+                <div class="blog-av" style="background:#EDF7EE;color:#3B6D11;">KO</div>
+                <div><div class="blog-by">Kofi Osei</div><div class="blog-dt">May 18, 2026</div></div>
+                <div class="blog-read">6 min</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="blog-card">
+            <div class="blog-thumb" style="background:#EEF3FF;">⚙️<div class="blog-cat">Engineering</div></div>
+            <div class="blog-body">
+              <div class="blog-title">How we cut our API response time by 60% in 6 weeks</div>
+              <div class="blog-excerpt">A deep dive into the caching strategy and database tuning that made Zesto noticeably faster for every user.</div>
+              <div class="blog-author">
+                <div class="blog-av" style="background:#EEF3FF;color:#185FA5;">TN</div>
+                <div><div class="blog-by">Temi Nwosu</div><div class="blog-dt">May 14, 2026</div></div>
+                <div class="blog-read">10 min</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="blog-card">
+            <div class="blog-thumb" style="background:#FFF0E8;">🍛<div class="blog-cat">Food Culture</div></div>
+            <div class="blog-body">
+              <div class="blog-title">The 10 dishes you have to try in Abidjan right now</div>
+              <div class="blog-excerpt">From street-side attiéké stalls to upscale Ivorian fusion — our local food guide to the city.</div>
+              <div class="blog-author">
+                <div class="blog-av" style="background:#FFF0E8;color:#D94400;">FK</div>
+                <div><div class="blog-by">Fatou Konaté</div><div class="blog-dt">May 10, 2026</div></div>
+                <div class="blog-read">5 min</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="blog-card">
+            <div class="blog-thumb" style="background:#F8EDFF;">📱<div class="blog-cat">Product</div></div>
+            <div class="blog-body">
+              <div class="blog-title">Introducing real-time order tracking — how we built it</div>
+              <div class="blog-excerpt">Live maps, push notifications, and the tricky parts of showing accurate ETAs when traffic is unpredictable.</div>
+              <div class="blog-author">
+                <div class="blog-av" style="background:#F8EDFF;color:#7C3AED;">BK</div>
+                <div><div class="blog-by">Bintou Kamara</div><div class="blog-dt">May 6, 2026</div></div>
+                <div class="blog-read">7 min</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="blog-card">
+            <div class="blog-thumb" style="background:#EDF7EE;">🤝<div class="blog-cat">Restaurants</div></div>
+            <div class="blog-body">
+              <div class="blog-title">How Mama Chidi's went from a local spot to 500 orders a day</div>
+              <div class="blog-excerpt">The story of a Kampala restaurant family that used Zesto to grow beyond anything they imagined.</div>
+              <div class="blog-author">
+                <div class="blog-av" style="background:#EDF7EE;color:#3B6D11;">LM</div>
+                <div><div class="blog-by">Lena Mouniaka</div><div class="blog-dt">April 30, 2026</div></div>
+                <div class="blog-read">6 min</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="blog-card">
+            <div class="blog-thumb" style="background:#FFF0E8;">🏙️<div class="blog-cat">Company</div></div>
+            <div class="blog-body">
+              <div class="blog-title">Why we chose Dakar as our next city — and what we learned</div>
+              <div class="blog-excerpt">Market research, ops challenges, and the surprises that came with launching in a new market.</div>
+              <div class="blog-author">
+                <div class="blog-av" style="background:#FFF0E8;color:#D94400;">DD</div>
+                <div><div class="blog-by">Diallo Diop</div><div class="blog-dt">April 24, 2026</div></div>
+                <div class="blog-read">9 min</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Load more -->
+        <div style="text-align:center;margin-top:36px;">
+          <button class="btn btn-ghost" style="padding:12px 32px;font-size:14px;">Load more posts</button>
+        </div>
+      </div>
+
+      <!-- SIDEBAR -->
+      <div class="sidebar">
+        <div class="sidebar-box">
+          <div class="sidebar-title">🔥 Trending</div>
+          <div class="trending-item">
+            <div class="trending-num">01</div>
+            <div><div class="trending-ttl">How we built 30-minute delivery across 3 cities</div><div class="trending-meta">8 min · 12,400 reads</div></div>
+          </div>
+          <div class="trending-item">
+            <div class="trending-num">02</div>
+            <div><div class="trending-ttl">A day in the life of a Zesto rider</div><div class="trending-meta">6 min · 9,200 reads</div></div>
+          </div>
+          <div class="trending-item">
+            <div class="trending-num">03</div>
+            <div><div class="trending-ttl">How we cut API response time by 60%</div><div class="trending-meta">10 min · 7,800 reads</div></div>
+          </div>
+          <div class="trending-item">
+            <div class="trending-num">04</div>
+            <div><div class="trending-ttl">Why we chose Dakar as our next city</div><div class="trending-meta">9 min · 6,100 reads</div></div>
+          </div>
+        </div>
+
+        <div class="blog-cta">
+          <div class="blog-cta-title">Order now ⚡</div>
+          <div class="blog-cta-sub">Get your favourite meal delivered in under 30 minutes.</div>
+          <a href="index.html" class="blog-cta-btn">Open Zesto →</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <div class="f-brand">Zes<span>to</span></div>
+        <div class="f-tagline">Fast, reliable delivery across West Africa. Restaurants, groceries, and more — delivered to your door.</div>
+        <div class="f-badge"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M7 1.5A4.5 4.5 0 0 1 11.5 6c0 3-4.5 7.5-4.5 7.5S2.5 9 2.5 6A4.5 4.5 0 0 1 7 1.5z"/></svg> Available in 3 cities</div>
+      </div>
+      <div>
+        <div class="fc-title">Company</div>
+        <div class="f-links">
+          <a href="about.html" class="f-link">About us</a>
+          <a href="Careers.html" class="f-link">Careers</a>
+          <a href="Press.html" class="f-link">Press</a>
+          <a href="Blog.html" class="f-link" style="color:white;">Blog</a>
+          <a href="Investors.html" class="f-link">Investors</a>
+        </div>
+      </div>
+      <div>
+        <div class="fc-title">Partners</div>
+        <div class="f-links">
+          <a href="#" class="f-link">List your restaurant</a>
+          <a href="#" class="f-link">Become a rider</a>
+          <a href="#" class="f-link">Zesto Pro</a>
+          <a href="#" class="f-link">Enterprise</a>
+        </div>
+      </div>
+      <div>
+        <div class="fc-title">Help</div>
+        <div class="f-links">
+          <a href="Help-center.html" class="f-link">Help center</a>
+          <a href="privacy-policy.html" class="f-link">Privacy policy</a>
+          <a href="terms-of-service.html" class="f-link">Terms of service</a>
+          <a href="contact-us.html" class="f-link">Contact us</a>
+        </div>
+      </div>
+      <div>
+        <div class="fc-title">Cities</div>
+        <div class="f-links">
+          <a href="#" class="f-link">Abidjan</a>
+          <a href="#" class="f-link">Accra</a>
+          <a href="#" class="f-link">Dakar</a>
+          <a href="#" class="f-link">Lagos</a>
+          <a href="#" class="f-link">Nairobi</a>
+          <a href="#" class="f-link">Kampala</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bot">
+      <span class="footer-copy">© 2026 Zesto Technologies Inc. All rights reserved.</span>
+      <div class="socials">
+        <a href="#" class="soc-icon"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="2" y="2" width="12" height="12" rx="3.5"/><circle cx="8" cy="8" r="3"/><circle cx="11.5" cy="4.5" r=".8" fill="currentColor" stroke="none"/></svg></a>
+        <a href="#" class="soc-icon"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M2 3h12L9.5 8.5V13l-3-1.5V8.5z" stroke-linejoin="round"/></svg></a>
+        <a href="#" class="soc-icon"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="2" y="2" width="12" height="12" rx="2"/><path d="M9 8H7v5M7 8V6a2 2 0 0 1 2-2h1" stroke-linecap="round"/></svg></a>
+        <a href="#" class="soc-icon"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="2" y="2" width="12" height="12" rx="2"/><path d="M5 7v4M5 5v.5M8 11V8.5A1.5 1.5 0 0 1 11 8.5V11" stroke-linecap="round"/></svg></a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script>
+  document.querySelectorAll('.topic-pill').forEach(p => {
+    p.addEventListener('click', function(){
+      document.querySelectorAll('.topic-pill').forEach(x => x.classList.remove('active'));
+      this.classList.add('active');
+    });
+  });
+</script>
+</body>
+</html>

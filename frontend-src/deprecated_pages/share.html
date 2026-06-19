@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Zesto — Share and earn</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous"/>
+<link href="https://fonts.googleapis.com/css2?family=Knewave&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="./css/index.css"/>
+<link rel="stylesheet" href="./css/share.css"/>
+</head>
+<body>
+<div class="mobile-menu" id="mobileMenu">
+  <div class="mobile-menu-header">
+    <div class="nav-logo">
+      <div class="logo-mark">
+        <svg viewBox="0 0 24 24"><path d="M13 2L4 13h7l-1 9 10-12h-7l1-8z"/></svg>
+      </div>
+      <span class="logo-text">Zes<span>to</span></span>
+    </div>
+    <button class="mobile-close" onclick="document.getElementById('mobileMenu').classList.remove('open')">✕</button>
+  </div>
+  <div class="mobile-links">
+    <a class="mobile-link" href="restaurant.html">Restaurants</a>
+    <a class="mobile-link" href="for-busines.html">For Business</a>
+    <a class="mobile-link" href="about.html">about us</a>
+  </div>
+  <div class="mobile-actions" style="margin-top:24px;">
+    <a href="login.html" class="btn btn-ghost" style="justify-content:center;padding:14px;">Sign in</a>
+    <a href="signin.html" class="btn btn-primary" style="justify-content:center;padding:14px;border-radius:var(--r12);">Get started</a>
+  </div>
+</div>
+<header class="nav">
+  <div class="container">
+    <nav class="nav-inner">
+      <a href="index.html" class="nav-logo">
+        <div class="logo-mark">
+          <svg viewBox="0 0 24 24"><path d="M13 2L4 13h7l-1 9 10-12h-7l1-8z"/></svg>
+        </div>
+        <span class="logo-text">Zes<span>to</span></span>
+      </a>
+  <div class="mobile-links">
+    <a class="mobile-link" href="restaurant.html">Restaurants</a>
+    <a class="mobile-link" href="for-busines.html">For Business</a>
+    <a class="mobile-link" href="about.html">about us</a>
+    <a class="mobile-link" href="Blog.html">Blog</a>
+  </div>
+      <div class="nav-actions">
+        <a href="login.html" class="btn btn-ghost">Sign in</a>
+        <a href="signin.html" class="btn btn-primary">Get started</a>
+      </div>
+      <button class="nav-hamburger" onclick="document.getElementById('mobileMenu').classList.add('open')" aria-label="Open menu">
+        <span></span><span></span><span></span>
+      </button>
+    </nav>
+  </div>
+</header>
+<main>
+  <section class="share-hero">
+    <div class="container share-hero-inner">
+      <div class="share-copy">
+        <div class="section-label">Share & earn</div>
+        <h1 class="section-title">Invite friends and earn rewards.</h1>
+        <p class="section-sub">Send your referral link and earn credits when friends place their first order with Zesto.</p>
+        <div class="share-card promo-card">
+          <div>
+            <div class="share-card-label">Your referral code</div>
+            <strong id="shareCode" class="share-code">ZESTO23</strong>
+          </div>
+          <div class="share-link">zesto.app/ref/ZESTO23</div>
+        </div>
+        <div class="share-actions">
+          <button id="copyLink" class="btn btn-ghost">Copy link</button>
+          <button id="shareBtn" class="btn btn-primary" aria-label="Share your Zesto referral link">Share</button>
+        </div>
+        <p class="share-note">Once a friend orders, you’ll earn delivery credit instantly.</p>
+      </div>
+      <div class="share-panel">
+        <div class="share-feature">
+          <div class="share-feature-icon">🎁</div>
+          <div>
+            <div class="share-feature-title">Reward your friends</div>
+            <p>They get welcome credit on their first Zesto order.</p>
+          </div>
+        </div>
+        <div class="share-feature">
+          <div class="share-feature-icon">⚡</div>
+          <div>
+            <div class="share-feature-title">Earn every time</div>
+            <p>Every referral that orders earns you rewards.</p>
+          </div>
+        </div>
+        <div class="share-feature">
+          <div class="share-feature-icon">📲</div>
+          <div>
+            <div class="share-feature-title">Fast and simple</div>
+            <p>Share via message, email, or social apps in one tap.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section class="section share-how">
+    <div class="container">
+      <div class="section-head">
+        <div class="section-label">How it works</div>
+        <div class="section-title">Your friends order. You both win.</div>
+      </div>
+      <div class="share-how-grid">
+        <div class="share-step">
+          <div class="step-number">1</div>
+          <h3>Share your link</h3>
+          <p>Copy your referral link or share it directly with friends and family.</p>
+        </div>
+        <div class="share-step">
+          <div class="step-number">2</div>
+          <h3>They place an order</h3>
+          <p>Friends use the link to join Zesto and place their first order.</p>
+        </div>
+        <div class="share-step">
+          <div class="step-number">3</div>
+          <h3>You earn credit</h3>
+          <p>We credit your account with rewards for every successful referral.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+<footer class="footer" style="padding:40px 0 20px;">
+  <div class="container">
+    <div class="footer-grid" style="grid-template-columns:1fr 1fr 1fr;gap:24px;padding-bottom:24px;border-bottom:none;">
+      <div>
+        <div class="f-brand">Zes<span>to</span></div>
+        <div class="f-tagline">Manage your profile and get back to great food in just a few taps.</div>
+      </div>
+      <div>
+        <div class="fc-title">Help</div>
+        <div class="f-links"><a href="#" class="f-link">Support</a><a href="#" class="f-link">FAQs</a></div>
+      </div>
+      <div>
+        <div class="fc-title">Account</div>
+        <div class="f-links"><a href="#" class="f-link">Settings</a><a href="#" class="f-link">Privacy</a></div>
+      </div>
+    </div>
+    <div class="footer-bot" style="justify-content:center;padding-top:20px;">
+      <span class="footer-copy">© 2026 Zesto. All rights reserved.</span>
+    </div>
+  </div>
+</footer>
+<script>
+  const referralCode = 'ZESTO23';
+  const fallbackOrigin = 'https://zesto.app';
+  const origin = window.location.origin && !window.location.origin.startsWith('file:') ? window.location.origin : fallbackOrigin;
+  const inviteUrl = `${origin}/?ref=${referralCode}`;
+  const shareCode = document.getElementById('shareCode');
+  const copyBtn = document.getElementById('copyLink');
+  const shareBtn = document.getElementById('shareBtn');
+
+  if (shareCode) {
+    shareCode.textContent = referralCode;
+  }
+
+  if (copyBtn) {
+    copyBtn.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(inviteUrl);
+        copyBtn.textContent = 'Copied!';
+        setTimeout(() => { copyBtn.textContent = 'Copy link'; }, 1800);
+      } catch (error) {
+        prompt('Copy this link:', inviteUrl);
+      }
+    });
+  }
+
+  if (shareBtn) {
+    shareBtn.addEventListener('click', async () => {
+      if (navigator.share) {
+        try {
+          await navigator.share({
+            title: 'Join Zesto',
+            text: 'Get food delivered fast with Zesto. Use my referral link to save on your first order!',
+            url: inviteUrl
+          });
+        } catch (error) {
+          // share cancelled or unavailable
+        }
+      } else if (copyBtn) {
+        copyBtn.click();
+      }
+    });
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Zesto — Profile</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
+<link href="https://fonts.googleapis.com/css2?family=Knewave&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="./css/index.css" />
+<style>
+.profile-hero {background:linear-gradient(180deg, #fff4eb 0%, #fff9f5 100%);padding:64px 0 48px;}
+.profile-wrap {border-radius:32px;background:white;box-shadow:var(--shadow);overflow:hidden;}
+.profile-top {display:flex;justify-content:space-between;align-items:flex-start;gap:24px;flex-wrap:wrap;padding:32px;}
+.profile-avatar {width:72px;height:72px;border-radius:50%;background:#FFEDD9;color:var(--or);display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:800;}
+.profile-title {display:flex;flex-direction:column;gap:10px;}
+.profile-title h1 {font-size:clamp(32px,4vw,44px);margin:0;}
+.profile-summary {font-size:15px;color:var(--mid);max-width:560px;line-height:1.75;}
+.profile-help {display:inline-flex;align-items:center;gap:10px;background:var(--or);color:white;padding:12px 22px;border-radius:999px;font-size:14px;font-weight:700;}
+.profile-help svg {width:18px;height:18px;}
+.profile-panel {display:grid;grid-template-columns:1fr 1fr;gap:20px;padding:0 32px 32px;}
+.profile-card {background:white;border:1px solid var(--lt2);border-radius:24px;padding:24px;display:flex;align-items:center;gap:16px;cursor:pointer;transition:transform .18s,box-shadow .18s;}
+.profile-card:hover {transform:translateY(-2px);box-shadow:var(--shadow-lg);}
+.profile-card-icon {width:54px;height:54px;border-radius:18px;background:var(--lt);display:flex;align-items:center;justify-content:center;font-size:28px;}
+.profile-card-info {display:flex;flex-direction:column;gap:6px;}
+.profile-card-info .title {font-size:16px;font-weight:700;color:var(--dk);}
+.profile-card-info .meta {font-size:13px;color:var(--mid);}
+.profile-list-wrapper {padding:0 32px 32px;}
+.profile-list {background:white;border:1px solid var(--lt2);border-radius:24px;overflow:hidden;}
+.profile-item {display:flex;align-items:center;justify-content:space-between;gap:16px;padding:18px 24px;border-bottom:1px solid var(--lt2);cursor:pointer;transition:background .18s;}
+.profile-item:last-child {border-bottom:none;}
+.profile-item:hover {background:var(--lt);}
+.profile-item-left {display:flex;align-items:center;gap:14px;}
+.profile-item-icon {width:40px;height:40px;border-radius:14px;background:var(--wh);display:flex;align-items:center;justify-content:center;font-size:18px;}
+.profile-item-label {font-size:15px;font-weight:600;color:var(--dk);}
+.profile-item-sub {font-size:13px;color:var(--mid);}
+.faq-arrow {transition:transform .2s ease;}
+.profile-item.open .faq-arrow {transform:rotate(90deg);}
+.faq-dropdown {display:none;background:#fff8f2;border-top:1px solid var(--lt2);}
+.faq-dropdown.open {display:block;}
+.faq-entry {border-top:1px solid var(--lt2);}
+.faq-entry:first-child {border-top:none;}
+.faq-question {width:100%;display:flex;justify-content:space-between;align-items:center;gap:12px;padding:18px 24px;border:none;background:transparent;color:var(--dk);font-weight:700;text-align:left;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;}
+.faq-question:hover {background:var(--lt);}
+.faq-answer {display:none;padding:0 24px 18px;color:var(--mid);line-height:1.75;}
+.faq-entry.open .faq-answer {display:block;}
+.faq-entry.open .faq-toggle {transform:rotate(45deg);background:var(--or);color:white;}
+.faq-toggle {width:28px;height:28px;display:grid;place-items:center;border-radius:999px;background:var(--lt);color:var(--dk);transition:transform .2s ease,background .2s ease,color .2s ease;}
+.profile-detail {display:grid;grid-template-columns:1fr 1fr;gap:20px;padding:32px;background:#fffdf8;}
+.detail-card {background:white;border:1px solid var(--lt2);border-radius:24px;padding:24px;}
+.detail-card h3 {margin-bottom:14px;font-size:16px;font-weight:700;color:var(--dk);}
+.detail-field {display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;border-top:1px solid #F5F0EB;}
+.detail-field:first-child {border-top:none;}
+.detail-field label {color:var(--mid);font-size:13px;}
+.detail-field strong {color:var(--dk);}
+.detail-actions {margin-top:16px;display:flex;gap:12px;flex-wrap:wrap;}
+.action-button {background:var(--or);color:white;border:none;padding:10px 18px;border-radius:999px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;}
+.delete-button {background:transparent;color:#B91C1C;border:1px solid #FCA5A5;}
+@media(max-width:900px){
+  .profile-hero{padding:32px 0 24px;}
+  .profile-top{flex-direction:column;align-items:flex-start;padding:24px;gap:20px;}
+  .profile-intro{display:flex;align-items:center;gap:18px;width:100%;}
+  .profile-avatar{flex-shrink:0;}
+  .profile-title{width:100%;}
+  .profile-help{width:100%;justify-content:center;}
+  .profile-panel{grid-template-columns:1fr;gap:18px;padding:0 24px 24px;}
+  .profile-card{padding:20px;}
+  .profile-list-wrapper{padding:0 24px 24px;}
+  .profile-item{padding:16px 20px;}
+  .profile-detail{grid-template-columns:1fr;gap:18px;padding:24px;background:#fffdf8;}
+}
+
+@media(max-width:640px){
+  .profile-hero{padding:24px 0 20px;}
+  .profile-wrap{border-radius:24px;}
+  .profile-top{padding:20px;gap:18px;}
+  .profile-avatar{width:64px;height:64px;font-size:24px;}
+  .profile-help{padding:12px 16px;font-size:13px;}
+  .profile-panel{padding:0 20px 20px;gap:12px;}
+  .profile-card{padding:16px;}
+  .profile-card-icon{width:48px;height:48px;font-size:24px;}
+  .profile-summary{font-size:14px;max-width:100%;}
+  .profile-list-wrapper{padding:0 20px 20px;}
+  .profile-item{padding:14px 18px;}
+  .profile-detail{padding:12px 12px 16px;gap:8px;}
+  .detail-card{padding:12px 12px 14px;}
+  .detail-card h3{margin-bottom:8px;}
+  .detail-field{flex-direction:column;align-items:flex-start;padding:6px 0;}
+  .detail-field label{margin-bottom:4px;}
+  .detail-field.two-factor{flex-direction:row;align-items:center;justify-content:space-between}
+  .detail-field.two-factor label{margin:0}
+  .detail-field.two-action{flex-direction:row;align-items:center;justify-content:space-between}
+  .detail-field.two-action label{margin:0}
+}
+
+  /* Delete account modal styles */
+  .delete-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.45);display:none;align-items:center;justify-content:center;z-index:1200}
+  .delete-modal{background:white;width:720px;max-width:92%;border-radius:12px;padding:28px 28px 20px;box-shadow:0 20px 60px rgba(9,10,10,0.24);position:relative}
+  .delete-modal h2{margin:0 0 8px;font-size:28px}
+  .delete-modal p{color:var(--mid);line-height:1.5}
+  .modal-step{display:none}
+  .modal-step.active{display:block}
+  .modal-actions{display:flex;gap:12px;justify-content:flex-end;margin-top:18px}
+  .btn-ghost{background:white;border:1px solid var(--lt2);padding:10px 16px;border-radius:10px}
+  .btn-danger{background:#ef4444;color:white;padding:10px 18px;border-radius:10px;border:none}
+  .select-reason{width:100%;padding:12px;border:1px solid var(--lt2);border-radius:10px;font-size:15px}
+  .feedback-area{width:100%;min-height:110px;padding:12px;border:1px solid var(--lt2);border-radius:10px;font-size:14px;resize:vertical}
+  .small-note{font-size:13px;color:var(--mid);margin-top:10px}
+  .pill-step{display:flex;gap:8px;align-items:center;margin-top:12px}
+  .pill{width:10px;height:10px;border-radius:50%;background:#E9E9EA}
+  .pill.active{background:var(--or)}
+  .close-modal{position:absolute;right:12px;top:12px;border:none;background:transparent;font-size:20px;cursor:pointer}
+  /* Toggle switch */
+  .switch{position:relative;display:inline-block;width:44px;height:24px}
+  .switch input{opacity:0;width:0;height:0}
+  .slider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:#E9E9EA;border-radius:34px;transition:.2s}
+  .slider:before{position:absolute;content:"";height:18px;width:18px;left:3px;top:3px;background:white;border-radius:50%;transition:.2s}
+  .switch input:checked + .slider{background:var(--or)}
+  .switch input:checked + .slider:before{transform:translateX(20px)}
+
+  /* Edit / auth modals reuse delete-modal styles but slightly smaller */
+  .small-modal{max-width:540px;padding:22px}
+  .form-field{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+  .form-input{padding:10px;border:1px solid var(--lt2);border-radius:8px;font-size:15px;width:100%;box-sizing:border-box}
+  .card-entry{max-width:100%;overflow:hidden}
+  .form-error{color:#dc2626;font-size:13px;margin-top:0;display:block}
+  .form-error:empty{display:none}
+  .card-form-row{display:flex;flex-wrap:wrap;gap:12px;margin-top:12px;align-items:flex-start}
+  .card-form-col{flex:1 1 220px;min-width:0;display:flex;flex-direction:column;gap:8px}
+  .card-form-short{flex:0 1 140px;min-width:120px;display:flex;flex-direction:column;gap:8px}
+  .card-form-short .form-input{width:100%}
+  .card-form-row .form-field{margin-top:0}
+  .phone-modal{max-width:520px;padding:22px 20px 18px}
+  @media(max-width:520px){
+    .card-form-col, .card-form-short { flex:1 1 100%; }
+    .card-form-row { gap:10px; }
+  }
+  .phone-modal h2{margin-bottom:14px}
+  .phone-form-grid{display:grid;grid-template-columns:minmax(120px,140px) 1fr;gap:12px;align-items:flex-start}
+  .phone-field label{display:block;margin-bottom:8px;font-size:14px;color:var(--mid)}
+  .phone-field .form-input{width:100%}
+  .modal-actions-tight{display:flex;justify-content:flex-end;gap:10px;margin-top:16px}
+  .phone-modal .btn-ghost,.phone-modal .btn-danger{padding:10px 16px;min-width:96px}
+  .nav-user-icon{width:38px;height:38px;border-radius:50%;background:var(--or);color:white;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;box-shadow:0 6px 16px rgba(0,0,0,0.08);}
+  @media(max-width:640px){.phone-form-grid{grid-template-columns:1fr}}
+  .auth-note{font-size:13px;color:var(--mid);margin-top:10px}
+
+  /* Shake animation for validation errors */
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-4px); }
+    20%, 40%, 60%, 80% { transform: translateX(4px); }
+  }
+  .shake {
+    animation: shake 0.4s ease-in-out;
+  }
+</style>
+</head>
+<body>
+
+<div class="mobile-menu" id="mobileMenu">
+  <div class="mobile-menu-header">
+    <div class="nav-logo">
+      <div class="logo-mark">
+        <svg viewBox="0 0 24 24"><path d="M13 2L4 13h7l-1 9 10-12h-7l1-8z"/></svg>
+      </div>
+      <span class="logo-text">Zes<span>to</span></span>
+    </div>
+    <button class="mobile-close" onclick="document.getElementById('mobileMenu').classList.remove('open')">✕</button>
+  </div>
+  <div class="mobile-links">
+    <a class="mobile-link" href="restaurant.html">Restaurants</a>
+    <a class="mobile-link" href="for-busines.html">For Business</a>
+    <a class="mobile-link" href="about.html">about us</a>
+  </div>
+  <div class="mobile-actions" style="margin-top:24px;display:flex;justify-content:center;">
+    <div class="nav-user-icon">J</div>
+  </div>
+</div>
+
+<header class="nav">
+  <div class="container">
+    <nav class="nav-inner">
+      <a href="index.html" class="nav-logo">
+        <div class="logo-mark">
+          <svg viewBox="0 0 24 24"><path d="M13 2L4 13h7l-1 9 10-12h-7l1-8z"/></svg>
+        </div>
+        <span class="logo-text">Zes<span>to</span></span>
+      </a>
+  <div class="mobile-links">
+    <a class="mobile-link" href="restaurant.html">Restaurants</a>
+    <a class="mobile-link" href="for-busines.html">For Business</a>
+    <a class="mobile-link" href="about.html">about us</a>
+    <a class="mobile-link" href="Blog.html">Blog</a>
+  </div>
+      <a href="search.html" class="nav-loc">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M8 1.5A4.5 4.5 0 0 1 12.5 6c0 3.2-4.5 8.5-4.5 8.5S3.5 9.2 3.5 6A4.5 4.5 0 0 1 8 1.5z"/><circle cx="8" cy="6" r="1.6"/></svg>
+        Kampala, UG
+        <svg viewBox="0 0 10 6" fill="none" stroke="currentColor" stroke-width="1.5" style="width:10px;height:10px;"><path d="M1 1l4 4 4-4"/></svg>
+      </a>
+      <div class="nav-actions">
+        <div id="navUserIcon" class="nav-user-icon">J</div>
+      </div>
+      <button class="nav-hamburger" onclick="document.getElementById('mobileMenu').classList.add('open')" aria-label="Open menu">
+        <span></span><span></span><span></span>
+      </button>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <section class="profile-hero">
+    <div class="container profile-wrap">
+      <div class="profile-top">
+        <div class="profile-intro">
+          <div id="profileAvatar" class="profile-avatar">J</div>
+          <div class="profile-title">
+            <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+              <h1 id="profileName">John</h1>
+              <span style="background:var(--or);color:white;padding:6px 14px;border-radius:999px;font-size:12px;font-weight:700;">Gold Member</span>
+            </div>
+            <p class="profile-summary">This is your account hub. Manage orders, saved locations, payment methods, and security settings all in one place.</p>
+          </div>
+        </div>
+        <a href="#help" class="profile-help">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-4-7.75"/><path d="M22 4L12 14.01l-3-3"/></svg>
+          Help
+        </a>
+      </div>
+      <div class="profile-panel">
+        <a href="order.html" class="profile-card">
+          <div class="profile-card-icon">📦</div>
+          <div class="profile-card-info">
+            <span class="title">Orders</span>
+            <span class="meta">4 active orders</span>
+          </div>
+        </a>
+        <a href="#settings" class="profile-card">
+          <div class="profile-card-icon">👤</div>
+          <div class="profile-card-info">
+            <span class="title">Account</span>
+            <span class="meta">Profile and security</span>
+          </div>
+        </a>
+      </div>
+      <div class="profile-list-wrapper">
+        <div class="profile-list">
+        <a href="share.html" class="profile-item">
+          <div class="profile-item-left">
+            <div class="profile-item-icon">🎁</div>
+            <div>
+              <div class="profile-item-label">Share and earn</div>
+              <div class="profile-item-sub">Invite friends and earn rewards.</div>
+            </div>
+          </div>
+          <span style="color:var(--or);">›</span>
+        </a>
+          <div class="profile-item">
+            <div class="profile-item-left">
+              <div class="profile-item-icon">⭐</div>
+              <div>
+                <div class="profile-item-label">Zesto Prime</div>
+                <div class="profile-item-sub">Unlock faster delivery benefits.</div>
+              </div>
+            </div>
+            <span style="color:var(--or);">›</span>
+          </div>
+          <div class="profile-item" id="promoItem">
+            <div class="profile-item-left">
+              <div class="profile-item-icon">🏷️</div>
+              <div>
+                <div class="profile-item-label">Promo codes</div>
+                <div class="profile-item-sub">View your available offers.</div>
+              </div>
+            </div>
+            <span style="color:var(--or);">›</span>
+          </div>
+          <div class="profile-item" id="languageItem">
+            <div class="profile-item-left">
+              <div class="profile-item-icon">🌍</div>
+              <div>
+                <div class="profile-item-label">Language</div>
+                <div class="profile-item-sub">Change app language.</div>
+              </div>
+            </div>
+            <span style="color:var(--or);">›</span>
+          </div>
+          <div class="profile-item" id="faqItem" role="button" tabindex="0" aria-expanded="false" aria-controls="faqDropdown">
+            <div class="profile-item-left">
+              <div class="profile-item-icon">❓</div>
+              <div>
+                <div class="profile-item-label">FAQ</div>
+                <div class="profile-item-sub">Get answers to common questions.</div>
+              </div>
+            </div>
+            <span class="faq-arrow" style="color:var(--or);">›</span>
+          </div>
+          <div class="faq-dropdown" id="faqDropdown">
+            <div class="faq-entry">
+              <button type="button" class="faq-question">
+                What does FAQ mean?
+                <span class="faq-toggle">+</span>
+              </button>
+              <div class="faq-answer">FAQ stands for Frequently Asked Questions. It is a section with short answers to common questions so you can quickly find help.</div>
+            </div>
+            <div class="faq-entry">
+              <button type="button" class="faq-question">
+                How do I use Zesto referrals?
+                <span class="faq-toggle">+</span>
+              </button>
+              <div class="faq-answer">Share your unique referral link with friends. When they place their first order, you both earn rewards automatically.</div>
+            </div>
+            <div class="faq-entry">
+              <button type="button" class="faq-question">
+                Can I change my account language?
+                <span class="faq-toggle">+</span>
+              </button>
+              <div class="faq-answer">Yes — use the Language section above to select a new app language and save it to your profile.</div>
+            </div>
+          </div>
+          <div class="profile-item" id="logoutItem">
+            <div class="profile-item-left">
+              <div class="profile-item-icon">🚪</div>
+              <div>
+                <div class="profile-item-label">Log out</div>
+                <div class="profile-item-sub">Sign out of your account.</div>
+              </div>
+            </div>
+            <span style="color:var(--or);">›</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="settings" class="profile-detail">
+    <div class="detail-card">
+      <h3>Account and password</h3>
+      <div class="detail-field">
+            <label>Email</label>
+        <div style="display:flex;align-items:center;gap:8px">
+          <strong id="usernameEmail">johndoe@gmail.com</strong>
+          <button class="btn-ghost" id="editEmailBtn">Edit</button>
+        </div>
+      </div>
+          <div class="detail-field">
+            <label>Display name</label>
+            <div style="display:flex;align-items:center;gap:8px">
+              <strong id="displayName">John</strong>
+              <button class="btn-ghost" id="editDisplayBtn">Edit</button>
+            </div>
+          </div>
+          <div class="detail-field"><label>Password</label><button class="action-button" id="changePwBtn">Change password</button></div>
+          <div class="detail-field" style="align-items:center;">
+            <label>Two-factor auth</label>
+            <div style="display:flex;align-items:center;gap:10px">
+              <label class="switch">
+                <input type="checkbox" id="twoFactorToggle">
+                <span class="slider"></span>
+              </label>
+              <span id="twoFactorStatus" style="color:var(--mid);">Off</span>
+            </div>
+          </div>
+    </div>
+    <div class="detail-card">
+      <h3>Security actions</h3>
+      <div class="detail-field">
+        <label>Phone number</label>
+        <div style="display:flex;align-items:center;gap:8px">
+          <strong id="phoneNumber">+256 770 000 000</strong>
+          <button class="btn-ghost" id="editPhoneBtn">Change</button>
+        </div>
+      </div>
+      <div class="detail-field">
+        <label>Saved cards</label>
+        <div style="display:flex;align-items:center;gap:8px">
+          <strong id="savedCardsCount">3 methods</strong>
+          <button class="btn-ghost" id="manageCardsBtn">Manage</button>
+        </div>
+      </div>
+      <div class="detail-field">
+        <label>Saved addresses</label>
+        <div style="display:flex;align-items:center;gap:8px">
+          <strong id="savedAddressesCount">2 locations</strong>
+          <button class="btn-ghost" id="manageAddressesBtn">Manage</button>
+        </div>
+      </div>
+      <div class="detail-actions">
+        <button class="action-button delete-button">Delete account</button>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="footer" style="padding:40px 0 20px;">
+  <div class="container">
+    <div class="footer-grid" style="grid-template-columns:1fr 1fr 1fr;gap:24px;padding-bottom:24px;border-bottom:none;">
+      <div>
+        <div class="f-brand">Zes<span>to</span></div>
+        <div class="f-tagline">Manage your profile and get back to great food in just a few taps.</div>
+      </div>
+      <div>
+        <div class="fc-title">Help</div>
+        <div class="f-links"><a href="#" class="f-link">Support</a><a href="#" class="f-link">FAQs</a></div>
+      </div>
+      <div>
+        <div class="fc-title">Account</div>
+        <div class="f-links"><a href="#" class="f-link">Settings</a><a href="#" class="f-link">Privacy</a></div>
+      </div>
+    </div>
+    <div class="footer-bot" style="justify-content:center;padding-top:20px;">
+      <span class="footer-copy">© 2026 Zesto. All rights reserved.</span>
+    </div>
+  </div>
+</footer>
+
+<!-- Delete Account Modal -->
+<div class="delete-modal-overlay" id="deleteModal">
+  <div class="delete-modal" role="dialog" aria-modal="true" aria-labelledby="deleteTitle">
+    <button class="close-modal" id="closeDelete">✕</button>
+    <div class="modal-step" id="step1">
+      <h2 id="deleteTitle">Delete account</h2>
+      <div style="color:var(--mid);margin-bottom:14px">johndoe@gmail.com</div>
+      <label style="font-weight:700;display:block;margin-bottom:8px">What is the main reason you are deleting your account?</label>
+      <select class="select-reason" id="deleteReason">
+        <option value="">Select a reason</option>
+        <option value="switched">I use a different Zesto account</option>
+        <option value="missing_feature">It's missing a key feature that I need</option>
+        <option value="found_alternative">I found another service that I like better</option>
+        <option value="merge">I'd like to merge this account into another one</option>
+        <option value="other">My reason isn't listed</option>
+      </select>
+      <label style="font-weight:700;display:block;margin:14px 0 8px">To help us improve, please explain why you are leaving.</label>
+      <textarea class="feedback-area" id="deleteFeedback" placeholder="Feedback"></textarea>
+      <div class="small-note">This message won't reach the support team. If you have an issue or need further action, please open a support ticket.</div>
+      <div class="modal-actions">
+        <button class="btn-ghost" id="cancelStep1">Cancel</button>
+        <button class="btn-danger" id="continueStep1" disabled>Continue</button>
+      </div>
+      <div class="pill-step"><div class="pill active"></div><div class="pill"></div></div>
+    </div>
+
+    <div class="modal-step" id="step2">
+      <h2>Warning: deleting your account is permanent.</h2>
+      <p>This will remove your access to all Zesto services and delete your data, including saved addresses, payment methods, order history, and rewards.</p>
+      <div style="display:flex;align-items:flex-start;gap:12px;margin-top:14px">
+        <input type="checkbox" id="confirmDelete" />
+        <label for="confirmDelete">Yes, I want to permanently delete this account and all its data.</label>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-ghost" id="backStep2">Back</button>
+        <button class="btn-danger" id="deleteConfirm" disabled>Delete account</button>
+      </div>
+      <div class="pill-step" style="justify-content:center"><div class="pill"></div><div class="pill active"></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- Email editor, logout confirmation, and language selection modals + JS -->
+<div class="delete-modal-overlay" id="editEmailModal" aria-hidden="true">
+  <div class="delete-modal small-modal" role="dialog" aria-modal="true" aria-labelledby="editEmailTitle">
+    <button class="close-modal" data-close="editemail">✕</button>
+    <h2 id="editEmailTitle">Edit email address</h2>
+      <div class="form-field">
+      <label for="editEmailInput">New email</label>
+      <input class="form-input" id="editEmailInput" aria-describedby="emailError" placeholder="you@example.com" />
+      <div id="emailError" class="form-error"></div>
+    </div>
+    <div style="display:flex;justify-content:flex-end;gap:12px;margin-top:18px">
+      <button class="btn-ghost" data-close="editemail">Cancel</button>
+      <button class="btn-danger" id="saveEmail">Save</button>
+    </div>
+  </div>
+</div>
+
+<div class="delete-modal-overlay" id="logoutModal" aria-hidden="true">
+  <div class="delete-modal small-modal" role="dialog" aria-modal="true" aria-labelledby="logoutTitle">
+    <button class="close-modal" data-close="logout">✕</button>
+    <h2 id="logoutTitle">Are you sure?</h2>
+    <p style="color:var(--mid);margin-top:8px">You will be signed out of Zesto on this device.</p>
+    <div style="display:flex;justify-content:flex-end;gap:12px;margin-top:18px">
+      <button class="btn-ghost" data-close="logout">Cancel</button>
+      <button class="btn-danger" id="confirmLogout">Log out</button>
+    </div>
+  </div>
+</div>
+
+<div class="delete-modal-overlay" id="languageModal" aria-hidden="true">
+  <div class="delete-modal small-modal" role="dialog" aria-modal="true" aria-labelledby="languageTitle">
+    <button class="close-modal" data-close="language">✕</button>
+    <h2 id="languageTitle">Preferred language</h2>
+    <div class="form-field">
+      <label>Language</label>
+      <select class="form-input" id="languageSelect">
+        <option>English</option>
+        <option>French</option>
+        <option>Swahili</option>
+        <option>Afrikaans</option>
+        <option>Arabic</option>
+      </select>
+    </div>
+    <div style="display:flex;justify-content:flex-end;gap:12px;margin-top:18px">
+      <button class="btn-ghost" data-close="language">Cancel</button>
+      <button class="btn-danger" id="saveLanguage">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Promo, phone, cards and addresses modals + JS -->
+<div class="delete-modal-overlay" id="promoModal" aria-hidden="true">
+  <div class="delete-modal small-modal" role="dialog" aria-modal="true" aria-labelledby="promoTitle">
+    <button class="close-modal" data-close="promo">✕</button>
+    <h2 id="promoTitle">Your promo code</h2>
+    <div class="form-field" style="text-align:center;">
+      <div style="display:flex;gap:12px;align-items:center;justify-content:center;flex-wrap:wrap;">
+        <input class="form-input" id="promoInput" placeholder="Enter promo code" style="max-width:260px;" />
+        <button class="btn-danger" id="addPromoBtn">Add</button>
+      </div>
+    </div>
+    <div class="small-note" style="margin-top:18px">If you have multiple promo codes, the one that expires earlier will be used first.</div>
+  </div>
+</div>
+
+<div class="delete-modal-overlay" id="cardsModal" aria-hidden="true">
+  <div class="delete-modal small-modal" role="dialog" aria-modal="true" aria-labelledby="cardsTitle">
+    <button class="close-modal" data-close="cards">✕</button>
+    <h2 id="cardsTitle">Payment methods</h2>
+    <p style="color:var(--mid);">You can add a payment method to pay for orders or subscriptions.</p>
+    <div style="display:flex;gap:12px;margin-top:12px">
+      <button class="btn-ghost" id="addCardBtn">Add credit / debit card</button>
+      <button class="btn-ghost" id="addPaypalBtn">Add PayPal</button>
+    </div>
+
+    <!-- Card entry form (hidden until Add card clicked) -->
+    <div id="cardEntry" class="card-entry" style="display:none;margin-top:12px;border:1px solid var(--lt2);padding:12px;border-radius:10px">
+      <div class="form-field">
+        <label>Card number</label>
+        <input class="form-input" id="cardNumber" placeholder="1234 5678 9012 3456" maxlength="19" inputmode="numeric" pattern="[0-9 ]*" />
+        <div id="cardNumberError" class="form-error"></div>
+      </div>
+      <div class="card-form-row">
+        <div class="card-form-col">
+          <label>Expiration date</label>
+          <input class="form-input" id="cardExpiry" placeholder="MM/YY" maxlength="5" inputmode="numeric" pattern="[0-9/]*" />
+          <div id="cardExpiryError" class="form-error"></div>
+        </div>
+        <div class="card-form-short">
+          <label>CVC</label>
+          <input class="form-input" id="cardCvc" placeholder="CVC" maxlength="3" inputmode="numeric" pattern="[0-9]*" />
+          <div id="cardCvcError" class="form-error"></div>
+        </div>
+      </div>
+      <div class="card-form-row">
+        <div class="card-form-col">
+          <label>Country</label>
+          <select class="form-input" id="cardCountry">
+            <option>Uganda</option>
+            <option>Kenya</option>
+            <option>Tanzania</option>
+            <option>Ethiopia</option>
+            <option>Eritrea</option>
+            <option>Egypt</option>
+            <option>Somalia</option>
+            <option>South Africa</option>
+            <option>United States</option>
+            <option>United Kingdom</option>
+          </select>
+          <div id="cardCountryError" class="form-error"></div>
+        </div>
+        <div class="card-form-short">
+          <label>Postal code</label>
+          <input class="form-input" id="cardPostal" placeholder="Postal code" maxlength="12" />
+          <div id="cardPostalError" class="form-error"></div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px">
+        <div style="display:flex;align-items:center;gap:10px">
+          <label style="margin:0">Enable auto-pay support</label>
+          <label class="switch"><input type="checkbox" id="cardAutoPay"><span class="slider"></span></label>
+        </div>
+        <div style="display:flex;gap:10px">
+          <button class="btn-ghost" id="cancelCardEntry">Cancel</button>
+          <button class="btn-danger" id="saveCardBtn">Save</button>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top:14px" id="cardsList">You have no saved payment methods.</div>
+  </div>
+</div>
+
+<div class="delete-modal-overlay" id="addressesModal" aria-hidden="true">
+  <div class="delete-modal small-modal" role="dialog" aria-modal="true" aria-labelledby="addressesTitle">
+    <button class="close-modal" data-close="addresses">✕</button>
+    <h2 id="addressesTitle">Saved addresses</h2>
+    <div class="form-field">
+      <label id="addressInputLabel">New address</label>
+      <input class="form-input" id="newAddressInput" placeholder="Enter a new address" />
+    </div>
+    <div style="display:flex;justify-content:flex-end;gap:12px;margin-top:12px">
+      <button class="btn-ghost" data-close="addresses">Cancel</button>
+      <button class="btn-danger" id="saveAddressBtn">Save</button>
+    </div>
+    <div style="margin-top:12px" id="addressesList">You have 2 saved addresses.</div>
+  </div>
+</div>
+
+<div class="delete-modal-overlay" id="phoneModal" aria-hidden="true">
+  <div class="delete-modal small-modal phone-modal" role="dialog" aria-modal="true" aria-labelledby="phoneTitle">
+    <button class="close-modal" data-close="phone">✕</button>
+    <h2 id="phoneTitle">Edit phone number</h2>
+    <div class="phone-form-grid">
+      <div class="phone-field">
+        <label for="phoneCountryCode">Country code</label>
+        <select class="form-input" id="phoneCountryCode">
+          <option value="+1">🇺🇸 +1</option>
+          <option value="+234">🇳🇬 +234</option>
+          <option value="+254">🇰🇪 +254</option>
+          <option value="+256">🇺🇬 +256</option>
+          <option value="+250">🇷🇼 +250</option>
+          <option value="+233">🇬🇭 +233</option>
+          <option value="+27">🇿🇦 +27</option>
+          <option value="+251">🇪🇹 +251</option>
+          <option value="+44">🇬🇧 +44</option>
+          <option value="+49">🇩🇪 +49</option>
+          <option value="+61">🇦🇺 +61</option>
+        </select>
+      </div>
+      <div class="phone-field">
+        <label for="phoneInput">Phone number</label>
+        <input class="form-input" id="phoneInput" placeholder="123 456 789" maxlength="14" inputmode="numeric" pattern="[0-9 ()-]*" />
+      </div>
+    </div>
+    <div class="modal-actions modal-actions-tight">
+      <button class="btn-ghost" data-close="phone">Cancel</button>
+      <button class="btn-danger" id="savePhoneBtn">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit display name, auth and change-password modals + JS -->
+<div class="delete-modal-overlay" id="editModal" aria-hidden="true">
+  <div class="delete-modal small-modal" role="dialog" aria-modal="true" aria-labelledby="editTitle">
+    <button class="close-modal" data-close="edit">✕</button>
+    <h2 id="editTitle">Edit display name</h2>
+    <div class="form-field">
+      <label>New display name</label>
+      <input class="form-input" id="editDisplayInput" placeholder="New display name" />
+    </div>
+    <div style="display:flex;justify-content:flex-end;gap:12px;margin-top:18px">
+      <button class="btn-ghost" data-close="edit">Cancel</button>
+      <button class="btn-danger" id="saveDisplay">Save</button>
+    </div>
+  </div>
+</div>
+
+<div class="delete-modal-overlay" id="authModal" aria-hidden="true">
+  <div class="delete-modal small-modal" role="dialog" aria-modal="true" aria-labelledby="authTitle">
+    <button class="close-modal" data-close="auth">✕</button>
+    <h2 id="authTitle">Enter your password</h2>
+    <div class="form-field">
+      <label for="authPassword">Password</label>
+      <div style="position:relative;display:flex;align-items:center;">
+        <input type="password" class="form-input" id="authPassword" placeholder="Password" style="width:100%;padding-right:44px;" />
+        <button type="button" class="pwd-toggle" id="authToggle" aria-label="Show password" style="position:absolute;right:12px;border:none;background:transparent;cursor:pointer;font-size:18px;padding:0;">🚫</button>
+      </div>
+    </div>
+    <div class="auth-note">We require your password to continue with this account action.</div>
+    <div style="display:flex;justify-content:flex-end;gap:12px;margin-top:18px">
+      <button class="btn-ghost" data-close="auth">Cancel</button>
+      <button class="btn-danger" id="authSubmit">Authenticate</button>
+    </div>
+  </div>
+</div>
+
+<div class="delete-modal-overlay" id="pwChangeModal" aria-hidden="true">
+  <div class="delete-modal small-modal" role="dialog" aria-modal="true" aria-labelledby="pwChangeTitle">
+    <button class="close-modal" data-close="pwchange">✕</button>
+    <h2 id="pwChangeTitle">Change password</h2>
+    <div class="form-field">
+      <label for="newPassword">New password</label>
+      <div style="position:relative;display:flex;align-items:center;">
+        <input type="password" class="form-input" id="newPassword" placeholder="New password" style="width:100%;padding-right:44px;" />
+        <button type="button" class="pwd-toggle" id="newPwdToggle" aria-label="Show password" style="position:absolute;right:12px;border:none;background:transparent;cursor:pointer;font-size:18px;padding:0;">🚫</button>
+      </div>
+      <div id="strengthIndicator" style="margin-top:8px;">
+        <div style="font-size:12px;color:var(--mid);margin-bottom:6px;">Password strength</div>
+        <div style="display:flex;gap:4px;">
+          <div class="strength-bar" id="bar1" style="flex:1;height:4px;border-radius:2px;background:#E9E9EA;"></div>
+          <div class="strength-bar" id="bar2" style="flex:1;height:4px;border-radius:2px;background:#E9E9EA;"></div>
+          <div class="strength-bar" id="bar3" style="flex:1;height:4px;border-radius:2px;background:#E9E9EA;"></div>
+        </div>
+        <div id="strengthText" style="font-size:12px;color:var(--mid);margin-top:4px;">Vulnerable password</div>
+      </div>
+      <div id="requirementsList" style="margin-top:12px;font-size:12px;">
+        <div style="color:var(--mid);margin-bottom:8px;font-weight:600;">It's better to have:</div>
+        <div class="req-item" data-req="length" style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+          <span class="req-check" style="width:18px;height:18px;border:1.5px solid #d1d5db;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#d1d5db;font-size:10px;font-weight:700;">✓</span>
+          <span style="color:var(--mid);">At least 12 characters</span>
+        </div>
+        <div class="req-item" data-req="case" style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+          <span class="req-check" style="width:18px;height:18px;border:1.5px solid #d1d5db;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#d1d5db;font-size:10px;font-weight:700;">✓</span>
+          <span style="color:var(--mid);">Uppercase and lowercase letters</span>
+        </div>
+        <div class="req-item" data-req="numbers" style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+          <span class="req-check" style="width:18px;height:18px;border:1.5px solid #d1d5db;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#d1d5db;font-size:10px;font-weight:700;">✓</span>
+          <span style="color:var(--mid);">Numbers</span>
+        </div>
+        <div class="req-item" data-req="symbols" style="display:flex;align-items:center;gap:8px;">
+          <span class="req-check" style="width:18px;height:18px;border:1.5px solid #d1d5db;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#d1d5db;font-size:10px;font-weight:700;">✓</span>
+          <span style="color:var(--mid);">Symbols (#$&)</span>
+        </div>
+      </div>
+      <label for="confirmPassword" style="margin-top:14px;">Confirm password</label>
+      <div style="position:relative;display:flex;align-items:center;">
+        <input type="password" class="form-input" id="confirmPassword" placeholder="Confirm password" style="width:100%;padding-right:44px;" aria-describedby="pwMismatchError" />
+        <button type="button" class="pwd-toggle" id="confirmPwdToggle" aria-label="Show password" style="position:absolute;right:12px;border:none;background:transparent;cursor:pointer;font-size:18px;padding:0;">🚫</button>
+      </div>
+      <div id="pwMismatchError" class="form-error"></div>
+    </div>
+    <div style="display:flex;justify-content:flex-end;gap:12px;margin-top:18px">
+      <button class="btn-ghost" data-close="pwchange">Cancel</button>
+      <button class="btn-danger" id="savePassword">Save</button>
+    </div>
+  </div>
+</div>
+
+<script src="./script/profile.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+  document.querySelectorAll('.detail-field').forEach(function(df){
+    var lbl = df.querySelector('label');
+    if(!lbl || !lbl.textContent) return;
+    var txt = lbl.textContent.trim();
+    if(txt === 'Two-factor auth') df.classList.add('two-factor');
+    if(txt === 'Password') df.classList.add('two-action');
+  });
+});
+</script>
+
+</body>
+</html>
