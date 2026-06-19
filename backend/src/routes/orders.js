@@ -36,7 +36,7 @@ router.post('/', async (req, res) => {
     const ids          = items.map(i => parseInt(i.product_id));
     const placeholders = ids.map(() => '?').join(',');
     const products     = await query(
-      `SELECT product_id, name, price, stock FROM products WHERE product_id IN (${placeholders}) AND is_active = 1`,
+      `SELECT product_id, name, price, stock, restaurant_id FROM products WHERE product_id IN (${placeholders}) AND is_active = 1`,
       ids
     );
 
@@ -45,6 +45,7 @@ router.post('/', async (req, res) => {
 
     let subtotal = 0;
     const validatedItems = [];
+    let restaurant_id = products[0]?.restaurant_id || null;
 
     for (const item of items) {
       const pid = parseInt(item.product_id);
@@ -72,9 +73,9 @@ router.post('/', async (req, res) => {
     // Insert order row
     const orderResult = await query(
       `INSERT INTO orders
-         (user_id, status, subtotal, delivery_fee, total, delivery_address, payment_method, notes)
-       VALUES (?, 'pending', ?, ?, ?, ?, ?, ?)`,
-      [req.user.user_id, subtotal, DELIVERY_FEE, total, delivery_address,
+         (user_id, restaurant_id, status, subtotal, delivery_fee, total, delivery_address, payment_method, notes)
+       VALUES (?, ?, 'pending', ?, ?, ?, ?, ?, ?)`,
+      [req.user.user_id, restaurant_id, subtotal, DELIVERY_FEE, total, delivery_address,
        payment_method || 'mobile_money', notes || null]
     );
 
