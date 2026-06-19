@@ -113,8 +113,8 @@
        }
     ───────────────────────────────────────────── */
     function buildCard(r) {
-      const bannerContent = r.image
-        ? `<img src="${escHtml(r.image)}" height="100" width="100" alt="${escHtml(r.name)}" loading="lazy" />`
+      const bannerContent = r.logo_url
+        ? `<img src="${escHtml(r.logo_url)}" alt="${escHtml(r.name)}" class="r-logo-img" loading="lazy" />`
         : (r.emoji || "🍽️");
   
       const badge = r.badge
@@ -125,8 +125,10 @@
         .map(t => `<span class="r-tag">${escHtml(t)}</span>`)
         .join("");
   
+      const restaurantId = r.restaurant_id || r.id;
+
       return `
-        <a href="order.html" class="r-card">
+        <a href="order.html?restaurant_id=${restaurantId}" class="r-card">
           <div class="r-banner" style="background:${escHtml(r.bannerBg || '#F5F5F5')};">
             ${bannerContent}
             ${badge}
@@ -135,12 +137,12 @@
           <div class="r-body">
             <div class="r-top">
               <div class="r-name">${escHtml(r.name)}</div>
-              <div class="r-rating">${ICON_STAR}${escHtml(String(r.rating))}</div>
+              <div class="r-rating">${ICON_STAR}${escHtml(String(r.rating || '4.5'))}</div>
             </div>
             <div class="r-meta">
-              <span class="rmeta">${ICON_CLOCK}${escHtml(r.deliveryTime)}</span>
-              <span class="rmeta">${ICON_BAG}${escHtml(r.deliveryFee)}</span>
-              <span class="rmeta">${escHtml(r.minOrder)}</span>
+              <span class="rmeta">${ICON_CLOCK}${escHtml(r.deliveryTime || '20-30 min')}</span>
+              <span class="rmeta">${ICON_BAG}${escHtml(r.deliveryFee || '5,000 UGX')}</span>
+              <span class="rmeta">${escHtml(r.minOrder || 'Min. 10,000 UGX')}</span>
             </div>
             <div class="r-tags">${tags}</div>
           </div>
@@ -156,10 +158,6 @@
   
       if (isOffline) {
         // Insert an offline notice before the grid
-        // const banner = document.createElement("div");
-        // banner.className = "restos-offline-banner";
-        // banner.innerHTML = `⚠️ Couldn't reach the server — showing cached restaurants.`;
-        // grid.parentElement.insertBefore(banner, grid);
       }
   
       grid.innerHTML = restaurants.map(buildCard).join("");
@@ -171,7 +169,7 @@
        FETCH  →  FALLBACK
        Change API_URL to match your backend route.
     ───────────────────────────────────────────── */
-    const API_URL     = "db/rest";       // ← your endpoint
+    const API_URL     = "/api/restaurants";       // ← your endpoint
     const TIMEOUT_MS  = 10000;            // give up after 10 s
   
     async function loadRestaurants() {
