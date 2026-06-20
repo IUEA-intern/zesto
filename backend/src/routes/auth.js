@@ -81,7 +81,8 @@ async function ensureDefaultAdmin() {
   return insertResult;
 }
 
-router.post('/register', async (req, res) => {
+// ── CUSTOMER REGISTRATION ───────────────────────────────────────────
+router.post('/register/customer', async (req, res) => {
   try {
     const { name, email, phone, password } = req.body;
     if (!name || !email || !password) {
@@ -95,7 +96,7 @@ router.post('/register', async (req, res) => {
 
     const hashed = await bcrypt.hash(password, 10);
     const result = await query(
-      `INSERT INTO users (name, email, phone, password) VALUES (?, ?, ?, ?)`,
+      `INSERT INTO users (name, email, phone, password, role) VALUES (?, ?, ?, ?, 'customer')`,
       [name.trim(), email.toLowerCase().trim(), phone ? phone.trim() : null, hashed]
     );
 
@@ -111,11 +112,125 @@ router.post('/register', async (req, res) => {
 
     return res.status(201).json({ success: true, message: 'Registered successfully.', user: buildUserPayload(user) });
   } catch (err) {
-    console.error('[POST /api/auth/register]', err);
+    console.error('[POST /api/auth/register/customer]', err);
     return res.status(500).json({ success: false, message: 'Registration failed.' });
   }
 });
 
+// ── RESTAURANT REGISTRATION ───────────────────────────────────────────
+router.post('/register/restaurant', async (req, res) => {
+  try {
+    const { name, email, phone, password, businessName, address, description } = req.body;
+    if (!name || !email || !password || !businessName || !address) {
+      return res.status(400).json({ success: false, message: 'Owner name, email, password, business name and address are required.' });
+    }
+
+    const existing = await query('SELECT user_id FROM users WHERE email = ?', [email.toLowerCase()]);
+    if (existing && existing.length) {
+      return res.status(409).json({ success: false, message: 'Email is already registered.' });
+    }
+
+    const hashed = await bcrypt.hash(password, 10);
+    
+    const userResult = await query(
+      `INSERT INTO users (name, email, phone, password, role) VALUES (?, ?, ?, ?, 'restaurant_admin')`,
+      [name.trim(), email.toLowerCase().trim(), phone ? phone.trim() : null, hashed]
+    );
+    const ownerUserId = userResult.insertId;
+
+    // Generate unique slug
+    let slug = businessName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+    if (!slug) slug = 'restaurant-' + Date.now();
+    let isUnique = false;
+    let suffix = 0;
+    let tempSlug = slug;
+    while (!isUnique) {
+      const existingSlug = await query('SELECT restaurant_id FROM restaurants WHERE slug = ?', [tempSlug]);
+      if (existingSlug && existingSlug.length > 0) {
+        suffix++;
+        tempSlug = `${slug}-${suffix}`;
+      } else {
+        slug = tempSlug;
+        isUnique = true;
+      }
+    }
+
+    await query(
+      `INSERT INTO restaurants (owner_user_id, name, slug, phone, email, address, description, status) 
+       VALUES (?, ?, ?, ?, ?, ?, ?, 'approved')`,
+      [ownerUserId, businessName.trim(), slug, phone ? phone.trim() : null, email.toLowerCase().trim(), address.trim(), description ? description.trim() : null]
+    );
+
+    const users = await query('SELECT user_id, name, email, role FROM users WHERE user_id = ?', [ownerUserId]);
+    const user = users && users.length > 0 ? users[0] : null;
+
+    if (!user) {
+      return res.status(500).json({ success: false, message: 'Restaurant user creation failed.' });
+    }
+
+    const token = createToken(user);
+    setAuthCookie(res, token);
+
+    return res.status(201).json({ 
+      success: true, 
+      message: 'Restaurant registered successfully.', 
+      user: buildUserPayload(user) 
+    });
+  } catch (err) {
+    console.error('[POST /api/auth/register/restaurant]', err);
+    return res.status(500).json({ success: false, message: 'Restaurant registration failed.' });
+  }
+});
+
+// ── RIDER REGISTRATION ────────────────────────────────────────────────
+router.post('/register/rider', async (req, res) => {
+  try {
+    const { name, email, phone, password, vehicleType, vehicleNumber, nationalId } = req.body;
+    if (!name || !email || !password || !vehicleType || !vehicleNumber || !nationalId) {
+      return res.status(400).json({ success: false, message: 'Name, email, password, vehicle type, registration number, and national ID are required.' });
+    }
+
+    const existing = await query('SELECT user_id FROM users WHERE email = ?', [email.toLowerCase()]);
+    if (existing && existing.length) {
+      return res.status(409).json({ success: false, message: 'Email is already registered.' });
+    }
+
+    const hashed = await bcrypt.hash(password, 10);
+
+    const userResult = await query(
+      `INSERT INTO users (name, email, phone, password, role) VALUES (?, ?, ?, ?, 'rider')`,
+      [name.trim(), email.toLowerCase().trim(), phone ? phone.trim() : null, hashed]
+    );
+    const userId = userResult.insertId;
+
+    await query(
+      `INSERT INTO riders (user_id, vehicle_type, vehicle_number, national_id, status) 
+       VALUES (?, ?, ?, ?, 'approved')`,
+      [userId, vehicleType, vehicleNumber.trim(), nationalId.trim()]
+    );
+
+    const users = await query('SELECT user_id, name, email, role FROM users WHERE user_id = ?', [userId]);
+    const user = users && users.length > 0 ? users[0] : null;
+
+    if (!user) {
+      return res.status(500).json({ success: false, message: 'Rider user creation failed.' });
+    }
+
+    const token = createToken(user);
+    setAuthCookie(res, token);
+
+    return res.status(201).json({ 
+      success: true, 
+      message: 'Rider registered successfully.', 
+      user: buildUserPayload(user) 
+    });
+  } catch (err) {
+    console.error('[POST /api/auth/register/rider]', err);
+    return res.status(500).json({ success: false, message: 'Rider registration failed.' });
+  }
+});
+
+// ── UNIFIED LOGIN ────────────────────────────────────────────────────
 router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -124,32 +239,25 @@ router.post('/login', async (req, res) => {
     }
 
     const normalizedEmail = email.toLowerCase().trim();
-    console.log('[POST /api/auth/login] Searching for email:', normalizedEmail);
-
     if (normalizedEmail === DEFAULT_ADMIN.email) {
       await ensureDefaultAdmin();
     }
 
     const users = await query('SELECT user_id, name, email, password, role FROM users WHERE email = ?', [normalizedEmail]);
-    console.log('[POST /api/auth/login] Query result type:', Array.isArray(users) ? 'array' : typeof users, 'Length:', users ? users.length : 'undefined');
-    
     const user = users && users.length > 0 ? users[0] : null;
 
     if (!user) {
-      console.log('[POST /api/auth/login] User not found');
       return res.status(401).json({ success: false, message: 'Invalid email or password.' });
     }
 
     const passwordMatch = await bcrypt.compare(password, user.password);
     if (!passwordMatch) {
-      console.log('[POST /api/auth/login] Password mismatch');
       return res.status(401).json({ success: false, message: 'Invalid email or password.' });
     }
 
     const token = createToken(user);
     setAuthCookie(res, token);
 
-    console.log('[POST /api/auth/login] Login successful for:', user.email, 'Role:', user.role);
     return res.json({ success: true, message: 'Logged in successfully.', user: buildUserPayload(user) });
   } catch (err) {
     console.error('[POST /api/auth/login]', err);
@@ -157,11 +265,13 @@ router.post('/login', async (req, res) => {
   }
 });
 
+// ── LOGOUT ───────────────────────────────────────────────────────────
 router.post('/logout', (req, res) => {
   clearAuthCookie(res);
   return res.json({ success: true, message: 'You have been logged out.' });
 });
 
+// ── GET ME (SESSION CHECK) ───────────────────────────────────────────
 router.get('/me', async (req, res) => {
   try {
     const token = req.cookies ? req.cookies[COOKIE_NAME] : null;

@@ -1,58 +1,32 @@
 /**
  * get-started.js — Backend integration for the Get Started onboarding page
- *
- * API used:  POST /api/auth/register
- * Stack:     Express + MySQL + JWT (bcryptjs, jsonwebtoken)
- * Auth flow: register → receive { accessToken, refreshToken, user }
- *            → store tokens → redirect to index.html
- *
- * Endpoints consumed from the existing backend:
- *   POST /api/auth/register   → create account
- *   GET  /api/auth/me         → (optional) verify token after redirect
+ * Consumes API methods from SharedAuth.
  */
 
-/* ─────────────────────────────────────────────────────────────
-   CONFIG  — change BASE_URL to match your server
-───────────────────────────────────────────────────────────── */
-const API_BASE = 'http://localhost:3000/api';
-
-/* ─────────────────────────────────────────────────────────────
-   TOKEN HELPERS
-   Mirrors what your existing login.js does with localStorage
-───────────────────────────────────────────────────────────── */
-const Auth = {
-  save(accessToken, refreshToken, user) {
-    localStorage.setItem('accessToken',  accessToken);
-    localStorage.setItem('refreshToken', refreshToken);
-    localStorage.setItem('user',         JSON.stringify(user));
-  },
-  clear() {
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
-    localStorage.removeItem('user');
-  },
-  getAccess()  { return localStorage.getItem('accessToken');  },
-  getRefresh() { return localStorage.getItem('refreshToken'); },
-  getUser()    { return JSON.parse(localStorage.getItem('user') || 'null'); },
-  isLoggedIn() { return !!localStorage.getItem('accessToken'); },
-};
-
-/* ─────────────────────────────────────────────────────────────
-   REDIRECT IF ALREADY LOGGED IN
-───────────────────────────────────────────────────────────── */
-if (Auth.isLoggedIn()) {
-  window.location.href = 'index.html';
-}
+'use strict';
 
 /* ─────────────────────────────────────────────────────────────
    STATE
-───────────────────────────────────────────────────────────── */
-let currentRole = null;   // 'customer' | 'restaurant' | 'rider'
+   ───────────────────────────────────────────────────────────── */
+let currentRole = null;   // 'restaurant' | 'rider'
 let currentStep = 1;      // 1 | 2 | 3
 
 /* ─────────────────────────────────────────────────────────────
+   REDIRECT IF ALREADY LOGGED IN
+   ───────────────────────────────────────────────────────────── */
+(async function checkExistingSession() {
+  // Let shared auth check first
+  if (window.SharedAuth) {
+    const res = await window.SharedAuth.checkSession();
+    if (res && res.user) {
+      window.location.href = 'index.html';
+    }
+  }
+})();
+
+/* ─────────────────────────────────────────────────────────────
    STEP NAVIGATION
-───────────────────────────────────────────────────────────── */
+   ───────────────────────────────────────────────────────────── */
 function goToStep(step) {
   // Hide all panels
   document.querySelectorAll('.gs-step').forEach(p => p.classList.remove('active'));
@@ -61,39 +35,31 @@ function goToStep(step) {
   // Update stepper circles
   for (let i = 1; i <= 3; i++) {
     const ind = document.getElementById('step-indicator-' + i);
-    ind.className = 'step ' + (i < step ? 'done' : i === step ? 'active' : 'pending');
+    if (ind) {
+      ind.className = 'step ' + (i < step ? 'done' : i === step ? 'active' : 'pending');
+    }
   }
 
   // Update connector lines
   for (let i = 1; i <= 2; i++) {
     const line = document.getElementById('line-' + i);
-    line.className = 'step-line' + (i < step ? ' done' : '');
+    if (line) {
+      line.className = 'step-line' + (i < step ? ' done' : '');
+    }
   }
 
-  // Populate step 2 with role-specific copy
+  // Populate step 2 with role-specific copy and forms
   if (step === 2 && currentRole) {
     const roleData = {
-      customer:   {
-        emoji: '🛒', label: 'Customer',
-        title: 'Create your account',
-        sub:   'Fill in your details to start ordering in minutes.',
-        businessFieldVisible: false,
-      },
       restaurant: {
         emoji: '🏪', label: 'Restaurant / Shop',
         title: 'Register your business',
         sub:   'Get your restaurant listed on Zesto and start receiving orders.',
-        businessFieldVisible: true,
-        businessLabel: 'Business name',
-        businessPlaceholder: 'e.g. Burger Shack',
       },
       rider: {
         emoji: '🛵', label: 'Rider',
         title: 'Apply as a rider',
         sub:   'Join our fleet and start earning on your own schedule.',
-        businessFieldVisible: true,
-        businessLabel: 'Vehicle type',
-        businessPlaceholder: 'e.g. Motorcycle, Bicycle, Car',
       },
     };
 
@@ -154,8 +120,9 @@ function goToStep(step) {
 
 /* ─────────────────────────────────────────────────────────────
    ROLE SELECTION
-───────────────────────────────────────────────────────────── */
+   ───────────────────────────────────────────────────────────── */
 function selectRole(role) {
+  if (role === 'customer') return; // customer is removed
   currentRole = role;
 
   document.querySelectorAll('.role-card').forEach(c => c.classList.remove('selected'));
@@ -167,7 +134,7 @@ function selectRole(role) {
 
 /* ─────────────────────────────────────────────────────────────
    PASSWORD STRENGTH METER
-───────────────────────────────────────────────────────────── */
+   ───────────────────────────────────────────────────────────── */
 function checkStrength(val) {
   const bars  = ['ps1','ps2','ps3','ps4'].map(id => document.getElementById(id));
   const label = document.getElementById('strength-label');
@@ -204,7 +171,7 @@ function checkStrength(val) {
 
 /* ─────────────────────────────────────────────────────────────
    TOGGLE PASSWORD VISIBILITY
-───────────────────────────────────────────────────────────── */
+   ───────────────────────────────────────────────────────────── */
 function togglePassword() {
   const input = document.getElementById('passwordInput');
   const icon  = document.getElementById('eye-icon');
@@ -229,7 +196,7 @@ function togglePassword() {
 
 /* ─────────────────────────────────────────────────────────────
    UI HELPERS — show / hide errors, loading state
-───────────────────────────────────────────────────────────── */
+   ───────────────────────────────────────────────────────────── */
 function showError(msg) {
   let box = document.getElementById('form-error-box');
   if (!box) {
@@ -240,7 +207,7 @@ function showError(msg) {
       padding:12px 16px; font-size:13px; color:#DC2626;
       margin-bottom:16px; display:flex; align-items:center; gap:8px;
     `;
-    const form = document.getElementById('registerForm');
+    const form = document.querySelector('.gs-form');
     form.insertAdjacentElement('beforebegin', box);
   }
   box.innerHTML = `<span style="font-size:16px;">⚠️</span> ${msg}`;
@@ -253,14 +220,14 @@ function hideError() {
 }
 
 function setLoading(loading) {
-  const btn = document.getElementById('submit-btn');
+  const btn = document.querySelector('.gs-form button[type="submit"]');
   if (!btn) return;
   if (loading) {
     btn.disabled = true;
     btn.innerHTML = `
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
            stroke="currentColor" stroke-width="2"
-           style="animation:spin .7s linear infinite;">
+           style="animation:spin .7s linear infinite; margin-right: 8px;">
         <path d="M21 12a9 9 0 1 1-6-8.485"/>
       </svg>
       Creating account…`;
@@ -269,7 +236,7 @@ function setLoading(loading) {
     btn.innerHTML = `
       Create my account
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-           style="width:18px;height:18px;">
+           style="width:18px;height:18px; margin-left: 8px;">
         <path d="M5 12h14M14 7l5 5-5 5" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>`;
   }
@@ -282,7 +249,7 @@ document.head.appendChild(spinStyle);
 
 /* ─────────────────────────────────────────────────────────────
    COLLECT FORM VALUES
-───────────────────────────────────────────────────────────── */
+   ───────────────────────────────────────────────────────────── */
 function getFormValues() {
   return {
     firstName:    document.getElementById('firstName')?.value.trim()    || '',
@@ -291,16 +258,20 @@ function getFormValues() {
     phone:        document.getElementById('phoneInput')?.value.trim()   || '',
     password:     document.getElementById('passwordInput')?.value       || '',
     businessName: document.getElementById('business-input')?.value.trim() || '',
+    address:      document.getElementById('restaurant-address-input')?.value.trim() || '',
+    description:  document.getElementById('restaurant-desc-input')?.value.trim() || '',
+    vehicleType:  document.getElementById('rider-vehicle-type-input')?.value || '',
+    vehicleNumber:document.getElementById('rider-vehicle-num-input')?.value.trim() || '',
+    nationalId:   document.getElementById('rider-national-id-input')?.value.trim() || '',
     terms:        document.getElementById('termsCheck')?.checked        || false,
   };
 }
 
 /* ─────────────────────────────────────────────────────────────
    CLIENT-SIDE VALIDATION
-   (matches server rules in authService.js)
-───────────────────────────────────────────────────────────── */
+   ───────────────────────────────────────────────────────────── */
 function validate(values) {
-  const { firstName, lastName, email, phone, password, businessName, terms } = values;
+  const { firstName, lastName, email, phone, password, businessName, address, vehicleType, vehicleNumber, nationalId, terms } = values;
 
   if (!firstName || !lastName)
     return 'Please enter your first and last name.';
@@ -308,16 +279,22 @@ function validate(values) {
   if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
     return 'Please enter a valid email address.';
 
-  if (!phone || phone.replace(/\D/g, '').length < 9)
+  if (!phone)
     return 'Please enter a valid phone number.';
 
   if (password.length < 6)
-    return 'Password must be at least 6 characters.';  // mirrors server rule
+    return 'Password must be at least 6 characters.';
 
-  if (currentRole !== 'customer' && !businessName)
-    return currentRole === 'rider'
-      ? 'Please enter your vehicle type.'
-      : 'Please enter your business name.';
+  if (currentRole === 'restaurant') {
+    if (!businessName) return 'Please enter your business name.';
+    if (!address) return 'Please enter your business address.';
+  }
+
+  if (currentRole === 'rider') {
+    if (!vehicleType) return 'Please select your vehicle type.';
+    if (!vehicleNumber) return 'Please enter your vehicle registration number.';
+    if (!nationalId) return 'Please enter your national ID.';
+  }
 
   if (!terms)
     return 'You must agree to the Terms of Service and Privacy Policy.';
@@ -326,58 +303,41 @@ function validate(values) {
 }
 
 /* ─────────────────────────────────────────────────────────────
-   API CALL  — POST /api/auth/register
-   Request body matches authService.register():
-     { name, email, phone, password, delivery_address? }
-
-   NOTE: the existing schema has role ENUM('customer','admin').
-   Restaurant / rider roles aren't in the DB yet — we add a
-   note field to name so you can filter them server-side later,
-   or extend the schema with a role column.
-───────────────────────────────────────────────────────────── */
+   API CALLS via SharedAuth
+   ───────────────────────────────────────────────────────────── */
 async function registerUser(values) {
-  const fullName = values.firstName + ' ' + values.lastName;
-
-  // Build name with role tag for restaurant/rider so backend can filter
-  // e.g.  "Burger Shack [restaurant]"  or  "John Doe [rider:Motorcycle]"
-  let name = fullName;
-  if (currentRole === 'restaurant' && values.businessName)
-    name = values.businessName + ' [restaurant]';
-  if (currentRole === 'rider' && values.businessName)
-    name = fullName + ' [rider:' + values.businessName + ']';
-
   const payload = {
-  name,
-  email:    values.email,
-  phone:    values.phone,
-  password: values.password,
-  role:     currentRole,   // 'customer' | 'restaurant' | 'rider'
-};
+    name: `${values.firstName} ${values.lastName}`.trim(),
+    email: values.email,
+    phone: values.phone,
+    password: values.password,
+    // Restaurant specific
+    businessName: values.businessName,
+    address: values.address,
+    description: values.description,
+    // Rider specific
+    vehicleType: values.vehicleType,
+    vehicleNumber: values.vehicleNumber,
+    nationalId: values.nationalId
+  };
 
-  const res = await fetch(`${API_BASE}/auth/register`, {
-    method:  'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body:    JSON.stringify(payload),
-  });
-
-  const data = await res.json();
-
-  if (!res.ok) {
-    // Server returns { error: "..." }  (AppError shape from authService)
-    throw new Error(data.error || 'Registration failed. Please try again.');
+  if (!window.SharedAuth) {
+    throw new Error('Auth script not loaded. Please refresh and try again.');
   }
 
-  // data = { accessToken, refreshToken, user: { id, name, email, phone } }
-  return data;
+  if (currentRole === 'restaurant') {
+    return await window.SharedAuth.registerRestaurant(payload);
+  } else {
+    return await window.SharedAuth.registerRider(payload);
+  }
 }
 
 /* ─────────────────────────────────────────────────────────────
    SHOW STEP 3 — SUCCESS STATE
-───────────────────────────────────────────────────────────── */
+   ───────────────────────────────────────────────────────────── */
 function showSuccess(user) {
   goToStep(3);
 
-  // Personalise the welcome message with the user's first name
   const title = document.getElementById('step3-welcome');
   if (title && user?.name) {
     const firstName = user.name.split(' ')[0];
@@ -387,7 +347,7 @@ function showSuccess(user) {
 
 /* ─────────────────────────────────────────────────────────────
    MAIN FORM SUBMIT HANDLER
-───────────────────────────────────────────────────────────── */
+   ───────────────────────────────────────────────────────────── */
 async function handleSignup(e) {
   e.preventDefault();
   hideError();
@@ -404,22 +364,18 @@ async function handleSignup(e) {
   // 2. Send to API
   setLoading(true);
   try {
-    const { accessToken, refreshToken, user } = await registerUser(values);
+    const res = await registerUser(values);
+    
+    // Save to local storage for backward compatibility
+    localStorage.setItem('zesto_user', JSON.stringify(res.user));
 
-    // 3. Persist tokens (same pattern as existing login.js)
-    Auth.save(accessToken, refreshToken, user);
-
-    // 4. Show success step
-    showSuccess(user);
+    // 3. Show success step
+    showSuccess(res.user);
 
   } catch (err) {
-    // Map known server messages to friendly copy
     let msg = err.message;
-    if (msg.includes('Duplicate'))
-      msg = 'An account with this email or phone already exists. <a href="signin.html" style="color:var(--or);font-weight:700;">Sign in instead?</a>';
-    if (msg.includes('Too many registration'))
-      msg = 'Too many attempts. Please wait a few minutes and try again.';
-
+    if (msg.includes('Duplicate') || msg.includes('already registered'))
+      msg = 'An account with this email already exists.';
     showError(msg);
   } finally {
     setLoading(false);
@@ -427,38 +383,10 @@ async function handleSignup(e) {
 }
 
 /* ─────────────────────────────────────────────────────────────
-   TOKEN REFRESH HELPER
-   Call this anywhere you get a 401 "Access token expired" response.
-   Matches the existing /api/auth/refresh endpoint.
-───────────────────────────────────────────────────────────── */
-async function refreshAccessToken() {
-  const refreshToken = Auth.getRefresh();
-  if (!refreshToken) { Auth.clear(); window.location.href = 'signin.html'; return null; }
-
-  const res  = await fetch(`${API_BASE}/auth/refresh`, {
-    method:  'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body:    JSON.stringify({ refreshToken }),
-  });
-
-  if (!res.ok) {
-    Auth.clear();
-    window.location.href = 'signin.html';
-    return null;
-  }
-
-  const { accessToken, refreshToken: newRefresh } = await res.json();
-  localStorage.setItem('accessToken',  accessToken);
-  localStorage.setItem('refreshToken', newRefresh);
-  return accessToken;
-}
-
-/* ─────────────────────────────────────────────────────────────
    EXPOSE GLOBALLY (called from HTML onclick / onsubmit)
-───────────────────────────────────────────────────────────── */
+   ───────────────────────────────────────────────────────────── */
 window.selectRole      = selectRole;
 window.goToStep        = goToStep;
 window.checkStrength   = checkStrength;
 window.togglePassword  = togglePassword;
 window.handleSignup    = handleSignup;
-window.refreshAccessToken = refreshAccessToken;

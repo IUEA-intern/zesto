@@ -1,10 +1,10 @@
 /**
- * Zesto — auth-shared.js
+ * Zesto — shared_auth.js
  * ──────────────────────────────────────────────────────────────
- * Shared authentication popup script for all pages except order.html and cart.html.
+ * Unified authentication popup script and API connector for all pages.
  * Dynamically injects the Auth Modal HTML, handles API login/signup,
  * updates navigation buttons to user pills when logged in, and intercepts
- * Sign In / Get Started button clicks to show the popup modals.
+ * Sign In / Sign Up clicks to show the popup modals.
  * ──────────────────────────────────────────────────────────────
  */
 
@@ -22,10 +22,17 @@
 
     init() {
       this.container = document.getElementById('toastContainer');
+      if (!this.container) {
+        this.container = document.createElement('div');
+        this.container.id = 'toastContainer';
+        this.container.className = 'toast-container';
+        this.container.setAttribute('aria-live', 'polite');
+        document.body.appendChild(this.container);
+      }
     },
 
     show(message, type = 'info', duration = 3500) {
-      if (!this.container) return;
+      if (!this.container) this.init();
       const icons = { success: '✅', error: '❌', info: '🍊', warning: '⚠️' };
       const toast = document.createElement('div');
       toast.className = `toast ${type}`;
@@ -53,8 +60,8 @@
       .replace(/"/g, '&quot;');
   }
 
-  // API Helpers
-  const Api = {
+  // API Helpers & Interface
+  window.SharedAuth = {
     async request(path, options = {}) {
       try {
         const res = await fetch(API_BASE + path, {
@@ -64,18 +71,91 @@
           body: options.body ? JSON.stringify(options.body) : undefined,
         });
         const data = await res.json();
-        if (!res.ok) throw new Error(data.message || 'Request failed');
+        if (!res.ok) throw new Error(data.message || data.error || 'Request failed');
         return data;
       } catch (err) {
         throw err;
       }
     },
 
-    get:  (path)       => Api.request(path),
-    post: (path, body) => Api.request(path, { method: 'POST', body }),
+    async login(email, password) {
+      const data = await this.request('/auth/login', {
+        method: 'POST',
+        body: { email, password }
+      });
+      session = data.user;
+      document.dispatchEvent(new CustomEvent('auth-login', { detail: session }));
+      updateUI();
+      return data;
+    },
+
+    async registerCustomer(name, email, phone, password) {
+      const data = await this.request('/auth/register/customer', {
+        method: 'POST',
+        body: { name, email, phone, password }
+      });
+      session = data.user;
+      document.dispatchEvent(new CustomEvent('auth-login', { detail: session }));
+      updateUI();
+      return data;
+    },
+
+    async registerRestaurant(restaurantData) {
+      const data = await this.request('/auth/register/restaurant', {
+        method: 'POST',
+        body: restaurantData
+      });
+      session = data.user;
+      document.dispatchEvent(new CustomEvent('auth-login', { detail: session }));
+      updateUI();
+      return data;
+    },
+
+    async registerRider(riderData) {
+      const data = await this.request('/auth/register/rider', {
+        method: 'POST',
+        body: riderData
+      });
+      session = data.user;
+      document.dispatchEvent(new CustomEvent('auth-login', { detail: session }));
+      updateUI();
+      return data;
+    },
+
+    async checkSession() {
+      try {
+        const data = await this.request('/auth/me');
+        session = data.user;
+        if (session) {
+          document.dispatchEvent(new CustomEvent('auth-login', { detail: session }));
+        }
+        updateUI();
+        return data;
+      } catch (err) {
+        session = null;
+        updateUI();
+        return { success: true, user: null };
+      }
+    },
+
+    async logout() {
+      const data = await this.request('/auth/logout', { method: 'POST' });
+      session = null;
+      document.dispatchEvent(new CustomEvent('auth-logout'));
+      updateUI();
+      return data;
+    },
+
+    showLogin() {
+      openModal('login');
+    },
+
+    showRegister() {
+      openModal('register');
+    }
   };
 
-  // Inject Modal HTML
+  // Inject Modal HTML dynamically
   function injectModalHTML() {
     if (document.getElementById('authModal')) return;
 
@@ -139,11 +219,11 @@
     document.body.insertAdjacentHTML('beforeend', modalHTML);
   }
 
-  // UI Setup & Updates
+  // UI Updates based on Auth state
   function updateUI() {
     // Selectors for navbar buttons
     const signinBtns = document.querySelectorAll('a[href*="login.html"], .btn-nav-signin');
-    const signupBtns = document.querySelectorAll('a[href*="signin.html"], a[href*="Get_Started.html"], a[href*="signup.html"], .btn-nav-signup');
+    const signupBtns = document.querySelectorAll('a[href*="signin.html"], a[href*="signup.html"], .btn-nav-signup');
 
     // Remove existing user pills
     document.querySelectorAll('.user-pill-shared').forEach(el => el.remove());
@@ -154,9 +234,11 @@
       signupBtns.forEach(btn => btn.style.display = 'none');
 
       // Add user pill to nav containers
-      // We look for .nav-actions, .nav-actions-auth, and mobile-actions containers
       const containers = document.querySelectorAll('.nav-actions, .nav-actions-auth, .mobile-actions');
       containers.forEach(container => {
+        // Skip updating order.html's own custom pill if handled by order&cart.js
+        if (container.querySelector('#userPill')) return;
+
         const pill = document.createElement('div');
         pill.className = 'user-pill user-pill-shared';
         pill.innerHTML = `
@@ -164,14 +246,11 @@
           <span class="user-name-text">${escapeHTML(session.name)}</span>
           <button class="btn-logout btn-logout-shared" title="Logout">↩</button>
         `;
-        // Setup logout event listener for the pill
         pill.querySelector('.btn-logout-shared').addEventListener('click', async (e) => {
           e.stopPropagation();
           try {
-            await Api.post('/auth/logout', {});
-            session = null;
+            await window.SharedAuth.logout();
             Toast.info('Logged out successfully.');
-            updateUI();
           } catch (err) {
             Toast.error('Logout failed.');
           }
@@ -208,7 +287,6 @@
     overlay.classList.remove('hidden');
   }
 
-  // Clear inputs inside modal
   function clearModalInputs() {
     const inputs = document.querySelectorAll('#authModal input');
     inputs.forEach(input => input.value = '');
@@ -258,14 +336,11 @@
       if (!email || !password) { Toast.error('Please fill in all fields.'); return; }
       try {
         loginBtn.disabled = true; loginBtn.textContent = 'Logging in…';
-        const res = await Api.post('/auth/login', { email, password });
-        session = res.user;
+        const res = await window.SharedAuth.login(email, password);
         closeModal();
         Toast.success(res.message || 'Logged in!');
-        updateUI();
-        // If we are on login.html or signin.html, redirect them to index.html or order.html
-        if (window.location.pathname.includes('login.html') || window.location.pathname.includes('signin.html') || window.location.pathname.includes('Get_Started.html')) {
-          setTimeout(() => { window.location.href = 'order.html'; }, 1000);
+        if (window.location.pathname.includes('Get_Started.html')) {
+          setTimeout(() => { window.location.href = 'index.html'; }, 1000);
         }
       } catch (err) {
         Toast.error(err.message || 'Login failed.');
@@ -283,13 +358,11 @@
       if (password.length < 6) { Toast.error('Password must be at least 6 characters.'); return; }
       try {
         registerBtn.disabled = true; registerBtn.textContent = 'Creating account…';
-        const res = await Api.post('/auth/register', { name, email, phone, password });
-        session = res.user;
+        const res = await window.SharedAuth.registerCustomer(name, email, phone, password);
         closeModal();
         Toast.success(res.message || 'Account created!');
-        updateUI();
-        if (window.location.pathname.includes('login.html') || window.location.pathname.includes('signin.html') || window.location.pathname.includes('Get_Started.html')) {
-          setTimeout(() => { window.location.href = 'order.html'; }, 1000);
+        if (window.location.pathname.includes('Get_Started.html')) {
+          setTimeout(() => { window.location.href = 'index.html'; }, 1000);
         }
       } catch (err) {
         Toast.error(err.message || 'Registration failed.');
@@ -300,7 +373,6 @@
 
     // Intercept clicks on sign-in and sign-up links across the page navs
     document.addEventListener('click', e => {
-      // Find nearest link
       const link = e.target.closest('a');
       if (!link) return;
 
@@ -310,27 +382,24 @@
       // Check if it's a sign in link
       if (href.includes('login.html') || className.includes('btn-nav-signin')) {
         e.preventDefault();
-        // If mobile menu is open, close it
+        // Close menus/drawers if open
         const mobileMenu = document.getElementById('mobileMenu');
         if (mobileMenu && mobileMenu.classList.contains('open')) {
           mobileMenu.classList.remove('open');
         }
-        // Also close the rider mobile drawer
         const drawer = document.getElementById('mobileDrawer');
         if (drawer && drawer.classList.contains('open')) {
           drawer.classList.remove('open');
         }
         openModal('login');
       }
-      // Check if it's a sign up link
-      else if (href.includes('signin.html') || href.includes('signup.html') || href.includes('Get_Started.html') || className.includes('btn-nav-signup')) {
+      // Check if it's a sign up link (but NOT Get_Started.html)
+      else if ((href.includes('signin.html') || href.includes('signup.html') || className.includes('btn-nav-signup')) && !href.includes('Get_Started.html')) {
         e.preventDefault();
-        // If mobile menu is open, close it
         const mobileMenu = document.getElementById('mobileMenu');
         if (mobileMenu && mobileMenu.classList.contains('open')) {
           mobileMenu.classList.remove('open');
         }
-        // Also close the rider mobile drawer
         const drawer = document.getElementById('mobileDrawer');
         if (drawer && drawer.classList.contains('open')) {
           drawer.classList.remove('open');
@@ -345,15 +414,7 @@
     injectModalHTML();
     Toast.init();
     initListeners();
-
-    // Check if user is logged in
-    try {
-      const res = await Api.get('/auth/me');
-      session = res.user;
-    } catch (err) {
-      session = null;
-    }
-    updateUI();
+    await window.SharedAuth.checkSession();
   }
 
   // Run on page load
