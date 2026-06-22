@@ -355,18 +355,10 @@ const Products = {
     if (desc)  desc.textContent = r.description || `Fresh meals delivered from ${r.name} straight to your door.`;
     if (tagline) tagline.textContent = r.address || 'Fast • Fresh • Flavourful';
 
-    // TASK 2: Show restaurant image in the hero
-    const heroImageContainer = document.querySelector('.hero-image');
-    if (heroImageContainer && r.logo_url) {
-      // Remove any existing dynamic restaurant image
-      heroImageContainer.querySelector('.hero-restaurant-img')?.remove();
-
-      const img = document.createElement('img');
-      img.src = r.logo_url;
-      img.alt = r.name;
-      img.className = 'hero-restaurant-img';
-      // Insert as the first element so it's behind the floating cards
-      heroImageContainer.prepend(img);
+    // Set restaurant image as background image
+    const heroBg = document.querySelector('.hero-bg');
+    if (heroBg && r.logo_url) {
+      heroBg.style.backgroundImage = `url(${r.logo_url})`;
     }
   },
 
@@ -1224,36 +1216,62 @@ async function bootPage() {
   /* ── ORDER PAGE ───────────────────────────────────────────── */
   if (isOrderPage) {
     const params = new URLSearchParams(window.location.search);
-    State.restaurant_id = params.get('restaurant_id');
-    
-    if (State.restaurant_id) {
-      await Products.fetchRestaurant(State.restaurant_id);
+
+    // 1. Try URL first
+    let restaurantId = params.get('restaurant_id');
+
+    // 2. Fallback to last selected restaurant
+    if (!restaurantId) {
+      restaurantId = localStorage.getItem('zesto_restaurant_id');
     }
+
+    // 3. If still missing → redirect (prevents broken UI)
+    if (!restaurantId) {
+      window.location.href = "index.html"; // or your restaurant list page
+      return;
+    }
+
+    // 4. Set global state
+    State.restaurant_id = restaurantId;
+
+    // 5. Persist for cart/navigation
+    localStorage.setItem('zesto_restaurant_id', restaurantId);
+
+    // 6. Load restaurant data
+    await Products.fetchRestaurant(restaurantId);
 
     CategoryTabs.init();
     await Products.loadAll();
 
     // Event delegation for add-to-cart
     document.querySelector('.menu-main')?.addEventListener('click', e => {
-
       if (e.target.closest('.btn-add-cart')) {
         Cart.handleAddToCart(e);
       }
-
       else if (e.target.closest('.btn-order-minus')) {
         Cart.handleOrderMinus(e);
       }
-
       else if (e.target.closest('.btn-order-plus')) {
         Cart.handleOrderPlus(e);
       }
-
     });
   }
+
 
   /* ── CART PAGE ────────────────────────────────────────────── */
   if (isCartPage) {
     await Cart.initCartPage();
+
+    // ✅ RESTORE MENU LINK WITH RESTAURANT ID
+    const restaurantId = localStorage.getItem('zesto_restaurant_id');
+
+    const menuUrl = restaurantId
+      ? `order.html?restaurant_id=${restaurantId}`
+      : 'order.html';
+
+    document.querySelectorAll('a[href="order.html"]').forEach(link => {
+      link.href = menuUrl;
+    });
 
     // Event delegation for qty controls and remove buttons
     const listEl = document.getElementById('cartItemsList');
