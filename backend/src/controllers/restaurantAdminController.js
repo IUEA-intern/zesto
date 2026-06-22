@@ -436,6 +436,11 @@ async function updateSettings(req, res) {
 
     const { name, description, phone, email, address, logo_url, latitude, longitude } = req.body;
 
+    let updatedLogoUrl = null;
+    if (req.file && req.file.filename) {
+      updatedLogoUrl = `/uploads/restaurants/${rid}/${req.file.filename}`;
+    }
+
     const sets   = [];
     const params = [];
     if (name        != null) { sets.push('name=?');        params.push(name); }
@@ -443,7 +448,8 @@ async function updateSettings(req, res) {
     if (phone       != null) { sets.push('phone=?');       params.push(phone); }
     if (email       != null) { sets.push('email=?');       params.push(email); }
     if (address     != null) { sets.push('address=?');     params.push(address); }
-    if (logo_url    != null) { sets.push('logo_url=?');    params.push(logo_url); }
+    if (updatedLogoUrl != null) { sets.push('logo_url=?'); params.push(updatedLogoUrl); }
+    else if (logo_url != null) { sets.push('logo_url=?'); params.push(logo_url); }
     if (latitude    != null) { sets.push('latitude=?');    params.push(latitude); }
     if (longitude   != null) { sets.push('longitude=?');   params.push(longitude); }
 
