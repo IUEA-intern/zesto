@@ -13,16 +13,27 @@ const { query } = require('../config/db');
 /* ── GET /api/products ─────────────────────────────────────── */
 router.get('/', async (req, res) => {
   try {
-    const { category } = req.query;
-    let sql    = 'SELECT * FROM products WHERE is_active = 1';
+    const { category, restaurant_id } = req.query;
+    let sql = `
+      SELECT
+        p.*,
+        COALESCE(c.slug, 'other') AS category
+      FROM products p
+      LEFT JOIN categories c ON c.category_id = p.category_id
+      WHERE p.is_active = 1`;
     const params = [];
 
     if (category) {
-      sql += ' AND category = ?';
+      sql += ' AND c.slug = ?';
       params.push(category);
     }
 
-    sql += ' ORDER BY category, product_id';
+    if (restaurant_id) {
+      sql += ' AND p.restaurant_id = ?';
+      params.push(parseInt(restaurant_id));
+    }
+
+    sql += ' ORDER BY category, p.product_id';
 
     const products = await query(sql, params);
     return res.json({ success: true, data: products });
@@ -40,8 +51,13 @@ router.get('/:id', async (req, res) => {
       return res.status(400).json({ success: false, message: 'Invalid product ID.' });
     }
 
-    const rows = await query(
-      'SELECT * FROM products WHERE product_id = ? AND is_active = 1',
+    const rows = await query(`
+      SELECT
+        p.*,
+        COALESCE(c.slug, 'other') AS category
+      FROM products p
+      LEFT JOIN categories c ON c.category_id = p.category_id
+      WHERE p.product_id = ? AND p.is_active = 1`,
       [id]
     );
 

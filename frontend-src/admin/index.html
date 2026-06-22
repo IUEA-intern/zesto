@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Zesto Admin</title>
+  <title>Zesto Super Admin</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Knewave&display=swap" rel="stylesheet"/>
@@ -14,10 +14,10 @@
     <!-- ── Toast ─────────────────────────────────────────────────── -->
     <div id="toastContainer" class="toast-container" aria-live="polite"></div>
 
-    <!-- ── Auth Gate (shown when not logged in) ──────────────────── -->
+    <!-- ── Auth Gate ─────────────────────────────────────────────── -->
     <div id="authGate" class="auth-gate hidden">
     <div class="auth-gate-card">
-        <div class="auth-gate-logo"><span class="brand-logo">Zes<span class="brand-accent">to</span></span> <span class="admin-badge">Admin</span></div>
+        <div class="auth-gate-logo"><span class="brand-logo">Zes<span class="brand-accent">to</span></span> <span class="admin-badge">Super Admin</span></div>
         <h2>Sign in to continue</h2>
         <div class="form-group"><label>Email</label><input type="email" id="agEmail" placeholder="admin@zesto.ug"/></div>
         <div class="form-group"><label>Password</label><input type="password" id="agPassword" placeholder="••••••••"/></div>
@@ -30,24 +30,30 @@
 
     <!-- Sidebar -->
     <aside class="sidebar" id="sidebar">
+        <button class="sidebar-close" id="sidebarClose">&times;</button>
         <div class="sidebar-brand">
         <span class="brand-logo">Zes<span class="brand-accent">to</span></span>
-        <span class="admin-badge">Admin</span>
+        <span class="admin-badge">Super Admin</span>
         </div>
 
         <nav class="sidebar-nav">
         <button class="nav-item active" data-page="dashboard">
             <span class="nav-icon">📊</span><span>Dashboard</span>
         </button>
-        <button class="nav-item" data-page="orders">
-            <span class="nav-icon">📦</span><span>Orders</span>
-            <span class="nav-badge" id="activeOrdersBadge">0</span>
+        <button class="nav-item" data-page="restaurants">
+            <span class="nav-icon">🏪</span><span>Restaurants</span>
+            <span class="nav-badge hidden" id="pendingRestaurantsBadge">0</span>
         </button>
-        <button class="nav-item" data-page="products">
-            <span class="nav-icon">🍔</span><span>Products</span>
+        <button class="nav-item" data-page="riders">
+            <span class="nav-icon">🏍️</span><span>Riders</span>
+            <span class="nav-badge hidden" id="pendingRidersBadge">0</span>
         </button>
         <button class="nav-item" data-page="users">
             <span class="nav-icon">👥</span><span>Users</span>
+        </button>
+        <button class="nav-item" data-page="orders">
+            <span class="nav-icon">📦</span><span>Orders</span>
+            <span class="nav-badge hidden" id="activeOrdersBadge">0</span>
         </button>
         <button class="nav-item" data-page="payments">
             <span class="nav-icon">💳</span><span>Payments</span>
@@ -58,6 +64,9 @@
         <button class="nav-item" data-page="audit">
             <span class="nav-icon">🔍</span><span>Audit Logs</span>
         </button>
+        <button class="nav-item" data-page="settings">
+            <span class="nav-icon">⚙️</span><span>Platform Settings</span>
+        </button>
         </nav>
 
         <div class="sidebar-footer">
@@ -65,6 +74,7 @@
         <button class="btn-logout-admin" id="adminLogout">↩ Sign Out</button>
         </div>
     </aside>
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
     <!-- Main content -->
     <div class="main-wrap">
@@ -84,9 +94,49 @@
 
         <!-- ── DASHBOARD PAGE ─────────────────────────────────── -->
         <section id="page-dashboard" class="page active">
-
-            <!-- KPI Cards -->
             <div class="kpi-grid">
+            <div class="kpi-card">
+                <div class="kpi-icon">🏪</div>
+                <div class="kpi-body">
+                <div class="kpi-label">Total Restaurants</div>
+                <div class="kpi-value" id="kpiRestaurants">—</div>
+                </div>
+            </div>
+            <div class="kpi-card kpi-warn">
+                <div class="kpi-icon">⏳</div>
+                <div class="kpi-body">
+                <div class="kpi-label">Pending Restaurants</div>
+                <div class="kpi-value" id="kpiPendingRestaurants">—</div>
+                </div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-icon">🏍️</div>
+                <div class="kpi-body">
+                <div class="kpi-label">Total Riders</div>
+                <div class="kpi-value" id="kpiRiders">—</div>
+                </div>
+            </div>
+            <div class="kpi-card kpi-warn">
+                <div class="kpi-icon">⏳</div>
+                <div class="kpi-body">
+                <div class="kpi-label">Pending Riders</div>
+                <div class="kpi-value" id="kpiPendingRiders">—</div>
+                </div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-icon">👥</div>
+                <div class="kpi-body">
+                <div class="kpi-label">Total Customers</div>
+                <div class="kpi-value" id="kpiCustomers">—</div>
+                </div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-icon">📦</div>
+                <div class="kpi-body">
+                <div class="kpi-label">Total Orders</div>
+                <div class="kpi-value" id="kpiOrders">—</div>
+                </div>
+            </div>
             <div class="kpi-card">
                 <div class="kpi-icon">💰</div>
                 <div class="kpi-body">
@@ -94,44 +144,22 @@
                 <div class="kpi-value" id="kpiRevenue">—</div>
                 </div>
             </div>
-            <div class="kpi-card">
-                <div class="kpi-icon">📦</div>
-                <div class="kpi-body">
-                <div class="kpi-label">Orders Today</div>
-                <div class="kpi-value" id="kpiOrdersToday">—</div>
-                </div>
-            </div>
-            <div class="kpi-card">
-                <div class="kpi-icon">🔥</div>
-                <div class="kpi-body">
-                <div class="kpi-label">Active Orders</div>
-                <div class="kpi-value" id="kpiActive">—</div>
-                </div>
-            </div>
             <div class="kpi-card kpi-warn">
-                <div class="kpi-icon">⚠️</div>
+                <div class="kpi-icon">❌</div>
                 <div class="kpi-body">
-                <div class="kpi-label">Failed Payments Today</div>
+                <div class="kpi-label">Failed Payments</div>
                 <div class="kpi-value" id="kpiFailed">—</div>
                 </div>
             </div>
             <div class="kpi-card">
-                <div class="kpi-icon">👥</div>
+                <div class="kpi-icon">🏦</div>
                 <div class="kpi-body">
-                <div class="kpi-label">Total Customers</div>
-                <div class="kpi-value" id="kpiUsers">—</div>
-                </div>
-            </div>
-            <div class="kpi-card kpi-warn">
-                <div class="kpi-icon">📉</div>
-                <div class="kpi-body">
-                <div class="kpi-label">Low Stock Items</div>
-                <div class="kpi-value" id="kpiLowStock">—</div>
+                <div class="kpi-label">Platform Commission</div>
+                <div class="kpi-value" id="kpiCommission">—</div>
                 </div>
             </div>
             </div>
 
-            <!-- Live feed + top products -->
             <div class="dash-grid">
             <div class="dash-card">
                 <div class="dash-card-header">
@@ -142,17 +170,102 @@
                 <div class="feed-empty">Waiting for orders…</div>
                 </div>
             </div>
-
             <div class="dash-card">
-                <div class="dash-card-header"><h3>🏆 Top Products (30 days)</h3></div>
-                <div id="topProductsList" class="top-products">
+                <div class="dash-card-header"><h3>🏆 Top Restaurants (30 days)</h3></div>
+                <div id="topRestaurantsList" class="top-products">
                 <div class="skeleton-row"></div>
                 <div class="skeleton-row"></div>
                 <div class="skeleton-row"></div>
                 </div>
             </div>
             </div>
+        </section>
 
+        <!-- ── RESTAURANTS PAGE ───────────────────────────────── -->
+        <section id="page-restaurants" class="page">
+            <div class="page-toolbar">
+            <div class="filter-tabs">
+                <button class="filter-tab active" data-status="">All</button>
+                <button class="filter-tab" data-status="pending">Pending</button>
+                <button class="filter-tab" data-status="approved">Approved</button>
+                <button class="filter-tab" data-status="suspended">Suspended</button>
+            </div>
+            </div>
+            <div class="table-card">
+            <table class="data-table">
+                <thead>
+                <tr>
+                    <th>Restaurant</th>
+                    <th>Owner</th>
+                    <th>Contact</th>
+                    <th>Orders</th>
+                    <th>Revenue</th>
+                    <th>Status</th>
+                    <th>Joined</th>
+                    <th>Actions</th>
+                </tr>
+                </thead>
+                <tbody id="restaurantsBody">
+                <tr><td colspan="8" class="table-loading">Loading restaurants…</td></tr>
+                </tbody>
+            </table>
+            </div>
+            <div class="pagination" id="restaurantsPagination"></div>
+        </section>
+
+        <!-- ── RIDERS PAGE ────────────────────────────────────── -->
+        <section id="page-riders" class="page">
+            <div class="page-toolbar">
+            <div class="filter-tabs">
+                <button class="filter-tab active" data-status="">All</button>
+                <button class="filter-tab" data-status="pending">Pending</button>
+                <button class="filter-tab" data-status="approved">Approved</button>
+                <button class="filter-tab" data-status="suspended">Suspended</button>
+            </div>
+            </div>
+            <div class="table-card">
+            <table class="data-table">
+                <thead>
+                <tr>
+                    <th>Rider</th>
+                    <th>Vehicle</th>
+                    <th>Vehicle #</th>
+                    <th>Deliveries ✅</th>
+                    <th>Deliveries ❌</th>
+                    <th>Available</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+                </thead>
+                <tbody id="ridersBody">
+                <tr><td colspan="8" class="table-loading">Loading riders…</td></tr>
+                </tbody>
+            </table>
+            </div>
+            <div class="pagination" id="ridersPagination"></div>
+        </section>
+
+        <!-- ── USERS PAGE ─────────────────────────────────────── -->
+        <section id="page-users" class="page">
+            <div class="page-toolbar">
+            <div class="filter-tabs">
+                <button class="filter-tab active" data-role="">All</button>
+                <button class="filter-tab" data-role="customer">Customers</button>
+                <button class="filter-tab" data-role="restaurant_admin">Restaurant Admins</button>
+                <button class="filter-tab" data-role="rider">Riders</button>
+                <button class="filter-tab" data-role="super_admin">Super Admins</button>
+            </div>
+            </div>
+            <div class="table-card">
+            <table class="data-table">
+                <thead>
+                <tr><th>ID</th><th>Name</th><th>Email</th><th>Phone</th><th>Role</th><th>Orders</th><th>Joined</th></tr>
+                </thead>
+                <tbody id="usersBody">
+                <tr><td colspan="7" class="table-loading">Loading users…</td></tr>
+                </tbody>
+            </table>
+            </div>
         </section>
 
         <!-- ── ORDERS PAGE ────────────────────────────────────── -->
@@ -165,17 +278,16 @@
                 <button class="filter-tab" data-status="preparing">Preparing</button>
                 <button class="filter-tab" data-status="out_for_delivery">Out for Delivery</button>
                 <button class="filter-tab" data-status="delivered">Delivered</button>
-                <button class="filter-tab" data-status="cancelled">Cancelled</button>
+                <!-- <button class="filter-tab" data-status="cancelled">Cancelled</button> -->
             </div>
             </div>
-
             <div class="table-card">
             <table class="data-table" id="ordersTable">
                 <thead>
                 <tr>
                     <th>Order #</th>
                     <th>Customer</th>
-                    <th>Items</th>
+                    <th>Restaurant</th>
                     <th>Total</th>
                     <th>Payment</th>
                     <th>Status</th>
@@ -189,46 +301,6 @@
             </table>
             </div>
             <div class="pagination" id="ordersPagination"></div>
-        </section>
-
-        <!-- ── PRODUCTS PAGE ──────────────────────────────────── -->
-        <section id="page-products" class="page">
-            <div class="page-toolbar">
-            <button class="btn-primary" id="addProductBtn">+ Add Product</button>
-            </div>
-
-            <div class="table-card">
-            <table class="data-table" id="productsTable">
-                <thead>
-                <tr>
-                    <th>Image</th>
-                    <th>Name</th>
-                    <th>Category</th>
-                    <th>Price</th>
-                    <th>Stock</th>
-                    <th>Status</th>
-                    <th>Actions</th>
-                </tr>
-                </thead>
-                <tbody id="productsBody">
-                <tr><td colspan="7" class="table-loading">Loading products…</td></tr>
-                </tbody>
-            </table>
-            </div>
-        </section>
-
-        <!-- ── USERS PAGE ─────────────────────────────────────── -->
-        <section id="page-users" class="page">
-            <div class="table-card">
-            <table class="data-table">
-                <thead>
-                <tr><th>ID</th><th>Name</th><th>Email</th><th>Phone</th><th>Role</th><th>Orders</th><th>Joined</th></tr>
-                </thead>
-                <tbody id="usersBody">
-                <tr><td colspan="7" class="table-loading">Loading users…</td></tr>
-                </tbody>
-            </table>
-            </div>
         </section>
 
         <!-- ── PAYMENTS PAGE ──────────────────────────────────── -->
@@ -247,24 +319,44 @@
 
         <!-- ── ANALYTICS PAGE ─────────────────────────────────── -->
         <section id="page-analytics" class="page">
+            <div class="page-toolbar">
+            <div class="filter-tabs">
+                <button class="filter-tab active" data-days="30">30 Days</button>
+                <button class="filter-tab" data-days="7">7 Days</button>
+                <button class="filter-tab" data-days="90">90 Days</button>
+            </div>
+            </div>
             <div class="analytics-grid">
             <div class="dash-card analytics-chart-card">
-                <div class="dash-card-header"><h3>📈 Daily Revenue (30 days)</h3></div>
+                <div class="dash-card-header"><h3>📈 Orders Per Day</h3></div>
                 <canvas id="revenueChart" height="260"></canvas>
             </div>
             <div class="dash-card">
-                <div class="dash-card-header"><h3>🏆 Top Selling Products</h3></div>
-                <div id="analyticsTopProducts"></div>
+                <div class="dash-card-header"><h3>🏆 Top Restaurants</h3></div>
+                <div id="analyticsTopRestaurants" class="top-products"></div>
+            </div>
+            </div>
+            <div class="dash-grid" style="margin-top:20px">
+            <div class="dash-card">
+                <div class="dash-card-header"><h3>💰 Revenue by Restaurant</h3></div>
+                <div id="revenueByRestaurant" class="top-products"></div>
+            </div>
+            <div class="dash-card">
+                <div class="dash-card-header"><h3>🚴 Delivery Stats</h3></div>
+                <div id="deliveryStats" style="padding:20px;"></div>
             </div>
             </div>
         </section>
 
         <!-- ── AUDIT LOGS PAGE ────────────────────────────────── -->
         <section id="page-audit" class="page">
+            <div class="page-toolbar">
+            <input type="text" id="auditSearch" placeholder="Filter by action…" style="padding:8px 14px;border:1.5px solid var(--border);border-radius:99px;font-size:.84rem;outline:none;min-width:220px;"/>
+            </div>
             <div class="table-card">
             <table class="data-table">
                 <thead>
-                <tr><th>Time</th><th>Actor</th><th>Action</th><th>Entity</th><th>Notes</th><th>IP</th></tr>
+                <tr><th>Time</th><th>Actor</th><th>Role</th><th>Action</th><th>Entity</th><th>IP</th></tr>
                 </thead>
                 <tbody id="auditBody">
                 <tr><td colspan="6" class="table-loading">Loading logs…</td></tr>
@@ -273,41 +365,89 @@
             </div>
         </section>
 
+        <!-- ── PLATFORM SETTINGS PAGE ─────────────────────────── -->
+        <section id="page-settings" class="page">
+            <div style="max-width:760px; margin: 0 auto;">
+
+            <!-- General -->
+            <div class="dash-card" style="margin-bottom:20px;">
+                <div class="dash-card-header"><h3>🏢 General</h3></div>
+                <div style="padding:20px;">
+                <div class="form-row">
+                    <div class="form-group"><label>Platform Name</label><input type="text" id="set_platform_name"/></div>
+                    <div class="form-group"><label>Support Email</label><input type="email" id="set_support_email"/></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>Support Phone</label><input type="text" id="set_support_phone"/></div>
+                    <div class="form-group"><label>Currency</label><input type="text" id="set_currency"/></div>
+                </div>
+                </div>
+            </div>
+
+            <!-- Commission -->
+            <div class="dash-card" style="margin-bottom:20px;">
+                <div class="dash-card-header"><h3>💸 Commission</h3></div>
+                <div style="padding:20px;">
+                <div class="form-row">
+                    <div class="form-group"><label>Restaurant Commission %</label><input type="number" id="set_restaurant_commission" min="0" max="100" step="0.5"/></div>
+                    <div class="form-group"><label>Delivery Commission %</label><input type="number" id="set_delivery_commission" min="0" max="100" step="0.5"/></div>
+                </div>
+                </div>
+            </div>
+
+            <!-- Delivery -->
+            <div class="dash-card" style="margin-bottom:20px;">
+                <div class="dash-card-header"><h3>🚴 Delivery</h3></div>
+                <div style="padding:20px;">
+                <div class="form-row">
+                    <div class="form-group"><label>Base Delivery Fee (UGX)</label><input type="number" id="set_base_delivery_fee" min="0"/></div>
+                    <div class="form-group"><label>Per KM Fee (UGX)</label><input type="number" id="set_per_km_fee" min="0"/></div>
+                </div>
+                <div class="form-group" style="max-width:280px;"><label>Max Delivery Distance (km)</label><input type="number" id="set_max_delivery_distance" min="1"/></div>
+                </div>
+            </div>
+
+            <!-- Security -->
+            <div class="dash-card" style="margin-bottom:20px;">
+                <div class="dash-card-header"><h3>🔒 Security</h3></div>
+                <div style="padding:20px;">
+                <div class="form-row">
+                    <div class="form-group"><label>JWT Expiration</label><input type="text" id="set_jwt_expiration" placeholder="e.g. 7d"/></div>
+                    <div class="form-group"><label>Session Timeout (minutes)</label><input type="number" id="set_session_timeout" min="1"/></div>
+                </div>
+                </div>
+            </div>
+
+            <!-- Audit -->
+            <div class="dash-card" style="margin-bottom:24px;">
+                <div class="dash-card-header"><h3>📋 Audit Logs</h3></div>
+                <div style="padding:20px;">
+                <div class="form-row">
+                    <div class="form-group"><label>Enable Audit Logs</label>
+                    <select id="set_audit_logs_enabled">
+                        <option value="1">Enabled</option>
+                        <option value="0">Disabled</option>
+                    </select>
+                    </div>
+                    <div class="form-group"><label>Retention Period (days)</label><input type="number" id="set_audit_retention_days" min="1"/></div>
+                </div>
+                </div>
+            </div>
+
+            <button class="btn-primary" id="saveSettingsBtn" style="min-width:160px;">💾 Save Settings</button>
+            </div>
+        </section>
+
         </main>
     </div>
     </div>
 
-    <!-- ── Product Modal ─────────────────────────────────────────── -->
-    <div id="productModal" class="modal-overlay hidden">
+    <!-- ── Restaurant Detail Modal ───────────────────────────────── -->
+    <div id="restaurantModal" class="modal-overlay hidden">
     <div class="modal-card wide-card">
-        <button class="modal-close" id="closeProductModal">&times;</button>
-        <h2 class="modal-title" id="productModalTitle">Add Product</h2>
-        <input type="hidden" id="editProductId"/>
-        <div class="form-row">
-        <div class="form-group"><label>Name *</label><input type="text" id="pName" placeholder="Product name"/></div>
-        <div class="form-group"><label>Category</label>
-            <select id="pCategory">
-            <option value="1">🍔 Food</option>
-            <option value="2">🥤 Drinks</option>
-            <option value="3">🍰 Desserts</option>
-            <option value="4">🎁 Combos</option>
-            </select>
-        </div>
-        </div>
-        <div class="form-row">
-        <div class="form-group"><label>Type</label><input type="text" id="pType" placeholder="e.g. burger, pizza"/></div>
-        <div class="form-group"><label>Price (UGX) *</label><input type="number" id="pPrice" min="0" placeholder="0"/></div>
-        </div>
-        <div class="form-row">
-        <div class="form-group"><label>Stock</label><input type="number" id="pStock" min="0" placeholder="0"/></div>
-        <div class="form-group"><label>Image URL</label><input type="url" id="pImageUrl" placeholder="https://…"/></div>
-        </div>
-        <div class="form-group"><label>Description</label><textarea id="pDescription" rows="3" placeholder="Describe the product…"></textarea></div>
-        <div class="form-check-row">
-        <label class="check-label"><input type="checkbox" id="pFeatured"/> Featured</label>
-        <label class="check-label"><input type="checkbox" id="pActive" checked/> Active</label>
-        </div>
-        <button class="btn-primary full-w" id="saveProductBtn">Save Product</button>
+        <button class="modal-close" id="closeRestaurantModal">&times;</button>
+        <h2 class="modal-title" id="restaurantModalTitle">Restaurant Details</h2>
+        <div id="restaurantModalContent"></div>
     </div>
     </div>
 

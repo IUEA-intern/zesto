@@ -34,22 +34,27 @@ app.use(cookieParser())
 
 app.use(express.static(frontendPath))
 
-app.use('/api/register', require('./routes/register'))
-app.use('/api/search', require('./routes/search'))
-app.use('/api/signin', require('./routes/signin'))
-app.use('/api/investors', require('./routes/investors'))
-app.use('/api/products', require('./routes/products'))
-app.use('/api/cart', require('./routes/cart'))
-app.use('/api/auth', require('./routes/auth'))
-app.use('/api/orders', require('./routes/orders'))
-app.use('/api/payments', require('./routes/payments'))
-app.use('/api/admin', require('./routes/admin'))
+// ── Existing routes (unchanged) ───────────────────────────────
+app.use('/api/register',    require('./routes/register'))
+app.use('/api/search',      require('./routes/search'))
+app.use('/api/signin',      require('./routes/signin'))
+app.use('/api/investors',   require('./routes/investors'))
+app.use('/api/products',    require('./routes/products'))
+app.use('/api/restaurants', require('./routes/restaurants'))
+app.use('/api/cart',        require('./routes/cart'))
+app.use('/api/auth',        require('./routes/auth'))
+app.use('/api/orders',      require('./routes/orders'))
+app.use('/api/payments',    require('./routes/payments'))
+app.use('/api/admin',       require('./routes/admin'))          // legacy admin kept intact
+
+// ── New marketplace routes ────────────────────────────────────
+app.use('/api/super-admin', require('./routes/superAdmin'))     // super_admin
+app.use('/api/restaurant',  require('./routes/restaurantAdmin')) // restaurant_admin
 
 app.use((req, res) => {
   if (req.method === 'GET' && req.accepts('html')) {
     return res.sendFile(path.join(frontendPath, 'order.html'))
   }
-
   return res.status(404).json({ error: 'Route not found' })
 })
 

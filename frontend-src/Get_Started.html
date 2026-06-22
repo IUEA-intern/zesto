@@ -9,6 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Knewave&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="./css/index.css"/>
 <link rel="stylesheet" href="./css/get_started.css"/>
+<link rel="stylesheet" href="css/auth-modal.css"/>
 </head>
 <body>
 
@@ -211,22 +212,22 @@
         <div class="gs-input-row">
           <div class="gs-field">
             <label class="gs-label">First name <span>*</span></label>
-            <input class="gs-input" type="text" placeholder="Mohamed" required/>
+            <input class="gs-input" id="firstName" type="text" placeholder="Mohamed" required/>
           </div>
           <div class="gs-field">
             <label class="gs-label">Last name <span>*</span></label>
-            <input class="gs-input" type="text" placeholder="Diallo" required/>
+            <input class="gs-input" id="lastName" type="text" placeholder="Diallo" required/>
           </div>
         </div>
 
         <div class="gs-field">
           <label class="gs-label">Email address <span>*</span></label>
-          <input class="gs-input" type="email" placeholder="you@example.com" required/>
+          <input class="gs-input" id="emailInput" type="email" placeholder="you@example.com" required/>
         </div>
 
         <div class="gs-field">
           <label class="gs-label">Phone number <span>*</span></label>
-          <input class="gs-input" type="tel" placeholder="+256 700 000 000" required/>
+          <input class="gs-input" id="phoneInput" type="tel" placeholder="+256 700 000 000" required/>
           <div class="gs-hint">Used to receive delivery SMS updates.</div>
         </div>
 
@@ -234,6 +235,34 @@
         <div class="gs-field" id="business-field" style="display:none;">
           <label class="gs-label" id="business-label">Business name <span>*</span></label>
           <input class="gs-input" id="business-input" type="text" placeholder="e.g. Burger Shack"/>
+        </div>
+
+        <!-- Restaurant specific fields -->
+        <div class="gs-field" id="restaurant-address-field" style="display:none; flex-direction: column;">
+          <label class="gs-label">Business Address <span>*</span></label>
+          <input class="gs-input" id="restaurant-address-input" type="text" placeholder="e.g. Plot 12, Kampala Road"/>
+        </div>
+        <div class="gs-field" id="restaurant-desc-field" style="display:none; flex-direction: column;">
+          <label class="gs-label">Business Description</label>
+          <textarea class="gs-input" id="restaurant-desc-input" rows="2" placeholder="e.g. Burgers, fries, milkshakes..."></textarea>
+        </div>
+
+        <!-- Rider specific fields -->
+        <div class="gs-field" id="rider-vehicle-type-field" style="display:none; flex-direction: column;">
+          <label class="gs-label">Vehicle Type <span>*</span></label>
+          <select class="gs-input" id="rider-vehicle-type-input">
+            <option value="boda_boda">🛵 Boda Boda (Motorcycle)</option>
+            <option value="bicycle">🚲 Bicycle</option>
+            <option value="car">🚗 Car</option>
+          </select>
+        </div>
+        <div class="gs-field" id="rider-vehicle-num-field" style="display:none; flex-direction: column;">
+          <label class="gs-label">Vehicle Registration Number <span>*</span></label>
+          <input class="gs-input" id="rider-vehicle-num-input" type="text" placeholder="e.g. UEE 123X"/>
+        </div>
+        <div class="gs-field" id="rider-national-id-field" style="display:none; flex-direction: column;">
+          <label class="gs-label">National ID Number <span>*</span></label>
+          <input class="gs-input" id="rider-national-id-input" type="text" placeholder="e.g. CM010203040506"/>
         </div>
 
         <div class="gs-field">
@@ -254,7 +283,7 @@
         </div>
 
         <label class="gs-checkbox">
-          <input type="checkbox" required/>
+          <input type="checkbox" id="termsCheck" required/>
           <span class="gs-checkbox-label">I agree to Zesto's <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>. <span style="color:var(--or);">*</span></span>
         </label>
 
@@ -449,5 +478,6 @@ function togglePassword() {
 }
 </script>
 <script src="./script/get-started.js"></script>
+<script src="script/auth-shared.js"></script>
 </body>
 </html>

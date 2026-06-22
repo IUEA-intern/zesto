@@ -27,6 +27,8 @@ const State = {
   cartItems: [],          // [{ product_id, qty }] — mirrors localStorage
   cartServerIds: new Map(), // product_id → cart_id for server sync
   intent:    null,        // 'checkout' when login is required before completing checkout
+  restaurant_id: null,
+  currentRestaurant: null,
 };
 
 /* ============================================================
@@ -49,7 +51,34 @@ const Utils = {
 
   /** Emoji icon per category */
   categoryIcon(cat) {
-    return { food: '🍔', drink: '🥤', dessert: '🍰', other: '🎁' }[cat] || '🍽️';
+    const key = String(cat || '').toLowerCase();
+    return {
+      food: '🍔',
+      drink: '🥤',
+      drinks: '🥤',
+      dessert: '🍰',
+      desserts: '🍰',
+      other: '🎁',
+      combos: '🎁',
+    }[key] || '🍽️';
+  },
+
+  normalizeCategory(cat) {
+    const key = String(cat || '').toLowerCase().trim();
+    if (key === 'drinks') return 'drink';
+    if (key === 'desserts') return 'dessert';
+    if (key === 'combos') return 'other';
+    if (['food', 'drink', 'dessert', 'other'].includes(key)) return key;
+    return 'other';
+  },
+
+  normalizeCategory(cat) {
+    const key = String(cat || '').toLowerCase().trim();
+    if (key === 'drinks') return 'drink';
+    if (key === 'desserts') return 'dessert';
+    if (key === 'combos') return 'other';
+    if (['food', 'drink', 'dessert', 'other'].includes(key)) return key;
+    return 'other';
   },
 
   /** Escape HTML to prevent XSS when injecting user-supplied strings */
@@ -271,7 +300,7 @@ const Products = {
   buildCard(p) {
     const imgTag = p.image_url
       ? `<img src="${Utils.escape(p.image_url)}" alt="${Utils.escape(p.name)}" class="product-card-img" loading="lazy" />`
-      : `<div class="product-card-img-placeholder">${Utils.categoryIcon(p.category)}</div>`;
+      : `<div class="product-card-img-placeholder">${Utils.categoryIcon(Utils.normalizeCategory(p.category))}</div>`;
 
     const outOfStock = p.stock < 1;
     const stockBadge = outOfStock ? `<span class="stock-badge">Out of stock</span>` : '';
@@ -304,6 +333,43 @@ const Products = {
     gridEl.innerHTML = items.map(p => this.buildCard(p)).join('');
   },
 
+  /** Fetch restaurant details and update Hero */
+  async fetchRestaurant(id) {
+    try {
+      const res = await Api.get(`/restaurants/${id}`);
+      State.currentRestaurant = res.data;
+      this.updateHero(res.data);
+    } catch (err) {
+      console.warn('[fetchRestaurant]', err);
+      Toast.error('Could not load restaurant details.');
+    }
+  },
+
+  /** Update Hero section with restaurant info */
+  updateHero(r) {
+    const title = document.querySelector('.hero-title');
+    const desc  = document.querySelector('.hero-desc');
+    const tagline = document.querySelector('.hero-tagline');
+    
+    if (title) title.innerHTML = `Order from <span class="hero-accent">${Utils.escape(r.name)}</span>`;
+    if (desc)  desc.textContent = r.description || `Fresh meals delivered from ${r.name} straight to your door.`;
+    if (tagline) tagline.textContent = r.address || 'Fast • Fresh • Flavourful';
+
+    // TASK 2: Show restaurant image in the hero
+    const heroImageContainer = document.querySelector('.hero-image');
+    if (heroImageContainer && r.logo_url) {
+      // Remove any existing dynamic restaurant image
+      heroImageContainer.querySelector('.hero-restaurant-img')?.remove();
+
+      const img = document.createElement('img');
+      img.src = r.logo_url;
+      img.alt = r.name;
+      img.className = 'hero-restaurant-img';
+      // Insert as the first element so it's behind the floating cards
+      heroImageContainer.prepend(img);
+    }
+  },
+
   /** Fetch all products, populate state map, render all 4 grids */
   async loadAll() {
     const grids = {
@@ -317,7 +383,11 @@ const Products = {
     Object.values(grids).forEach(g => g && this.renderSkeletons(g));
 
     try {
-      const res = await Api.get('/products');
+      let url = '/products';
+      if (State.restaurant_id) {
+        url += `?restaurant_id=${State.restaurant_id}`;
+      }
+      const res = await Api.get(url);
       const all = res.data || [];
 
       // Populate global products map
@@ -326,8 +396,8 @@ const Products = {
       // Group by category
       const grouped = { food: [], drink: [], dessert: [], other: [] };
       all.forEach(p => {
-        if (grouped[p.category]) grouped[p.category].push(p);
-        else grouped.other.push(p);
+        const normalized = Utils.normalizeCategory(p.category);
+        grouped[normalized].push(p);
       });
 
       Object.entries(grouped).forEach(([cat, items]) => {
@@ -404,7 +474,7 @@ const Cart = {
   },
 
   /** On the order page, visually mark "added" buttons for items already in cart */
-  refreshAddButtons() {``
+  refreshAddButtons() {
     document.querySelectorAll('.product-card').forEach(card => {
       const productId = parseInt(card.dataset.id);
 
@@ -493,14 +563,50 @@ const Cart = {
     this.refreshAddButtons();
   },
 
+  /** Check if product belongs to the current restaurant or if cart is empty/same restaurant */
+  async isCartSafe(productId) {
+    const items = LocalCart.load();
+    if (!items.length) return true;
+
+    const p = State.products.get(productId);
+    if (!p) return true;
+
+    // Check existing items in cart
+    const firstItemId = items[0].product_id;
+    let firstItem = State.products.get(firstItemId);
+    
+    if (!firstItem) {
+        // Fetch it if missing
+        try {
+            const res = await Api.get(`/products/${firstItemId}`);
+            firstItem = res.data;
+            State.products.set(firstItemId, firstItem);
+        } catch (err) {
+            return true;
+        }
+    }
+
+    if (firstItem.restaurant_id !== p.restaurant_id) {
+        if (confirm("You can only order from one restaurant at a time. Clear your cart and start a new order?")) {
+            this.clearAll();
+            return true;
+        }
+        return false;
+    }
+    return true;
+  },
+
   /** Handle add-to-cart click from the product grid (event delegation) */
-  handleAddToCart(e) {
+  async handleAddToCart(e) {
     const btn = e.target.closest('.btn-add-cart');
     if (!btn || btn.disabled) return;
 
     const productId = parseInt(btn.dataset.id);
     const product   = State.products.get(productId);
     if (!product) return;
+
+    const safe = await this.isCartSafe(productId);
+    if (!safe) return;
 
     LocalCart.add(productId, 1);
     this.updateBadge();
@@ -1117,6 +1223,13 @@ async function bootPage() {
 
   /* ── ORDER PAGE ───────────────────────────────────────────── */
   if (isOrderPage) {
+    const params = new URLSearchParams(window.location.search);
+    State.restaurant_id = params.get('restaurant_id');
+    
+    if (State.restaurant_id) {
+      await Products.fetchRestaurant(State.restaurant_id);
+    }
+
     CategoryTabs.init();
     await Products.loadAll();
 

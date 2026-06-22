@@ -105,15 +105,43 @@ function goToStep(step) {
     const bf    = document.getElementById('business-field');
     const bLbl  = document.getElementById('business-label');
     const bInp  = document.getElementById('business-input');
+    
+    const restAddr = document.getElementById('restaurant-address-field');
+    const restDesc = document.getElementById('restaurant-desc-field');
+    const restAddrInp = document.getElementById('restaurant-address-input');
 
-    if (d.businessFieldVisible) {
+    const riderVehType = document.getElementById('rider-vehicle-type-field');
+    const riderVehNum = document.getElementById('rider-vehicle-num-field');
+    const riderNatId = document.getElementById('rider-national-id-field');
+    const riderVehNumInp = document.getElementById('rider-vehicle-num-input');
+    const riderNatIdInp = document.getElementById('rider-national-id-input');
+
+    // Reset visibility and required state
+    bf.style.display = 'none';
+    bInp.required = false;
+    restAddr.style.display = 'none';
+    restAddrInp.required = false;
+    restDesc.style.display = 'none';
+    riderVehType.style.display = 'none';
+    riderVehNum.style.display = 'none';
+    riderVehNumInp.required = false;
+    riderNatId.style.display = 'none';
+    riderNatIdInp.required = false;
+
+    if (currentRole === 'restaurant') {
       bf.style.display    = 'flex';
-      bLbl.innerHTML      = d.businessLabel + ' <span style="color:var(--or);">*</span>';
-      bInp.placeholder    = d.businessPlaceholder;
+      bLbl.innerHTML      = 'Business name <span style="color:var(--or);">*</span>';
+      bInp.placeholder    = 'e.g. Burger Shack';
       bInp.required       = true;
-    } else {
-      bf.style.display  = 'none';
-      bInp.required     = false;
+      restAddr.style.display = 'flex';
+      restAddrInp.required = true;
+      restDesc.style.display = 'flex';
+    } else if (currentRole === 'rider') {
+      riderVehType.style.display = 'flex';
+      riderVehNum.style.display = 'flex';
+      riderVehNumInp.required = true;
+      riderNatId.style.display = 'flex';
+      riderNatIdInp.required = true;
     }
   }
 
