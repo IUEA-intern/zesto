@@ -8,6 +8,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Knewave&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/cart.css" />
+  <link rel="stylesheet" href="css/auth_modal.css" />
 </head>
 <body>
 
@@ -15,7 +16,7 @@
   <div id="toastContainer" class="toast-container" aria-live="polite"></div>
 
   <!-- ── Auth Modal ───────────────────────────────────────── -->
-  <div id="authModal" class="modal-overlay hidden">
+  <!-- <div id="authModal" class="modal-overlay hidden">
     <div class="modal-card">
       <button class="modal-close" id="closeAuthModal" aria-label="Close">&times;</button>
 
@@ -57,7 +58,7 @@
         <p class="auth-switch">Already have an account? <a href="#" id="switchToLogin">Log In</a></p>
       </div>
     </div>
-  </div>
+  </div> -->
 
   <!-- ── Checkout Modal (delivery details) ────────────────── -->
   <div id="checkoutModal" class="modal-overlay hidden">
@@ -213,5 +214,6 @@
   <!-- Flutterwave inline payment SDK -->
   <script src="https://checkout.flutterwave.com/v3.js"></script>
   <script src="script/order&cart.js"></script>
+  <script src="script/shared_auth.js"></script>
 </body>
 </html>

@@ -856,29 +856,42 @@ const Cart = {
    CHECKOUT MODULE (Flutterwave)
    ============================================================ */
 
+function resetAuthTabsToLogin() {
+  const overlay = document.getElementById('authModal');
+  const loginTab = document.getElementById('loginTab');
+  const registerTab = document.getElementById('registerTab');
+
+  if (!overlay || !loginTab || !registerTab) return;
+
+  // Fully reset visibility/state so tabs can't overlap.
+  loginTab.classList.add('active');
+  loginTab.classList.remove('hidden');
+
+  registerTab.classList.remove('active');
+  registerTab.classList.add('hidden');
+}
+
 function openAuthModal(message = '') {
   const modal = document.getElementById('authModal');
   if (!modal) return;
 
-  modal.classList.remove('hidden');
+  // Safeguard: always open from a clean login-only state.
+  resetAuthTabsToLogin();
 
-  document.getElementById('loginTab')?.classList.add('active');
-  document.getElementById('registerTab')?.classList.remove('active');
+  modal.classList.remove('hidden');
 
   if (message) {
     let warn = document.getElementById('authWarning');
-
     if (!warn) {
       warn = document.createElement('div');
       warn.id = 'authWarning';
       warn.className = 'auth-warning';
       document.getElementById('loginTab')?.prepend(warn);
     }
-
     warn.textContent = message;
   }
 }
-  
+
 const Checkout = {
   async openModal() {
     await Auth.init();
