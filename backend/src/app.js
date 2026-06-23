@@ -37,9 +37,7 @@ app.use(express.static(frontendPath))
 
 // ── Existing routes (unchanged) ───────────────────────────────
 app.use('/api/register',    require('./routes/register'))
-app.use('/api/search',      require('./routes/search'))
 app.use('/api/signin',      require('./routes/signin'))
-app.use('/api/investors',   require('./routes/investors'))
 app.use('/api/products',    require('./routes/products'))
 app.use('/api/restaurants', require('./routes/restaurants'))
 app.use('/api/cart',        require('./routes/cart'))
