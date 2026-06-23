@@ -17,8 +17,11 @@
   background: rgba(0,0,0,.55);
   backdrop-filter: blur(4px);
   display: flex;
-  align-items: center;
+  align-items: center;       /* centred vertically when card fits */
   justify-content: center;
+  /* overflow-y lets the overlay itself scroll on very short screens
+     so the card is never unreachable */
+  overflow-y: auto;
   padding: 20px;
   animation: fadeIn .2s ease;
   font-family: 'Plus Jakarta Sans', sans-serif;
@@ -38,10 +41,19 @@
   padding: 36px;
   width: 100%;
   max-width: 420px;
+  /* Prevent card from overflowing short viewports (register has 5 fields) */
+  max-height: calc(100vh - 40px);
+  overflow-y: auto;
   position: relative;
   box-shadow: var(--shadow-lg);
   animation: scaleIn .25s ease;
+  /* Custom scrollbar — keeps it subtle */
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
 }
+.modal-card::-webkit-scrollbar { width: 4px; }
+.modal-card::-webkit-scrollbar-track { background: transparent; }
+.modal-card::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
 @keyframes scaleIn {
   from { opacity: 0; transform: scale(.94); }
   to   { opacity: 1; transform: scale(1); }
@@ -71,8 +83,17 @@
 .auth-tab.hidden { display: none; }
 .auth-tab.active { display: block; }
 
-.form-group { margin-bottom: 16px; }
-.form-group label { display: block; font-size: .84rem; font-weight: 700; color: var(--text-primary); margin-bottom: 6px; text-align: left; }
+.form-group { margin-bottom: 14px; }
+.form-group label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: .84rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 5px;
+  text-align: left;
+}
 .form-group input,
 .form-group select,
 .form-group textarea {
@@ -90,6 +111,63 @@
 .form-group input:focus,
 .form-group select:focus,
 .form-group textarea:focus { border-color: var(--orange); background: #fff; box-shadow: 0 0 0 3px rgba(255,107,44,.12); }
+
+/* ── Required / optional label markers ─────────────────────────── */
+.required-mark {
+  color: #ef4444;
+  font-size: .85rem;
+  font-weight: 700;
+  line-height: 1;
+  flex-shrink: 0;
+}
+.optional-label {
+  color: var(--text-secondary);
+  font-size: .78rem;
+  font-weight: 500;
+  margin-left: 2px;
+}
+
+/* ── Input error state ──────────────────────────────────────────── */
+/* Applied by JS when validation fails */
+.form-group input.input-error,
+.form-group select.input-error,
+.form-group textarea.input-error {
+  border-color: #ef4444;
+  background: #fff5f5;
+  box-shadow: 0 0 0 3px rgba(239,68,68,.10);
+}
+.form-group input.input-error:focus,
+.form-group select.input-error:focus,
+.form-group textarea.input-error:focus {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 3px rgba(239,68,68,.16);
+}
+
+/* ── Inline field error message ─────────────────────────────────── */
+/* Hidden by default; JS sets display:block when showing an error  */
+.field-error {
+  display: none;
+  margin-top: 4px;
+  font-size: .78rem;
+  font-weight: 600;
+  color: #ef4444;
+  line-height: 1.4;
+  /* Slide down when revealed */
+  animation: errorReveal .18s ease;
+}
+@keyframes errorReveal {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Field hint (e.g. phone format guidance) ────────────────────── */
+.field-hint {
+  display: block;
+  margin-top: 4px;
+  font-size: .76rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
 
 .full-width { width: 100%; justify-content: center; }
 .auth-switch { margin-top: 18px; font-size: .84rem; color: var(--text-secondary); text-align: center; }
@@ -205,7 +283,20 @@
 }
 
 @media (max-width: 600px) {
-  .modal-card { padding: 24px 20px; }
+  .modal-overlay {
+    /* On mobile, pin card to top so it's scrollable and never cut off */
+    align-items: flex-start;
+    padding: 16px;
+  }
+  .modal-card {
+    padding: 24px 18px;
+    border-radius: 20px;
+    /* Full height of the safe viewport minus overlay padding */
+    max-height: none;
+  }
+  .modal-title { font-size: 1.25rem; }
+  .modal-sub   { margin-bottom: 18px; }
+  .form-group  { margin-bottom: 12px; }
   .toast-container { bottom: 16px; right: 16px; left: 16px; }
   .toast { max-width: 100%; }
 }
