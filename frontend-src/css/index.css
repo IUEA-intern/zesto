@@ -34,7 +34,7 @@ a{text-decoration:none;color:inherit;}
 /* ─── NAV ─── */
 .nav{position:sticky;top:0;z-index:100;background:rgba(250,250,247,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--lt2);}
 .nav-inner{display:flex;align-items:center;gap:0;height:64px;}
-.nav-logo{display:flex;align-items:center;gap:10px;margin-right:40px;flex-shrink:0;}
+.nav-logo{display:flex;align-items:center;gap:10px;margin-right:0;flex-shrink:0;}
 .logo-mark{width:34px;height:34px;background:var(--or);border-radius:10px;display:flex;align-items:center;justify-content:center;}
 .logo-mark svg{width:18px;height:18px;fill:white;}
 .logo-text{font-family:'Knewave',cursive;font-size:26px;color:var(--dk);letter-spacing:1px;}
@@ -43,7 +43,7 @@ a{text-decoration:none;color:inherit;}
 .nav-link{font-size:14px;font-weight:500;color:var(--mid);padding:7px 14px;border-radius:var(--r6);transition:color .18s,background .18s;}
 .nav-link:hover{color:var(--dk);background:var(--lt);}
 .nav-link.active{color:var(--dk);}
-.nav-loc{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:500;color:var(--mid);background:var(--lt);border-radius:var(--r6);padding:6px 12px;margin-right:12px;cursor:pointer;transition:background .18s;}
+.nav-loc{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:500;color:var(--mid);background:var(--lt);border-radius:var(--r6);padding:6px 12px;margin-right:12px;margin-left:auto;cursor:pointer;transition:background .18s;}
 .nav-loc:hover{background:var(--lt2);}
 .nav-loc svg{width:14px;height:14px;flex-shrink:0;color:var(--or);}
 .nav-actions{display:flex;gap:8px;align-items:center;}
