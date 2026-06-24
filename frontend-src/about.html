@@ -23,12 +23,12 @@
   <div class="mobile-links">
     <a class="mobile-link" href="restaurant.html">Restaurants</a>
     <a class="mobile-link" href="for-busines.html">For Business</a>
-    <a class="mobile-link" href="about.html">about us</a>
+    <a class="mobile-link" href="about.html">About Us</a>
     <a class="mobile-link" href="Blog.html">Blog</a>
   </div>
-  <div class="mobile-actions" style="margin-top:24px;">
+  <div class="mobile-actions">
     <a href="login.html" class="btn btn-ghost" style="justify-content:center;padding:14px;">Sign in</a>
-    <a href="signin.html" class="btn btn-primary" style="justify-content:center;padding:14px;border-radius:var(--r12);">signup</a>
+    <a href="signin.html" class="btn btn-primary" style="justify-content:center;padding:14px;border-radius:var(--r12);">Get started</a>
   </div>
 </div>
 
@@ -37,16 +37,17 @@
   <div class="container">
     <nav class="nav-inner">
       <a href="index.html" class="nav-logo">
-        <!-- <div class="logo-mark">
-            <svg viewBox="0 0 24 24"><path d="M13 2L4 13h7l-1 9 10-12h-7l1-8z"/></svg> 
-        </div>-->
+        <div class="logo-mark">
+          <svg viewBox="0 0 24 24"><path d="M13 2L4 13h7l-1 9 10-12h-7l1-8z"/></svg>
+        </div>
         <span class="logo-text">Zes<span>to</span></span>
       </a>
-      <!-- <div class="nav-links">
-        <a href="restaurant.html"  class="nav-link active">Restaurants</a>
+      <div class="nav-links">
+        <a href="restaurant.html" class="nav-link">Restaurants</a>
         <a href="for-busines.html" class="nav-link">For Business</a>
-        <a href="about.html" class="nav-link" >about us</a>
-      </div> -->
+        <a href="about.html" class="nav-link active">About Us</a>
+        <a href="Blog.html" class="nav-link">Blog</a>
+      </div>
       <a href="#" class="nav-loc">
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M8 1.5A4.5 4.5 0 0 1 12.5 6c0 3.2-4.5 8.5-4.5 8.5S3.5 9.2 3.5 6A4.5 4.5 0 0 1 8 1.5z"/><circle cx="8" cy="6" r="1.6"/></svg>
         Kampala, UG
@@ -107,7 +108,7 @@
   <div class="container">
     <div class="story-inner">
       <div class="story-visual">
-        <div class="story-img-main">🍔</div>
+        <div class="story-img-main"></div>
         <div class="story-badge">
           <div class="story-badge-num">3+</div>
           <div class="story-badge-lbl">Years delivering</div>
@@ -166,18 +167,23 @@
       <div>
         <div class="section-label">The people</div>
         <div class="section-title">Meet our team</div>
-        <div class="section-sub">A diverse group of builders, dreamers, and food lovers.</div>
+    
       </div>
       <a href="#" class="link-or">View all team members <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M2 7h10M8 3l4 4-4 4"/></svg></a>
     </div>
     <div class="team-grid">
       <div class="team-card">
-        <div class="team-photo" style="background:#FFF0E8;">👨🏾‍💼</div>
-        <div class="team-info">
-          <div class="team-name">Naffe Romeo</div>
-          <div class="team-role">Co-founder & CEO</div>
-          <div class="team-bio">Former logistics engineer. Believes Africa's biggest challenge is also its biggest opportunity.</div>
-        </div>
+  <div class="team-photo" style="background:#FFF0E8; overflow:hidden; display:flex; align-items:center; justify-content:center; border-radius:50%; width:120px; height:120px;">
+
+  <img src="images/naffe-romeo.jpg"/>
+  </div>
+  <div class="team-info">
+    <div class="team-name">Naffe Romeo</div>
+    <div class="team-role">Co-founder & CEO</div>
+    <div class="team-bio">Former logistics engineer. Believes Africa's biggest challenge is also its biggest opportunity.</div>
+  </div>
+</div>
+</div>
       </div>
       <div class="team-card">
         <div class="team-photo" style="background:#EDF7EE;">👨🏾‍💼</div>
@@ -400,6 +406,6 @@
   </div>
 </footer>
 
-<script src="script/shared_auth.js"></script>
+<script src="script/auth-shared.js"></script>
 </body>
 </html>
