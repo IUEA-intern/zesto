@@ -1,4 +1,4 @@
-'use strict';
+"use strict";
 
 /**
  * routes/auth.js
@@ -18,13 +18,19 @@
  *   GET   /api/auth/me                  → controller.getMe
  */
 
-const express    = require('express');
-const router     = express.Router();
-const controller = require('../controllers/authController');
+const express = require("express");
+const router = express.Router();
+const controller = require("../controllers/authController");
 
-router.post('/register/customer', controller.registerCustomer);
-router.post('/login',             controller.login);
-router.post('/logout',            controller.logout);
-router.get('/me',                 controller.getMe);
+router.post("/register/customer", controller.registerCustomer);
+router.post("/login", controller.login);
+router.post("/logout", controller.logout);
+router.get("/me", controller.getMe);
+
+router.post(
+  "/register/restaurant",
+  onboardingController.registerRestaurantAdmin,
+);
+router.post("/register/rider", onboardingController.registerRider);
 
 module.exports = router;
