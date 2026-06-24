@@ -1,4 +1,0 @@
-- [x] Adjust restaurant page nav so location link moves right
-- [x] Adjust index page nav so location link moves right
-- [x] Add click support for heart icon in restaurant cards without affecting card navigation
-- [ ] Verify visually in `restaurant.html` that clicking the heart toggles wishlist state and does not open the restaurant link
