@@ -34,7 +34,7 @@ a{text-decoration:none;color:inherit;}
 /* ─── NAV ─── */
 .nav{position:sticky;top:0;z-index:100;background:rgba(250,250,247,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--lt2);}
 .nav-inner{display:flex;align-items:center;gap:0;height:64px;}
-.nav-logo{display:flex;align-items:center;gap:10px;margin-right:40px;flex-shrink:0;}
+.nav-logo{display:flex;align-items:center;gap:10px;margin-right:0;flex-shrink:0;}
 .logo-mark{width:34px;height:34px;background:var(--or);border-radius:10px;display:flex;align-items:center;justify-content:center;}
 .logo-mark svg{width:18px;height:18px;fill:white;}
 .logo-text{font-family:'Knewave',cursive;font-size:26px;color:var(--dk);letter-spacing:1px;}
@@ -43,7 +43,7 @@ a{text-decoration:none;color:inherit;}
 .nav-link{font-size:14px;font-weight:500;color:var(--mid);padding:7px 14px;border-radius:var(--r6);transition:color .18s,background .18s;}
 .nav-link:hover{color:var(--dk);background:var(--lt);}
 .nav-link.active{color:var(--dk);}
-.nav-loc{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:500;color:var(--mid);background:var(--lt);border-radius:var(--r6);padding:6px 12px;margin-right:12px;cursor:pointer;transition:background .18s;}
+.nav-loc{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:500;color:var(--mid);background:var(--lt);border-radius:var(--r6);padding:6px 12px;margin-right:12px;margin-left:auto;cursor:pointer;transition:background .18s;}
 .nav-loc:hover{background:var(--lt2);}
 .nav-loc svg{width:14px;height:14px;flex-shrink:0;color:var(--or);}
 .nav-actions{display:flex;gap:8px;align-items:center;}
@@ -145,10 +145,13 @@ a{text-decoration:none;color:inherit;}
 /* ─── RESTAURANTS ─── */
 .restos-section{padding:40px 0; background:var(--lt); height:100%; }
 .restos-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;margin-top:36px;}
-.r-card{margin-bottom: 20px;background:white;border-radius:var(--r20);border:1px solid var(--lt2);overflow:hidden;cursor:pointer;transition:box-shadow .2s,transform .2s;}
-.r-card:hover{box-shadow:var(--shadow-lg);transform:translateY(-4px);}
-.r-banner{height:160px;display:flex;align-items:center;justify-content:center;font-size:64px;position:relative;overflow:hidden;}
-.r-logo-img{width:100%;height:100%;object-fit:cover;display:block;}
+.r-card{margin-bottom: 20px;background:white;border-radius:var(--r20);border:1px solid var(--lt2);overflow:hidden;cursor:pointer;transition:border-color .2s;}
+.r-card:hover{border-color:rgba(0,0,0,.08);}
+.r-banner{height:160px;display:flex;align-items:center;justify-content:center;font-size:64px;position:relative;overflow:hidden;transition:box-shadow .2s ease;}
+/* .r-card:hover .r-banner{box-shadow:0 16px 36px rgba(0,0,0,.12);} */
+.r-logo-img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .3s ease;}
+.r-card:hover .r-logo-img{transform:scale(1.04);}
+.r-banner:hover{height:160px;display:flex;align-items:center;justify-content:center;font-size:64px;position:relative;overflow:hidden;}
 .r-disc{position:absolute;top:14px;left:14px;background:var(--or);color:white;font-size:11px;font-weight:700;padding:4px 10px;border-radius:var(--r6);}
 .r-fav{position:absolute;top:14px;right:14px;width:32px;height:32px;background:white;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.1);}
 .r-fav svg{width:15px;height:15px;color:#D0C8C0;}

@@ -218,7 +218,7 @@ const Api = {
 const Auth = {
   async init() {
     try {
-      const res = await Api.get('/auth/me');
+      const res = await window.SharedAuth.checkSession();
       State.session = res.user;
     } catch {
       State.session = null;
@@ -242,40 +242,15 @@ const Auth = {
   },
 
   async login(email, password) {
-    const res = await Api.post('/auth/login', { email, password });
-    State.session = res.user;
-    this.updateUI();
-    if (document.getElementById('cartItemsList')) {
-      await Cart.mergeServerCart();
-    }
-    if (State.intent === 'checkout') {
-      State.intent = null;
-      document.getElementById('authModal')?.classList.add('hidden');
-      await Checkout.openModal();
-    }
-    return res;
+    return window.SharedAuth.login(email, password);
   },
 
   async register(name, email, phone, password) {
-    const res = await Api.post('/auth/register', { name, email, phone, password });
-    State.session = res.user;
-    this.updateUI();
-    if (document.getElementById('cartItemsList')) {
-      await Cart.mergeServerCart();
-    }
-    if (State.intent === 'checkout') {
-      State.intent = null;
-      document.getElementById('authModal')?.classList.add('hidden');
-      await Checkout.openModal();
-    }
-    return res;
+    return window.SharedAuth.registerCustomer(name, email, phone, password);
   },
 
   async logout() {
-    await Api.post('/auth/logout', {});
-    State.session = null;
-    State.intent = null;
-    this.updateUI();
+    return window.SharedAuth.logout();
   },
 };
 
@@ -355,18 +330,10 @@ const Products = {
     if (desc)  desc.textContent = r.description || `Fresh meals delivered from ${r.name} straight to your door.`;
     if (tagline) tagline.textContent = r.address || 'Fast • Fresh • Flavourful';
 
-    // TASK 2: Show restaurant image in the hero
-    const heroImageContainer = document.querySelector('.hero-image');
-    if (heroImageContainer && r.logo_url) {
-      // Remove any existing dynamic restaurant image
-      heroImageContainer.querySelector('.hero-restaurant-img')?.remove();
-
-      const img = document.createElement('img');
-      img.src = r.logo_url;
-      img.alt = r.name;
-      img.className = 'hero-restaurant-img';
-      // Insert as the first element so it's behind the floating cards
-      heroImageContainer.prepend(img);
+    // Set restaurant image as background image
+    const heroBg = document.querySelector('.hero-bg');
+    if (heroBg && r.logo_url) {
+      heroBg.style.backgroundImage = `url(${r.logo_url})`;
     }
   },
 
@@ -889,29 +856,42 @@ const Cart = {
    CHECKOUT MODULE (Flutterwave)
    ============================================================ */
 
+function resetAuthTabsToLogin() {
+  const overlay = document.getElementById('authModal');
+  const loginTab = document.getElementById('loginTab');
+  const registerTab = document.getElementById('registerTab');
+
+  if (!overlay || !loginTab || !registerTab) return;
+
+  // Fully reset visibility/state so tabs can't overlap.
+  loginTab.classList.add('active');
+  loginTab.classList.remove('hidden');
+
+  registerTab.classList.remove('active');
+  registerTab.classList.add('hidden');
+}
+
 function openAuthModal(message = '') {
   const modal = document.getElementById('authModal');
   if (!modal) return;
 
-  modal.classList.remove('hidden');
+  // Safeguard: always open from a clean login-only state.
+  resetAuthTabsToLogin();
 
-  document.getElementById('loginTab')?.classList.add('active');
-  document.getElementById('registerTab')?.classList.remove('active');
+  modal.classList.remove('hidden');
 
   if (message) {
     let warn = document.getElementById('authWarning');
-
     if (!warn) {
       warn = document.createElement('div');
       warn.id = 'authWarning';
       warn.className = 'auth-warning';
       document.getElementById('loginTab')?.prepend(warn);
     }
-
     warn.textContent = message;
   }
 }
-  
+
 const Checkout = {
   async openModal() {
     await Auth.init();
@@ -1039,6 +1019,7 @@ const Checkout = {
     } catch (err) {
       Toast.error(err.message || 'Failed to place order. Please try again.');
     } finally {
+      const proceedBtn = document.getElementById('submitOrderBtn');
       if (proceedBtn) { proceedBtn.disabled = false; proceedBtn.textContent = '💳 Proceed to Payment'; }
     }
   },
@@ -1049,77 +1030,41 @@ const Checkout = {
    ============================================================ */
 const AuthModal = {
   init() {
-    const overlay       = document.getElementById('authModal');
     const openBtn       = document.getElementById('openAuthModal');
-    const closeBtn      = document.getElementById('closeAuthModal');
-    const loginTab      = document.getElementById('loginTab');
-    const registerTab   = document.getElementById('registerTab');
-    const switchToReg   = document.getElementById('switchToRegister');
-    const switchToLogin = document.getElementById('switchToLogin');
-    const loginBtn      = document.getElementById('loginBtn');
-    const registerBtn   = document.getElementById('registerBtn');
     const logoutBtn     = document.getElementById('logoutBtn');
 
-    if (!overlay) return;
-
-    openBtn   ?.addEventListener('click', () => overlay.classList.remove('hidden'));
-    closeBtn  ?.addEventListener('click', () => overlay.classList.add('hidden'));
-    overlay   .addEventListener('click', e => { if (e.target === overlay) overlay.classList.add('hidden'); });
-
-    switchToReg?.addEventListener('click', e => {
-      e.preventDefault();
-      loginTab    ?.classList.remove('active'); loginTab    ?.classList.add('hidden');
-      registerTab ?.classList.add('active');    registerTab ?.classList.remove('hidden');
-    });
-    switchToLogin?.addEventListener('click', e => {
-      e.preventDefault();
-      registerTab ?.classList.remove('active'); registerTab ?.classList.add('hidden');
-      loginTab    ?.classList.add('active');    loginTab    ?.classList.remove('hidden');
-    });
-
-    loginBtn?.addEventListener('click', async () => {
-      const email    = document.getElementById('loginEmail')?.value.trim();
-      const password = document.getElementById('loginPassword')?.value;
-      if (!email || !password) { Toast.error('Please fill in all fields.'); return; }
-      try {
-        loginBtn.disabled = true; loginBtn.textContent = 'Logging in…';
-        const res = await Auth.login(email, password);
-        overlay.classList.add('hidden');
-        Toast.success(res.message || 'Logged in!');
-      } catch (err) {
-        Toast.error(err.message || 'Login failed.');
-      } finally {
-        loginBtn.disabled = false; loginBtn.textContent = 'Log In';
-      }
-    });
-
-    registerBtn?.addEventListener('click', async () => {
-      const name     = document.getElementById('regName')?.value.trim();
-      const email    = document.getElementById('regEmail')?.value.trim();
-      const phone    = document.getElementById('regPhone')?.value.trim();
-      const password = document.getElementById('regPassword')?.value;
-      if (!name || !email || !password) { Toast.error('Please fill in all required fields.'); return; }
-      if (password.length < 6) { Toast.error('Password must be at least 6 characters.'); return; }
-      try {
-        registerBtn.disabled = true; registerBtn.textContent = 'Creating account…';
-        const res = await Auth.register(name, email, phone, password);
-        overlay.classList.add('hidden');
-        Toast.success(res.message || 'Account created!');
-      } catch (err) {
-        Toast.error(err.message || 'Registration failed.');
-      } finally {
-        registerBtn.disabled = false; registerBtn.textContent = 'Create Account';
-      }
+    openBtn?.addEventListener('click', () => {
+      window.SharedAuth?.showLogin();
     });
 
     logoutBtn?.addEventListener('click', async () => {
       try {
-        await Auth.logout();
+        await window.SharedAuth?.logout();
         Cart.updateBadge();
         Toast.info('Logged out successfully.');
       } catch { Toast.error('Logout failed.'); }
     });
-  },
+
+    // Custom event listeners to keep order&cart state in sync with SharedAuth
+    document.addEventListener('auth-login', async (e) => {
+      State.session = e.detail;
+      Auth.updateUI();
+      if (document.getElementById('cartItemsList')) {
+        await Cart.mergeServerCart();
+      }
+      if (State.intent === 'checkout') {
+        State.intent = null;
+        document.getElementById('authModal')?.classList.add('hidden');
+        await Checkout.openModal();
+      }
+    });
+
+    document.addEventListener('auth-logout', () => {
+      State.session = null;
+      State.intent = null;
+      Auth.updateUI();
+    });
+  }
 };
 
 /* ============================================================
@@ -1224,36 +1169,62 @@ async function bootPage() {
   /* ── ORDER PAGE ───────────────────────────────────────────── */
   if (isOrderPage) {
     const params = new URLSearchParams(window.location.search);
-    State.restaurant_id = params.get('restaurant_id');
-    
-    if (State.restaurant_id) {
-      await Products.fetchRestaurant(State.restaurant_id);
+
+    // 1. Try URL first
+    let restaurantId = params.get('restaurant_id');
+
+    // 2. Fallback to last selected restaurant
+    if (!restaurantId) {
+      restaurantId = localStorage.getItem('zesto_restaurant_id');
     }
+
+    // 3. If still missing → redirect (prevents broken UI)
+    if (!restaurantId) {
+      window.location.href = "index.html"; // or your restaurant list page
+      return;
+    }
+
+    // 4. Set global state
+    State.restaurant_id = restaurantId;
+
+    // 5. Persist for cart/navigation
+    localStorage.setItem('zesto_restaurant_id', restaurantId);
+
+    // 6. Load restaurant data
+    await Products.fetchRestaurant(restaurantId);
 
     CategoryTabs.init();
     await Products.loadAll();
 
     // Event delegation for add-to-cart
     document.querySelector('.menu-main')?.addEventListener('click', e => {
-
       if (e.target.closest('.btn-add-cart')) {
         Cart.handleAddToCart(e);
       }
-
       else if (e.target.closest('.btn-order-minus')) {
         Cart.handleOrderMinus(e);
       }
-
       else if (e.target.closest('.btn-order-plus')) {
         Cart.handleOrderPlus(e);
       }
-
     });
   }
+
 
   /* ── CART PAGE ────────────────────────────────────────────── */
   if (isCartPage) {
     await Cart.initCartPage();
+
+    // ✅ RESTORE MENU LINK WITH RESTAURANT ID
+    const restaurantId = localStorage.getItem('zesto_restaurant_id');
+
+    const menuUrl = restaurantId
+      ? `order.html?restaurant_id=${restaurantId}`
+      : 'order.html';
+
+    document.querySelectorAll('a[href="order.html"]').forEach(link => {
+      link.href = menuUrl;
+    });
 
     // Event delegation for qty controls and remove buttons
     const listEl = document.getElementById('cartItemsList');

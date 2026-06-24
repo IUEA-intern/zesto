@@ -72,11 +72,16 @@ const Toast = {
 /* ── API ───────────────────────────────────────────────────── */
 const Api = {
   async req(path, opts = {}) {
+    const headers = { ...(opts.headers || {}) };
+    const body = opts.body;
+    if (body && !(body instanceof FormData)) {
+      headers['Content-Type'] = 'application/json';
+    }
     const res  = await fetch(API + path, {
       ...opts,
       credentials: 'include',
-      headers: { 'Content-Type': 'application/json', ...(opts.headers || {}) },
-      body: opts.body ? JSON.stringify(opts.body) : undefined,
+      headers,
+      body: body instanceof FormData ? body : body ? JSON.stringify(body) : undefined,
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || 'Request failed');
@@ -625,7 +630,7 @@ async function loadSettings() {
     document.getElementById('set_name').value        = r.name        || '';
     document.getElementById('set_phone').value       = r.phone       || '';
     document.getElementById('set_email').value       = r.email       || '';
-    document.getElementById('set_logo_url').value    = r.logo_url    || '';
+    // Keep existing logo URL on load if needed for display elsewhere; no form input required here.
     document.getElementById('set_address').value     = r.address     || '';
     document.getElementById('set_description').value = r.description || '';
   } catch (err) {
@@ -637,14 +642,17 @@ async function saveSettings() {
   const btn = document.getElementById('saveSettingsBtn');
   btn.disabled = true; btn.textContent = 'Saving…';
   try {
-    await Api.put('/restaurant/settings', {
-      name:        document.getElementById('set_name').value.trim(),
-      phone:       document.getElementById('set_phone').value.trim(),
-      email:       document.getElementById('set_email').value.trim(),
-      logo_url:    document.getElementById('set_logo_url').value.trim(),
-      address:     document.getElementById('set_address').value.trim(),
-      description: document.getElementById('set_description').value.trim(),
-    });
+    const body = new FormData();
+    const logoFile = document.getElementById('set_logo')?.files?.[0];
+    body.append('name',        document.getElementById('set_name').value.trim());
+    body.append('phone',       document.getElementById('set_phone').value.trim());
+    body.append('email',       document.getElementById('set_email').value.trim());
+    body.append('address',     document.getElementById('set_address').value.trim());
+    body.append('description', document.getElementById('set_description').value.trim());
+    if (logoFile) {
+      body.append('logo', logoFile);
+    }
+    await Api.put('/restaurant/settings', body);
     Toast.success('Restaurant settings saved.');
   } catch (err) {
     Toast.error(err.message);

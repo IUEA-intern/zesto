@@ -14,53 +14,6 @@
   <!-- ── Toast Container ──────────────────────────────────── -->
   <div id="toastContainer" class="toast-container" aria-live="polite"></div>
 
-  <!-- ── Auth Modal ───────────────────────────────────────── -->
-  <div id="authModal" class="modal-overlay hidden">
-    <div class="modal-card">
-      <button class="modal-close" id="closeAuthModal" aria-label="Close">&times;</button>
-
-      <!-- Login Tab -->
-      <div id="loginTab" class="auth-tab active">
-        <h2 class="modal-title">Welcome Back 👋</h2>
-        <p class="modal-sub">Log in to your Zesto account</p>
-        <div class="form-group">
-          <label for="loginEmail">Email</label>
-          <input type="email" id="loginEmail" placeholder="you@example.com" autocomplete="email" />
-        </div>
-        <div class="form-group">
-          <label for="loginPassword">Password</label>
-          <input type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password" />
-        </div>
-        <button class="btn-primary full-width" id="loginBtn">Log In</button>
-        <p class="auth-switch">Don't have an account? <a href="#" id="switchToRegister">Sign Up</a></p>
-      </div>
-
-      <!-- Register Tab -->
-      <div id="registerTab" class="auth-tab hidden">
-        <h2 class="modal-title">Create Account 🎉</h2>
-        <p class="modal-sub">Join Zesto for fast food delivery</p>
-        <div class="form-group">
-          <label for="regName">Full Name</label>
-          <input type="text" id="regName" placeholder="John Doe" autocomplete="name" />
-        </div>
-        <div class="form-group">
-          <label for="regEmail">Email</label>
-          <input type="email" id="regEmail" placeholder="you@example.com" autocomplete="email" />
-        </div>
-        <div class="form-group">
-          <label for="regPhone">Phone (optional)</label>
-          <input type="tel" id="regPhone" placeholder="+256 7XX XXX XXX" autocomplete="tel" />
-        </div>
-        <div class="form-group">
-          <label for="regPassword">Password</label>
-          <input type="password" id="regPassword" placeholder="Min. 6 characters" autocomplete="new-password" />
-        </div>
-        <button class="btn-primary full-width" id="registerBtn">Create Account</button>
-        <p class="auth-switch">Already have an account? <a href="#" id="switchToLogin">Log In</a></p>
-      </div>
-    </div>
-  </div>
-
   <!-- ── Navbar ────────────────────────────────────────────── -->
   <nav class="navbar" id="mainNav">
     <div class="nav-inner">
@@ -68,12 +21,12 @@
         <span class="brand-logo">Zes<span class="brand-accent">to</span></span>
       </a>
 
-      <div class="nav-links">
+      <!-- <div class="nav-links">
         <a href="#food"     class="nav-link active-link">Food</a>
         <a href="#drinks"   class="nav-link">Drinks</a>
         <a href="#desserts" class="nav-link">Desserts</a>
         <a href="#other"    class="nav-link">Combos</a>
-      </div>
+      </div> -->
 
       <div class="nav-actions">
         <!-- User pill (hidden until logged in) -->
@@ -105,12 +58,7 @@
         <a href="cart.html" class="btn-outline">View Cart <span id="heroCartCount" class="hero-count"></span></a>
       </div>
     </div>
-    <div class="hero-image" aria-hidden="true">
-      <div class="hero-blob"></div>
-      <div class="floating-card fc1">🍔 Smash Burger<br/><strong>UGX 18,000</strong></div>
-      <div class="floating-card fc2">⭐ 4.9 Rating</div>
-      <div class="floating-card fc3">🚀 30 min delivery</div>
-    </div>
+    <div class="hero-bg" aria-hidden="true"></div>
   </header>
 
   <!-- ── Category Tabs ─────────────────────────────────────── -->
@@ -189,6 +137,7 @@
 
   <!-- ── Scripts ───────────────────────────────────────────── -->
   <script src="/socket.io/socket.io.js"></script>
+  <script src="script/shared_auth.js"></script>
   <script src="script/order&cart.js"></script>
 </body>
 </html>
