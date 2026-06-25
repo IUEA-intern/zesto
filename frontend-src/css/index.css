@@ -90,7 +90,7 @@ a{text-decoration:none;color:inherit;}
 
 /* HERO CARDS */
 .hero-right{display:flex;flex-direction:column;gap:12px;padding-bottom:0;}
-.h-card{background:white;border-radius:var(--r20);border:1px solid var(--lt2);padding:14px 16px;display:flex;align-items:center;gap:14px;box-shadow:var(--shadow);cursor:pointer;transition:box-shadow .2s,transform .2s;}
+.h-card{background:white;border-radius:var(--r20);border:1px solid var(--lt2);padding:14px 16px;display:flex;align-items:center;gap:14px;box-shadow:var(--shadow);cursor:pointer;transition:box-shadow .2s,transform .2s; height:80px;}
 .h-card:hover{box-shadow:var(--shadow-lg);transform:translateY(-2px);}
 .h-c-ico{width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0;}
 .h-c-name{font-size:14px;font-weight:700;color:var(--dk);margin-bottom:4px;}
@@ -161,23 +161,19 @@ a{text-decoration:none;color:inherit;}
 .how-desc{font-size:13px;color:var(--mid);line-height:1.65;}
 
 /* ─── PROMO ─── */
-.promo-section{background:var(--or);padding:72px 0;}
+.promo-section{background:linear-gradient(135deg,#ff5a1f 0%,#ff7a2f 100%);padding:72px 0;}
 .promo-inner{display:flex;align-items:center;justify-content:space-between;gap:40px;}
-.promo-left{}
-.p-eyebrow{font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.6);margin-bottom:12px;}
+.promo-left{max-width:560px;}
+.p-eyebrow{font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.72);margin-bottom:12px;}
 .p-title{font-family:'Plus Jakarta Sans',cursive;font-size:clamp(32px,5vw,60px);color:white;line-height:1.05;margin-bottom:12px;}
-.p-sub{font-size:15px;color:rgba(255,255,255,.78);line-height:1.6;margin-bottom:22px;max-width:440px;}
-.p-code{display:inline-flex;align-items:center;gap:10px;background:rgba(255,255,255,.15);border:2px dashed rgba(255,255,255,.4);border-radius:var(--r12);padding:10px 20px;font-size:17px;font-weight:800;color:white;letter-spacing:3px;}
-.p-btns{display:flex;gap:12px;margin-top:24px;}
-.btn-w{background:white;color:var(--or);font-size:14px;font-weight:700;border:none;border-radius:var(--r12);padding:12px 24px;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:opacity .18s;}
-.btn-w:hover{opacity:.9;}
-.btn-wg{background:transparent;color:white;font-size:14px;font-weight:600;border:2px solid rgba(255,255,255,.4);border-radius:var(--r12);padding:12px 24px;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:border-color .18s;}
-.btn-wg:hover{border-color:rgba(255,255,255,.8);}
-.promo-stats{display:flex;gap:14px;flex-shrink:0;}
-.p-stat{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.18);border-radius:var(--r20);padding:22px 26px;text-align:center;}
-.p-stat-col{display:flex;flex-direction:column;gap:14px;}
-.p-num{font-family:'Knewave',cursive;font-size:30px;color:white;margin-bottom:4px;}
-.p-lbl{font-size:11px;color:rgba(255,255,255,.55);font-weight:500;}
+.p-sub{font-size:15px;color:rgba(255,255,255,.82);line-height:1.7;margin-bottom:22px;max-width:500px;}
+.p-btns{display:flex;flex-wrap:wrap;gap:12px;margin-top:24px;}
+.btn-w{display:inline-flex;align-items:center;justify-content:center;background:white;color:var(--or);font-size:14px;font-weight:700;border:none;border-radius:var(--r12);padding:12px 24px;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:transform .18s,opacity .18s;text-decoration:none;}
+.btn-w:hover{opacity:.95;transform:translateY(-1px);}
+.btn-wg{display:inline-flex;align-items:center;justify-content:center;background:rgba(255,255,255,.12);color:white;font-size:14px;font-weight:600;border:2px solid rgba(255,255,255,.3);border-radius:var(--r12);padding:12px 24px;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:border-color .18s,background .18s;text-decoration:none;}
+.btn-wg:hover{border-color:rgba(255,255,255,.7);background:rgba(255,255,255,.2);}
+.promo-visual{flex-shrink:0;display:flex;align-items:center;justify-content:center;}
+.promo-visual img{width:min(360px, 100%);border-radius:24px;box-shadow:0 20px 50px rgba(0,0,0,.2);object-fit:cover;}
 
 /* ─── REVIEWS ─── */
 .reviews-section{padding:80px 0;background:var(--lt);}
