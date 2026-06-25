@@ -15,7 +15,7 @@ async function testConnection() {
     const conn = await pool.getConnection();
     console.log('✅ MariaDB connected successfully');
     conn.release();
-  } catch (err) {
+  } catch (err) {w
     console.error('❌ MariaDB connection failed:', err.message);
     process.exit(1); // stop server cleanly
   }
