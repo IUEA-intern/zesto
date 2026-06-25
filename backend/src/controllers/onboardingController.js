@@ -2,14 +2,13 @@
 
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const { query } = require("../config/db"); // Assuming pool query wrapper is exposed here
+const { query } = require("../config/db");
 
 const COOKIE_NAME = "zesto_token";
 const JWT_SECRET = process.env.JWT_SECRET || "zesto_jwt_secret";
 const TOKEN_MAX_AGE = 7 * 24 * 60 * 60 * 1000;
 const BCRYPT_ROUNDS = 10;
 
-// Helper to sign JWT
 function createToken(user) {
   return jwt.sign(
     {
@@ -23,7 +22,15 @@ function createToken(user) {
   );
 }
 
-// Helper to set auth cookie
+function buildUserPayload(user) {
+  return {
+    user_id: user.user_id,
+    name: user.name,
+    email: user.email,
+    role: user.role,
+  };
+}
+
 function setAuthCookie(res, token) {
   res.cookie(COOKIE_NAME, token, {
     httpOnly: true,
@@ -34,173 +41,239 @@ function setAuthCookie(res, token) {
   });
 }
 
-/**
- * Common logic to upsert a user into the DB and transition roles if they exist.
- */
-async function upsertUser({ name, email, phone, password, targetRole }) {
-  const normalizedEmail = email.trim().toLowerCase();
-
-  // 1. Check if user already exists
-  const existingUsers = await query(
-    "SELECT user_id, password, role FROM users WHERE email = ?",
-    [normalizedEmail],
-  );
-
-  let userId;
-
-  if (existingUsers && existingUsers.length > 0) {
-    // User exists. Update their role to the target marketplace role.
-    userId = existingUsers[0].user_id;
-    await query(
-      "UPDATE users SET role = ?, name = ?, phone = COALESCE(?, phone) WHERE user_id = ?",
-      [targetRole, name.trim(), phone ? phone.trim() : null, userId],
-    );
-  } else {
-    // User does not exist. Create a new account.
-    const hashedPassword = await bcrypt.hash(password, BCRYPT_ROUNDS);
-    const insertResult = await query(
-      "INSERT INTO users (name, email, phone, password, role) VALUES (?, ?, ?, ?, ?)",
-      [
-        name.trim(),
-        normalizedEmail,
-        phone ? phone.trim() : null,
-        hashedPassword,
-        targetRole,
-      ],
-    );
-    userId = insertResult.insertId;
-  }
-
-  return userId;
+function normalizeText(value) {
+  return typeof value === "string" ? value.trim() : "";
 }
 
-/**
- * POST /api/auth/register/restaurant
- * Body payload expectation: { name, email, phone, password, restaurantName, address }
- */
+function isValidEmail(value) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+}
+
+function validateRestaurantPayload(payload) {
+  if (!payload.name) return "Please enter your full name.";
+  if (!payload.email || !isValidEmail(payload.email)) return "Please enter a valid email address.";
+  if (!payload.phone) return "Please enter your phone number.";
+  if (!payload.password || payload.password.length < 8) return "Password must be at least 8 characters.";
+  if (!payload.restaurantName) return "Please enter your restaurant name.";
+  if (!payload.address) return "Please enter your restaurant address.";
+  return null;
+}
+
+function validateRiderPayload(payload) {
+  if (!payload.name) return "Please enter your full name.";
+  if (!payload.email || !isValidEmail(payload.email)) return "Please enter a valid email address.";
+  if (!payload.phone) return "Please enter your phone number.";
+  if (!payload.password || payload.password.length < 8) return "Password must be at least 8 characters.";
+  if (!payload.vehicleNumber) return "Please enter your vehicle registration number.";
+  if (!payload.nationalId) return "Please enter your national ID.";
+  return null;
+}
+
+function slugify(value) {
+  const base = normalizeText(value)
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
+  return base || "restaurant";
+}
+
+async function generateUniqueSlug(baseName) {
+  const base = slugify(baseName);
+  let candidate = base;
+  let suffix = 2;
+
+  while (true) {
+    const rows = await query("SELECT restaurant_id FROM restaurants WHERE slug = ?", [candidate]);
+    if (!rows || rows.length === 0) return candidate;
+    candidate = `${base}-${suffix}`;
+    suffix += 1;
+  }
+}
+
+function normalizeRestaurantPayload(body) {
+  const restaurant = body && typeof body.restaurant === "object" ? body.restaurant : {};
+  return {
+    name: normalizeText(body?.name || restaurant.name || body?.restaurantName || body?.restaurant_name),
+    email: normalizeText(body?.email || restaurant.email),
+    phone: normalizeText(body?.phone || restaurant.phone),
+    password: typeof body?.password === "string" ? body.password : "",
+    restaurantName: normalizeText(body?.restaurantName || restaurant.name || body?.restaurant_name || body?.name),
+    address: normalizeText(body?.restaurantAddress || restaurant.address || body?.address),
+    latitude: body?.latitude ?? restaurant.latitude ?? null,
+    longitude: body?.longitude ?? restaurant.longitude ?? null,
+    description: normalizeText(body?.description || restaurant.description || body?.restaurantDescription),
+  };
+}
+
+function normalizeRiderPayload(body) {
+  const rider = body && typeof body.rider === "object" ? body.rider : {};
+  return {
+    name: normalizeText(body?.name || rider.name),
+    email: normalizeText(body?.email || rider.email),
+    phone: normalizeText(body?.phone || rider.phone),
+    password: typeof body?.password === "string" ? body.password : "",
+    vehicleType: normalizeText(body?.vehicleType || rider.vehicleType || body?.vehicle_type || rider.vehicle_type || "boda_boda"),
+    vehicleNumber: normalizeText(body?.vehicleNumber || rider.vehicleNumber || body?.vehicle_number || body?.licensePlate || rider.licensePlate || rider.vehicle_number),
+    nationalId: normalizeText(body?.nationalId || rider.nationalId || body?.national_id || rider.national_id),
+  };
+}
+
+async function upsertUser({ name, email, phone, password, targetRole }) {
+  const normalizedEmail = normalizeText(email).toLowerCase();
+  const cleanName = normalizeText(name);
+  const cleanPhone = normalizeText(phone);
+
+  const existingUsers = await query("SELECT user_id FROM users WHERE email = ?", [normalizedEmail]);
+
+  if (existingUsers && existingUsers.length > 0) {
+    const userId = existingUsers[0].user_id;
+    await query(
+      "UPDATE users SET role = ?, name = ?, phone = COALESCE(?, phone) WHERE user_id = ?",
+      [targetRole, cleanName, cleanPhone || null, userId],
+    );
+    return userId;
+  }
+
+  const hashedPassword = await bcrypt.hash(password, BCRYPT_ROUNDS);
+  const insertResult = await query(
+    "INSERT INTO users (name, email, phone, password, role) VALUES (?, ?, ?, ?, ?)",
+    [cleanName, normalizedEmail, cleanPhone || null, hashedPassword, targetRole],
+  );
+
+  return insertResult.insertId;
+}
+
+async function ensureRestaurantProfile(userId, payload) {
+  const existing = await query("SELECT restaurant_id FROM restaurants WHERE owner_user_id = ? LIMIT 1", [userId]);
+  const slug = await generateUniqueSlug(payload.restaurantName || payload.name || "restaurant");
+  const values = [
+    userId,
+    payload.restaurantName,
+    slug,
+    payload.phone || null,
+    payload.email || null,
+    payload.address || null,
+    payload.latitude ?? null,
+    payload.longitude ?? null,
+    payload.description || null,
+  ];
+
+  if (existing && existing.length > 0) {
+    await query(
+      `UPDATE restaurants
+       SET name = ?, slug = ?, phone = ?, email = ?, address = ?, latitude = ?, longitude = ?, description = ?
+       WHERE owner_user_id = ?`,
+      [...values.slice(1), userId],
+    );
+  } else {
+    await query(
+      `INSERT INTO restaurants (owner_user_id, name, slug, phone, email, address, latitude, longitude, description, status)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')`,
+      values,
+    );
+  }
+}
+
+async function ensureRiderProfile(userId, payload) {
+  const existing = await query("SELECT rider_id FROM riders WHERE user_id = ? LIMIT 1", [userId]);
+  const values = [
+    userId,
+    payload.vehicleType || "boda_boda",
+    payload.vehicleNumber || null,
+    payload.nationalId || null,
+  ];
+
+  if (existing && existing.length > 0) {
+    await query(
+      `UPDATE riders
+       SET vehicle_type = ?, vehicle_number = ?, national_id = ?
+       WHERE user_id = ?`,
+      [...values.slice(1), userId],
+    );
+  } else {
+    await query(
+      `INSERT INTO riders (user_id, vehicle_type, vehicle_number, national_id, status)
+       VALUES (?, ?, ?, ?, 'pending')`,
+      values,
+    );
+  }
+}
+
 async function registerRestaurantAdmin(req, res) {
   try {
-    const { name, email, phone, password, restaurantName, address } = req.body;
+    const payload = normalizeRestaurantPayload(req.body);
 
-    if (!email || !password || !restaurantName) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Missing required fields." });
+    const validationError = validateRestaurantPayload(payload);
+    if (validationError) {
+      return res.status(400).json({ success: false, message: validationError });
     }
 
-    // Process user assignment/creation
     const userId = await upsertUser({
-      name,
-      email,
-      phone,
-      password,
+      name: payload.name,
+      email: payload.email,
+      phone: payload.phone,
+      password: payload.password,
       targetRole: "restaurant_admin",
     });
 
-    // Insert relationship or restaurant profile metadata into your restaurant/owner tables
-    // Adjust table names and column layouts to fit your actual relational schema
-    await query(
-      `INSERT INTO restaurants (owner_id, restaurant_name, address)
-       VALUES (?, ?, ?)
-       ON DUPLICATE KEY UPDATE restaurant_name = VALUES(restaurant_name), address = VALUES(address)`,
-      [userId, restaurantName.trim(), address ? address.trim() : null],
-    );
+    await ensureRestaurantProfile(userId, payload);
 
-    // Fetch refreshed user snapshot for payload mapping
-    const userRows = await query(
-      "SELECT user_id, name, email, role FROM users WHERE user_id = ?",
-      [userId],
-    );
+    const userRows = await query("SELECT user_id, name, email, role FROM users WHERE user_id = ?", [userId]);
     const user = userRows[0];
 
     const token = createToken(user);
     setAuthCookie(res, token);
 
-    return res.status(200).json({
+    return res.status(201).json({
       success: true,
       message: "Restaurant registration successful. Welcome aboard!",
-      user: {
-        user_id: user.user_id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-      },
+      user: buildUserPayload(user),
     });
   } catch (err) {
     console.error("[registerRestaurantAdmin] Error processing request:", err);
-    return res
-      .status(500)
-      .json({
-        success: false,
-        message: "Internal server error processing registration.",
-      });
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error processing registration.",
+    });
   }
 }
 
-/**
- * POST /api/auth/register/rider
- * Body payload expectation: { name, email, phone, password, vehicleType, licensePlate }
- */
 async function registerRider(req, res) {
   try {
-    const { name, email, phone, password, vehicleType, licensePlate } =
-      req.body;
+    const payload = normalizeRiderPayload(req.body);
 
-    if (!email || !password) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Missing required fields." });
+    const validationError = validateRiderPayload(payload);
+    if (validationError) {
+      return res.status(400).json({ success: false, message: validationError });
     }
 
-    // Process user assignment/creation
     const userId = await upsertUser({
-      name,
-      email,
-      phone,
-      password,
+      name: payload.name,
+      email: payload.email,
+      phone: payload.phone,
+      password: payload.password,
       targetRole: "rider",
     });
 
-    // Insert relationship or status tracking metadata into your riders structural system
-    await query(
-      `INSERT INTO riders (user_id, vehicle_type, license_plate, status)
-       VALUES (?, ?, ?, 'offline')
-       ON DUPLICATE KEY UPDATE vehicle_type = VALUES(vehicle_type), license_plate = VALUES(license_plate)`,
-      [
-        userId,
-        vehicleType ? vehicleType.trim() : null,
-        licensePlate ? licensePlate.trim() : null,
-      ],
-    );
+    await ensureRiderProfile(userId, payload);
 
-    // Fetch refreshed user snapshot for payload mapping
-    const userRows = await query(
-      "SELECT user_id, name, email, role FROM users WHERE user_id = ?",
-      [userId],
-    );
+    const userRows = await query("SELECT user_id, name, email, role FROM users WHERE user_id = ?", [userId]);
     const user = userRows[0];
 
     const token = createToken(user);
     setAuthCookie(res, token);
 
-    return res.status(200).json({
+    return res.status(201).json({
       success: true,
       message: "Rider registration completed successfully!",
-      user: {
-        user_id: user.user_id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-      },
+      user: buildUserPayload(user),
     });
   } catch (err) {
     console.error("[registerRider] Error processing request:", err);
-    return res
-      .status(500)
-      .json({
-        success: false,
-        message: "Internal server error processing registration.",
-      });
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error processing registration.",
+    });
   }
 }
 
