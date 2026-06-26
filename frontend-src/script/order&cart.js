@@ -16,7 +16,7 @@
    ============================================================ */
 const API        = '/api';
 const STORAGE_KEY = 'zesto_cart';    // [{ product_id, qty }]
-const DELIVERY_FEE = 5000;          // UGX — mirrors server .env
+let DELIVERY_FEE = 5000;            // UGX — loaded from backend settings
 
 /* ============================================================
    STATE
@@ -94,6 +94,19 @@ const Utils = {
 /* ============================================================
    TOAST SYSTEM
    ============================================================ */
+async function loadDeliveryFee() {
+  try {
+    const res = await fetch('/api/settings/delivery-fee');
+    const data = await res.json();
+    if (res.ok && data?.data?.delivery_fee != null) {
+      DELIVERY_FEE = Number(data.data.delivery_fee);
+      if (!Number.isFinite(DELIVERY_FEE) || DELIVERY_FEE < 0) DELIVERY_FEE = 5000;
+    }
+  } catch (err) {
+    console.warn('[delivery-fee] using fallback value', err);
+  }
+}
+
 const Toast = {
   container: null,
 
@@ -746,10 +759,12 @@ const Cart = {
     const total = subtotal + (items.length ? DELIVERY_FEE : 0);
 
     // Summary sidebar
-    const summaryRows  = document.getElementById('summaryRows');
-    const grandTotal   = document.getElementById('grandTotal');
-    const modalSub     = document.getElementById('modalSubtotal');
-    const modalTotalEl = document.getElementById('modalTotal');
+    const summaryRows       = document.getElementById('summaryRows');
+    const grandTotal        = document.getElementById('grandTotal');
+    const modalSub          = document.getElementById('modalSubtotal');
+    const modalTotalEl      = document.getElementById('modalTotal');
+    const modalDeliveryFee  = document.getElementById('modalDeliveryFee');
+    const summaryDeliveryFee = document.getElementById('summaryDeliveryFee');
 
     if (summaryRows) {
       summaryRows.innerHTML = items.map(({ product_id, qty }) => {
@@ -759,9 +774,13 @@ const Cart = {
       }).join('');
     }
 
+    const displayFee = items.length ? DELIVERY_FEE : 0;
+
     if (grandTotal)   grandTotal.textContent   = Utils.currency(total);
     if (modalSub)     modalSub.textContent     = Utils.currency(subtotal);
     if (modalTotalEl) modalTotalEl.textContent = Utils.currency(total);
+    if (modalDeliveryFee) modalDeliveryFee.textContent = Utils.currency(displayFee);
+    if (summaryDeliveryFee) summaryDeliveryFee.textContent = Utils.currency(displayFee);
   },
 
   /** Qty decrease handler */
@@ -1127,6 +1146,7 @@ function handlePaymentReturn() {
    ============================================================ */
 async function bootPage() {
   Toast.init();
+  await loadDeliveryFee();
 
   // Shared init across all pages
   await Auth.init();

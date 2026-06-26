@@ -1,5 +1,18 @@
 const STORAGE_KEY = "zestoCart";
-const DELIVERY_FEE = 5000;
+let DELIVERY_FEE = 5000;
+
+async function loadDeliveryFee() {
+    try {
+        const res = await fetch('/api/settings/delivery-fee');
+        const data = await res.json();
+        if (res.ok && data?.data?.delivery_fee != null) {
+            DELIVERY_FEE = Number(data.data.delivery_fee);
+            if (!Number.isFinite(DELIVERY_FEE) || DELIVERY_FEE < 0) DELIVERY_FEE = 5000;
+        }
+    } catch (err) {
+        console.warn('[delivery-fee] using fallback value', err);
+    }
+}
 
 function getCart() {
     return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
@@ -53,8 +66,8 @@ function renderSummary() {
     totalEl.textContent = formatPrice(subtotal + DELIVERY_FEE);
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-
+document.addEventListener("DOMContentLoaded", async () => {
+    await loadDeliveryFee();
     renderSummary();
 
     document.getElementById("placeOrderBtn")
