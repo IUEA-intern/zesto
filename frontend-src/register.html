@@ -192,7 +192,8 @@
                 flex: 1;
                 display: flex;
                 flex-direction: column;
-                justify-content: center;
+                justify-content: flex-start;
+                padding-top: 18px;
             }
 
             .gs-left-label {
@@ -942,17 +943,14 @@
             <div class="gs-left">
                 <div class="gs-left-nav">
                     <a href="index.html" class="gs-logo">
-                        <div class="logo-mark">
+                        <!-- <div class="logo-mark">
                             <svg viewBox="0 0 24 24">
                                 <path d="M13 2L4 13h7l-1 9 10-12h-7l1-8z" />
                             </svg>
-                        </div>
+                        </div> -->
                         <span class="logo-text">Zes<span>to</span></span>
                     </a>
-                    <span class="gs-signin-link"
-                        >Already have an account?
-                        <a href="signin.html">Sign in</a></span
-                    >
+                   
                 </div>
 
                 <div class="gs-left-content">
@@ -1063,7 +1061,7 @@
                         </div>
                     </div>
 
-                    <div class="gs-promo">
+                    <!-- <div class="gs-promo">
                         <div class="gs-promo-emoji">🚀</div>
                         <div class="gs-promo-text">
                             <div class="gs-promo-label">
@@ -1071,7 +1069,7 @@
                             </div>
                             <div class="gs-promo-code">LAUNCH0</div>
                         </div>
-                    </div>
+                    </div> -->
                 </div>
 
                 <div class="gs-social-proof">
@@ -1131,7 +1129,7 @@
                             >Zes<span>to</span></span
                         >
                     </a>
-                    <a href="signin.html" class="btn btn-ghost">Sign in</a>
+                  
                 </div>
 
                 <!-- STEPPER -->
@@ -1243,7 +1241,7 @@
                         </svg>
                     </button>
 
-                    <div
+                    <!-- <div
                         style="
                             text-align: center;
                             margin-top: 16px;
@@ -1257,7 +1255,7 @@
                             style="color: var(--or); font-weight: 700"
                             >Sign in</a
                         >
-                    </div>
+                    </div> -->
                 </div>
 
                 <!-- ── STEP 2: Registration form ── -->
@@ -1635,7 +1633,7 @@
                             class="gs-btn-primary"
                             onclick="goToDashboard()"
                         >
-                            Go to Dashboard
+                            Go to Restaurant Portal
                             <svg
                                 viewBox="0 0 24 24"
                                 fill="none"
@@ -1651,12 +1649,14 @@
                         </button>
 
                         <div style="display: flex; gap: 10px; width: 100%">
-                            <a href="index.html" class="gs-btn-secondary"
+                            <a href="index.html" class="gs-btn-primary"
                                 >🏠 Back to home</a
-                            >
+                            > </div>
+                            <div style="display: flex; gap: 10px; width: 100%">
+
                             <a href="contact.html" class="gs-btn-secondary"
-                                >❓ Need help?</a
-                            >
+                                >❓ Need help?</a>
+                                </div>
                         </div>
                     </div>
                 </div>
@@ -1668,8 +1668,83 @@
 
             /* ─── STATE ─────────────────────────────── */
             let currentRole = null;
+            let currentStep = 1;
             let map = null;
             let marker = null;
+            const REGISTER_STATE_KEY = "zesto_register_state_v1";
+
+            function persistRegisterState() {
+                try {
+                    const formState = {};
+                    document.querySelectorAll("input, textarea, select").forEach((el) => {
+                        if (!el.id) return;
+                        if (el.type === "checkbox") {
+                            formState[el.id] = el.checked;
+                        } else if (el.type === "radio") {
+                            if (el.checked) formState[el.id] = el.value;
+                        } else {
+                            formState[el.id] = el.value;
+                        }
+                    });
+
+                    localStorage.setItem(
+                        REGISTER_STATE_KEY,
+                        JSON.stringify({ currentRole, currentStep, formState }),
+                    );
+                } catch (err) {
+                    console.warn("Could not save registration state", err);
+                }
+            }
+
+            function restoreRegisterState() {
+                try {
+                    const raw = localStorage.getItem(REGISTER_STATE_KEY);
+                    if (!raw) return;
+
+                    const saved = JSON.parse(raw);
+                    if (!saved || typeof saved !== "object") return;
+
+                    if (saved.currentRole) {
+                        currentRole = saved.currentRole;
+                        selectRole(currentRole);
+                    }
+
+                    if (saved.formState && typeof saved.formState === "object") {
+                        Object.entries(saved.formState).forEach(([id, value]) => {
+                            const el = document.getElementById(id);
+                            if (!el) return;
+                            if (el.type === "checkbox") {
+                                el.checked = Boolean(value);
+                            } else if (el.type === "radio") {
+                                el.checked = el.value === String(value);
+                            } else {
+                                el.value = value ?? "";
+                            }
+                        });
+                    }
+
+                    if (Number.isInteger(saved.currentStep) && saved.currentStep >= 1) {
+                        currentStep = saved.currentStep;
+                        goToStep(currentStep);
+                    } else {
+                        goToStep(1);
+                    }
+                } catch (err) {
+                    console.warn("Could not restore registration state", err);
+                    goToStep(1);
+                }
+            }
+
+            function bindRegisterPersistence() {
+                document.addEventListener("input", (event) => {
+                    const target = event.target;
+                    if (target && target.id) persistRegisterState();
+                });
+                document.addEventListener("change", (event) => {
+                    const target = event.target;
+                    if (target && target.id) persistRegisterState();
+                });
+            }
 
             /* ─── ROLE SELECTION ────────────────────── */
             function selectRole(role) {
@@ -1681,10 +1756,14 @@
                     .getElementById("role-" + role)
                     .classList.add("selected");
                 document.getElementById("step1-next").disabled = false;
+                persistRegisterState();
             }
 
             /* ─── STEP NAVIGATION ───────────────────── */
             function goToStep(step) {
+                currentStep = step;
+                persistRegisterState();
+
                 // Swap visible panel
                 document
                     .querySelectorAll(".gs-step")
@@ -1765,6 +1844,15 @@
                 if (isRest) {
                     setTimeout(() => {
                         if (!map) {
+                            const customIcon = L.icon({
+                                iconUrl: "/images/leaflet-marker-icon.svg",
+                                shadowUrl: "/images/leaflet-marker-shadow.svg",
+                                iconSize: [25, 41],
+                                iconAnchor: [12, 41],
+                                shadowSize: [41, 41],
+                                shadowAnchor: [12, 41],
+                            });
+
                             map = L.map("restaurant-map").setView(
                                 [0.3476, 32.5825],
                                 13,
@@ -1775,7 +1863,7 @@
                             ).addTo(map);
                             map.on("click", (e) => {
                                 if (marker) map.removeLayer(marker);
-                                marker = L.marker(e.latlng).addTo(map);
+                                marker = L.marker(e.latlng, { icon: customIcon }).addTo(map);
                                 document.getElementById("latitude").value =
                                     e.latlng.lat.toFixed(6);
                                 document.getElementById("longitude").value =
@@ -2021,8 +2109,8 @@
 
                 const endpoint =
                     currentRole === "restaurant"
-                        ? "/api/auth/restaurant"
-                        : "/api/auth/rider";
+                        ? "/api/auth/register/restaurant"
+                        : "/api/auth/register/rider";
 
                 const payload =
                     currentRole === "restaurant"
@@ -2058,6 +2146,7 @@
                     const res = await fetch(endpoint, {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
+                        credentials: "include",
                         body: JSON.stringify(payload),
                     });
 
@@ -2074,6 +2163,7 @@
                     }
 
                     const data = await res.json().catch(() => ({}));
+                    localStorage.removeItem(REGISTER_STATE_KEY);
                     const displayName =
                         data?.user?.name || `${f.firstName} ${f.lastName}`;
                     const firstName = displayName.split(" ")[0];
@@ -2101,7 +2191,7 @@
             function goToDashboard() {
                 window.location.href =
                     currentRole === "restaurant"
-                        ? "/admin/index.html"
+                        ? "/restaurant-admin/index.html"
                         : "/rider/index.html";
             }
 
@@ -2112,6 +2202,9 @@
             window.togglePassword = togglePassword;
             window.handleSignup = handleSignup;
             window.goToDashboard = goToDashboard;
+
+            bindRegisterPersistence();
+            restoreRegisterState();
         </script>
     </body>
 </html>

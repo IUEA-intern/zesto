@@ -28,10 +28,9 @@ router.post("/login", controller.login);
 router.post("/logout", controller.logout);
 router.get("/me", controller.getMe);
 
-router.post(
-  "/register/restaurant",
-  onboardingController.registerRestaurantAdmin,
-);
-router.post("/register/rider", onboardingController.registerRider);
+router.post("/register/restaurant", onController.registerRestaurantAdmin);
+router.post("/restaurant", onController.registerRestaurantAdmin);
+router.post("/register/rider", onController.registerRider);
+router.post("/rider", onController.registerRider);
 
 module.exports = router;
