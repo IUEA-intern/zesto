@@ -12,7 +12,15 @@ const express     = require('express');
 const router      = express.Router();
 const { requireAuth } = require('../middleware/auth');
 const { paymentLimiter } = require('../middleware/rateLimit');
-const { initiatePayment, verifyPayment, webhookCallback } = require('../controllers/paymentController');
+const {
+  initiatePayment,
+  verifyPayment,
+  webhookCallback,
+  initiatePesapalPayment,
+  pesapalCallback,
+  pesapalIpn,
+  registerPesapalIpn,
+} = require('../controllers/paymentController');
 
 // Webhook must come first (no auth, raw body needed)
 router.post('/webhook', express.raw({ type: 'application/json' }), (req, res, next) => {
@@ -23,8 +31,15 @@ router.post('/webhook', express.raw({ type: 'application/json' }), (req, res, ne
   next();
 }, webhookCallback);
 
+// Pesapal routes
+router.post('/pesapal/ipn', express.json(), pesapalIpn);
+router.get('/pesapal/callback', pesapalCallback);
+router.post('/pesapal/callback', express.json(), pesapalCallback);
+router.post('/pesapal/register-ipn', requireAuth, paymentLimiter, registerPesapalIpn);
+
 // Authenticated payment routes with rate limiting
-router.post('/initiate', requireAuth, paymentLimiter, initiatePayment);
+router.post('/pesapal/initiate', requireAuth, paymentLimiter, initiatePesapalPayment);
+router.post('/initiate', requireAuth, paymentLimiter, initiatePesapalPayment);
 router.post('/verify',   requireAuth, paymentLimiter, verifyPayment);
 
 // GET payment status

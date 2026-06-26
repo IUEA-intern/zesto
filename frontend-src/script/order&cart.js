@@ -853,7 +853,7 @@ const Cart = {
 };
 
 /* ============================================================
-   CHECKOUT MODULE (Flutterwave)
+   CHECKOUT MODULE (Pesapal)
    ============================================================ */
 
 function resetAuthTabsToLogin() {
@@ -898,7 +898,7 @@ const Checkout = {
 
     if (!State.session) {
       State.intent = 'checkout';
-      openAuthModal('⚠️ Please log in to continue checkout.');
+      openAuthModal('Please log in to continue checkout.');
       Toast.warning('Please log in to continue checkout.');
       return;
     }
@@ -921,7 +921,7 @@ const Checkout = {
 
   async proceed() {
     const address = document.getElementById('deliveryAddress')?.value.trim();
-    const method  = document.getElementById('paymentMethod')?.value;
+    const method  = document.getElementById('paymentMethod')?.value || 'mobile_money';
     const notes   = document.getElementById('orderNotes')?.value.trim();
 
     if (!address) {
@@ -935,92 +935,42 @@ const Checkout = {
       return;
     }
 
-    // Calculate total for Flutterwave
-    const subtotal = items.reduce((sum, { product_id, qty }) => {
-      const p = State.products.get(product_id);
-      return sum + (p ? parseFloat(p.price) * qty : 0);
-    }, 0);
-    const total = subtotal + DELIVERY_FEE;
-
-    if (method === 'cash') {
-      // Skip Flutterwave for COD
-      await this.placeOrder(items, address, method, notes, null, null);
-    } else {
-      // Launch Flutterwave
-      this.launchFlutterwave(total, method, items, address, notes);
-    }
+    await this.placeOrderAndStartPesapal(items, address, method, notes);
   },
 
-  launchFlutterwave(total, paymentMethod, items, address, notes) {
-    if (typeof FlutterwaveCheckout === 'undefined') {
-      Toast.error('Payment gateway not loaded. Please refresh.');
-      return;
-    }
-
-    const txRef = `zesto_${Date.now()}_${State.session.user_id}`;
-
-    FlutterwaveCheckout({
-      public_key: window.__FLW_PUBLIC_KEY__ || 'FLWPUBK_TEST-REPLACE_WITH_REAL_KEY',
-      tx_ref:     txRef,
-      amount:     total,
-      currency:   'UGX',
-      payment_options: paymentMethod === 'card' ? 'card' : 'mobilemoneyuganda',
-      customer: {
-        email: State.session.email,
-        name:  State.session.name,
-      },
-      customizations: {
-        title:       'Zesto Food Ordering',
-        description: 'Pay for your Zesto order',
-        logo:        `${window.location.origin}/images/logo.png`,
-      },
-      meta: { delivery_address: address },
-      callback: async (data) => {
-        if (data.status === 'successful') {
-          await this.placeOrder(items, address, paymentMethod, notes, data.transaction_id, txRef);
-        } else {
-          Toast.error('Payment was not completed.');
-        }
-      },
-      onclose: () => {},
-    });
-  },
-
-  async placeOrder(items, deliveryAddress, paymentMethod, notes, transactionId, txRef) {
+  async placeOrderAndStartPesapal(items, deliveryAddress, paymentMethod, notes) {
     const proceedBtn = document.getElementById('proceedPaymentBtn');
-    if (proceedBtn) { proceedBtn.disabled = true; proceedBtn.textContent = 'Placing order…'; }
+    const originalText = proceedBtn?.textContent || 'Proceed to Payment';
+    if (proceedBtn) {
+      proceedBtn.disabled = true;
+      proceedBtn.textContent = 'Opening Pesapal...';
+    }
 
     try {
-      const res = await Api.post('/orders', {
+      const orderRes = await Api.post('/orders', {
         items,
         delivery_address: deliveryAddress,
-        payment_method:   paymentMethod,
+        payment_method: paymentMethod,
         notes,
       });
 
-      // Verify payment server-side if paid online
-      if (transactionId) {
-        await Api.post(`/orders/${res.order_id}/verify`, {
-          transaction_id: transactionId,
-          tx_ref:         txRef,
-        }).catch(err => console.warn('Payment verify:', err.message));
+      const paymentRes = await Api.post('/payments/pesapal/initiate', {
+        order_id: orderRes.order_id,
+        method: paymentMethod,
+      });
+
+      if (!paymentRes.redirect_url) {
+        throw new Error('Pesapal did not return a payment link.');
       }
 
-      // Clear cart
-      LocalCart.clear();
-      this.refreshState();
-      Cart.updateBadge();
-      this.closeModal();
-
-      Toast.success(`Order #${res.order_id} placed! 🎉 We'll start preparing it now.`);
-
-      // Redirect after short delay
-      setTimeout(() => { window.location.href = 'order.html'; }, 2200);
+      Toast.info('Redirecting to Pesapal...');
+      window.location.href = paymentRes.redirect_url;
     } catch (err) {
-      Toast.error(err.message || 'Failed to place order. Please try again.');
-    } finally {
-      const proceedBtn = document.getElementById('submitOrderBtn');
-      if (proceedBtn) { proceedBtn.disabled = false; proceedBtn.textContent = '💳 Proceed to Payment'; }
+      Toast.error(err.message || 'Failed to start payment. Please try again.');
+      if (proceedBtn) {
+        proceedBtn.disabled = false;
+        proceedBtn.textContent = originalText;
+      }
     }
   },
 };
@@ -1147,6 +1097,29 @@ function initNavScroll() {
       ? '0 4px 28px rgba(0,0,0,.12)'
       : '0 2px 20px rgba(0,0,0,.06)';
   }, 50));
+}
+
+
+function handlePaymentReturn() {
+  const params = new URLSearchParams(window.location.search);
+  const payment = params.get('payment');
+  if (!payment) return;
+
+  if (payment === 'success') {
+    LocalCart.clear();
+    Cart.syncFromStorage();
+    Cart.updateBadge();
+    Toast.success('Payment confirmed! Your order is being prepared.');
+  } else if (payment === 'pending' || payment === 'already-processed') {
+    Toast.info('Payment is being processed. We will update your order shortly.');
+  } else if (payment === 'failed') {
+    Toast.error('Payment failed. Please try again.');
+  } else {
+    Toast.error('We could not confirm the payment status. Please contact support if money was deducted.');
+  }
+
+  const cleanUrl = `${window.location.pathname}${window.location.hash || ''}`;
+  window.history.replaceState({}, document.title, cleanUrl);
 }
 
 /* ============================================================

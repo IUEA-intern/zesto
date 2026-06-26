@@ -11,17 +11,12 @@ app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      baseUri: ["'self'"],
-      objectSrc: ["'none'"],
-      scriptSrc: ["'self'", "'unsafe-inline'", 'https://checkout.flutterwave.com', 'https://cdn.socket.io', 'https://unpkg.com'],
-      scriptSrcElem: ["'self'", "'unsafe-inline'", 'https://unpkg.com'],
-      scriptSrcAttr: ["'unsafe-inline'"],
-      styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com', 'https://unpkg.com'],
-      styleSrcElem: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com', 'https://unpkg.com'],
+      scriptSrc: ["'self'", "'unsafe-inline'", 'https://cdn.socket.io'],
+      styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
       fontSrc: ["'self'", 'https://fonts.gstatic.com'],
-      imgSrc: ["'self'", 'data:', 'https://images.unsplash.com', 'https://tile.openstreetmap.org'],
-      connectSrc: ["'self'", 'https://api.flutterwave.com', 'https://tile.openstreetmap.org'],
-      frameSrc: ["'self'", 'https://checkout.flutterwave.com'],
+      imgSrc: ["'self'", 'data:', 'https://images.unsplash.com'],
+      connectSrc: ["'self'", 'https://pay.pesapal.com'],
+      frameSrc: ["'self'", 'https://pay.pesapal.com'],
     },
   },
 }))
