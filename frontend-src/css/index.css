@@ -90,15 +90,23 @@ a{text-decoration:none;color:inherit;}
 
 /* HERO CARDS */
 .hero-right{display:flex;flex-direction:column;gap:12px;padding-bottom:0;}
-.h-card{background:white;border-radius:var(--r20);border:1px solid var(--lt2);padding:14px 16px;display:flex;align-items:center;gap:14px;box-shadow:var(--shadow);cursor:pointer;transition:box-shadow .2s,transform .2s; height:80px;}
+.hero-image-shell{position:relative;display:flex;align-items:center;justify-content:center;padding:14px;border-radius:28px;background:linear-gradient(135deg, rgba(255,255,255,0.95), rgba(255,240,232,0.9));box-shadow:0 24px 60px rgba(14,12,10,.16), inset 0 1px 0 rgba(255,255,255,.9);border:1px solid rgba(255,133,77,.18);overflow:hidden;}
+.hero-image-shell::before{content:"";position:absolute;inset:-20% auto auto -10%;width:260px;height:260px;background:radial-gradient(circle, rgba(255,140,77,.35), rgba(255,140,77,0));filter:blur(10px);pointer-events:none;}
+.hero-image-shell::after{content:"";position:absolute;inset:auto -10% -25% auto;width:260px;height:260px;background:radial-gradient(circle, rgba(8,212,122,.24), rgba(8,212,122,0));filter:blur(10px);pointer-events:none;}
+.hero-image-shell img{width:100%;max-width:420px;border-radius:20px;box-shadow:0 18px 40px rgba(14,12,10,.18);object-fit:cover;position:relative;z-index:1;}
+.h-card{background:white;border-radius:var(--r20);border:1px solid var(--lt2);padding:14px 16px;display:flex;align-items:center;gap:14px;box-shadow:var(--shadow);cursor:pointer;transition:box-shadow .2s,transform .2s;min-height:90px;}
 .h-card:hover{box-shadow:var(--shadow-lg);transform:translateY(-2px);}
-.h-c-ico{width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0;}
-.h-c-name{font-size:14px;font-weight:700;color:var(--dk);margin-bottom:4px;}
-.h-c-meta{display:flex;gap:10px;font-size:11px;color:var(--mid);}
+.h-card-glovo{background:linear-gradient(135deg,#fff8f2 0%,#fff1e8 100%);border-color:#ffd8c0;}
+.h-c-visual{width:72px;height:72px;border-radius:16px;overflow:hidden;display:flex;align-items:center;justify-content:center;background:white;box-shadow:inset 0 0 0 1px rgba(14,12,10,.05);flex-shrink:0;}
+.h-c-visual img{width:100%;height:100%;object-fit:cover;display:block;}
+.h-c-copy{display:flex;flex-direction:column;gap:6px;min-width:0;}
+.h-c-name{font-size:14px;font-weight:700;color:var(--dk);}
+.h-c-meta{display:flex;gap:8px;font-size:11px;color:var(--mid);flex-wrap:wrap;}
 .h-c-meta span{display:flex;align-items:center;gap:3px;}
+.h-c-badge{display:inline-flex;align-items:center;padding:3px 8px;border-radius:999px;background:rgba(255,85,0,.1);color:var(--or);font-weight:700;}
 .h-c-meta svg{width:12px;height:12px;}
-.h-c-star{color:#F59E0B;}
-.h-c-btn{margin-left:auto;background:var(--or);color:white;border:none;border-radius:var(--r6);padding:6px 12px;font-size:11px;font-weight:700;cursor:pointer;flex-shrink:0;font-family:'Plus Jakarta Sans',sans-serif;transition:background .18s;}
+.h-c-star{color:#F59E0B;font-weight:700;}
+.h-c-btn{margin-left:auto;background:var(--or);color:white;border:none;border-radius:var(--r6);padding:7px 12px;font-size:11px;font-weight:700;cursor:pointer;flex-shrink:0;font-family:'Plus Jakarta Sans',sans-serif;transition:background .18s;}
 .h-c-btn:hover{background:var(--or-dk);}
 
 /* HERO BOTTOM WAVE */
@@ -109,6 +117,10 @@ a{text-decoration:none;color:inherit;}
 .trust-item:last-child{border-right:none;}
 .trust-item strong{color:white;font-weight:700;}
 .trust-item svg{width:16px;height:16px;color:var(--or);flex-shrink:0;}
+.trust-item--highlight{display:flex;flex-direction:column;align-items:flex-start;gap:10px;padding:14px 24px;border:1px solid rgba(255,255,255,.12);border-radius:16px;background:rgba(255,255,255,.05);}
+.trust-item-main{display:flex;align-items:center;gap:10px;}
+.trust-cta{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;background:rgba(255,85,0,.14);color:#ffe0cf;font-size:12px;font-weight:700;transition:background .18s,transform .18s;}
+.trust-cta:hover{background:rgba(255,85,0,.22);transform:translateX(2px);}
 
 /* ─── CATEGORIES ─── */
 .cats-section{padding:80px 0;background:white;}
