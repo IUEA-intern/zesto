@@ -160,17 +160,19 @@ a{text-decoration:none;color:inherit;}
 /* ─── HOW IT WORKS ─── */
 .how-section{padding:80px 0;background:white;}
 .how-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin-top:48px;}
-.how-card{background:var(--lt);border-radius:var(--r20);padding:28px 22px;position:relative;transition:transform .2s;}
-.how-card:hover{transform:translateY(-4px);}
-.how-card.hl{background:var(--or-lt);border:2px solid var(--or-mid);}
-.how-n{width:36px;height:36px;background:var(--or-lt);border:2px solid var(--or-mid);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:var(--or);margin-bottom:18px;}
-.how-card.hl .how-n{background:var(--or);border-color:var(--or);color:white;}
-.how-ico{width:44px;height:44px;background:var(--dk);border-radius:12px;display:flex;align-items:center;justify-content:center;margin-bottom:16px;}
+.how-card{background:var(--lt);border-radius:var(--r20);padding:28px 22px;position:relative;transition:transform .45s cubic-bezier(.2,.8,.2,1),background-color .45s cubic-bezier(.2,.8,.2,1),border-color .45s cubic-bezier(.2,.8,.2,1),color .45s cubic-bezier(.2,.8,.2,1);}
+.how-card:hover{transform:translateY(-4px);background:var(--or-lt);border:2px solid var(--or-mid);}
+.how-card.hl{background:var(--lt);border:2px solid var(--lt2);}
+.how-n{width:36px;height:36px;background:var(--or-lt);border:2px solid var(--or-mid);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:var(--or);margin-bottom:18px;transition:background-color .45s cubic-bezier(.2,.8,.2,1),border-color .45s cubic-bezier(.2,.8,.2,1),color .45s cubic-bezier(.2,.8,.2,1);}
+.how-card.hl .how-n{background:#111;border-color:#111;color:white;}
+.how-card:hover .how-n,.how-card.hl:hover .how-n{background:var(--or);border-color:var(--or);color:white;}
+.how-ico{width:44px;height:44px;background:var(--dk);border-radius:12px;display:flex;align-items:center;justify-content:center;margin-bottom:16px;transition:background-color .45s cubic-bezier(.2,.8,.2,1);}
 .how-ico svg{width:22px;height:22px;color:white;}
-.how-card.hl .how-ico{background:var(--or);}
-.how-title{font-size:15px;font-weight:700;color:var(--dk);margin-bottom:8px;}
-.how-card.hl .how-title{color:var(--or);}
-.how-desc{font-size:13px;color:var(--mid);line-height:1.65;}
+.how-card:hover .how-ico{background:var(--or);}
+.how-title{font-size:15px;font-weight:700;color:var(--dk);margin-bottom:8px;transition:color .45s cubic-bezier(.2,.8,.2,1);}
+.how-card:hover .how-title{color:var(--or);}
+.how-desc{font-size:13px;color:var(--mid);line-height:1.65;transition:color .45s cubic-bezier(.2,.8,.2,1);}
+.how-card:hover .how-desc{color:var(--dk);}
 
 /* ─── PROMO ─── */
 .promo-section{background:linear-gradient(135deg,#ff5a1f 0%,#ff7a2f 100%);padding:72px 0;}
@@ -301,4 +303,49 @@ a{text-decoration:none;color:inherit;}
   .hs-q{padding:14px 20px;}
   .hs-btn{border-radius:0 0 var(--r20) var(--r20);padding:14px;text-align:center;justify-content:center;}
   .store-btns{flex-direction:column;}
+}
+/* CSS */
+.button-29 {
+  align-items: center;
+  appearance: none;
+  background-image: radial-gradient(100% 100% at 100% 0, #ff8a3d 0, #ff5a1f 100%);
+  border: 0;
+  border-radius: 6px;
+  box-shadow: rgba(180, 70, 20, .35) 0 2px 4px,rgba(180, 70, 20, .25) 0 7px 13px -3px,rgba(190, 80, 25, .55) 0 -3px 0 inset;
+  box-sizing: border-box;
+  color: #fff;
+  cursor: pointer;
+  display: inline-flex;
+  font-family: "JetBrains Mono",monospace;
+  height: 48px;
+  justify-content: center;
+  line-height: 1;
+  list-style: none;
+  overflow: hidden;
+  padding-left: 16px;
+  padding-right: 16px;
+  position: relative;
+  text-align: left;
+  text-decoration: none;
+  transition: box-shadow .15s,transform .15s;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+  white-space: nowrap;
+  will-change: box-shadow,transform;
+  font-size: 18px;
+}
+
+.button-29:focus {
+  box-shadow: #ff6b2c 0 0 0 1.5px inset, rgba(180, 70, 20, .35) 0 2px 4px, rgba(180, 70, 20, .25) 0 7px 13px -3px, #ff6b2c 0 -3px 0 inset;
+}
+
+.button-29:hover {
+  box-shadow: rgba(180, 70, 20, .35) 0 4px 8px, rgba(180, 70, 20, .25) 0 7px 13px -3px, #ff6b2c 0 -3px 0 inset;
+  transform: translateY(-2px);
+}
+
+.button-29:active {
+  box-shadow: #ff6b2c 0 3px 7px inset;
+  transform: translateY(2px);
 }
