@@ -16,7 +16,21 @@ const { requireAuth } = require('../middleware/auth');
 
 require('dotenv').config({ path: __dirname + '/../.env' });
 
-const DELIVERY_FEE = parseFloat(process.env.DELIVERY_FEE) || 5000;
+async function getBaseDeliveryFee() {
+  try {
+    const rows = await query('SELECT setting_value FROM platform_settings WHERE setting_key = ?', ['base_delivery_fee']);
+    const rawValue = rows?.[0]?.setting_value;
+    if (rawValue === undefined || rawValue === null || rawValue === '') {
+      return 5000;
+    }
+
+    const value = Number(rawValue);
+    return Number.isFinite(value) && value >= 0 ? value : 5000;
+  } catch (err) {
+    console.warn('[orders] failed to load base delivery fee, falling back to 5000', err);
+    return 5000;
+  }
+}
 
 router.use(requireAuth);
 
@@ -68,7 +82,8 @@ router.post('/', async (req, res) => {
       validatedItems.push({ product_id: pid, name: p.name, price: p.price, qty, lineTotal });
     }
 
-    const total = subtotal + DELIVERY_FEE;
+    const deliveryFee = await getBaseDeliveryFee();
+    const total = subtotal + deliveryFee;
 
     // Insert order row
     const orderNumber = `ZST-${Date.now()}`;
@@ -92,7 +107,7 @@ router.post('/', async (req, res) => {
         restaurant_id,
         orderNumber,
         subtotal,
-        DELIVERY_FEE,
+        deliveryFee,
         total,
         delivery_address,
         notes || null
