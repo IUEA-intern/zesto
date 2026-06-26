@@ -38,12 +38,7 @@ app.use(express.urlencoded({ extended: true }))
 app.use(cookieParser())
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')))
 
-app.use((req, res, next) => {
-  if (req.path.endsWith('.html') && req.path !== '/index.html') {
-    return res.redirect('/')
-  }
-  next()
-})
+
 
 app.use(express.static(frontendPath))
 
