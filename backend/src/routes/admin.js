@@ -283,10 +283,10 @@ router.put('/orders/:id/status', async (req, res) => {
   try {
     const orderId = parseInt(req.params.id);
     const { status } = req.body;
-    const valid = ['pending','processing','preparing','out_for_delivery','delivered','cancelled'];
+    const valid = ['pending','processing','preparing','ready_for_pickup','out_for_delivery','delivered','cancelled'];
 
     if (!valid.includes(status)) {
-      return res.status(400).json({ success: false, message: 'Invalid status value.' });
+      return res.status(400).json({ success: false, message: `Invalid status value. Must be one of: ${valid.join(', ')}` });
     }
 
     // FIX: Verify payment before allowing status change

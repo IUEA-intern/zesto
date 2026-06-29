@@ -169,7 +169,7 @@ CREATE TABLE IF NOT EXISTS orders (
   user_id           INT UNSIGNED NOT NULL,
   restaurant_id     INT UNSIGNED NULL,
   order_number      VARCHAR(20)  NOT NULL COMMENT 'human-readable e.g. ZST-00142',
-  status            ENUM('pending','processing','preparing','out_for_delivery','delivered','cancelled')
+  status            ENUM('pending','processing','preparing','ready_for_pickup','out_for_delivery','delivered','cancelled')
                     NOT NULL DEFAULT 'pending',
   subtotal          DECIMAL(10,2) NOT NULL DEFAULT 0.00,
   discount_amount   DECIMAL(10,2) NOT NULL DEFAULT 0.00,
