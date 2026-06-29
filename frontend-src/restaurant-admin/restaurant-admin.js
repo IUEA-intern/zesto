@@ -84,7 +84,14 @@ const Api = {
       body: body instanceof FormData ? body : body ? JSON.stringify(body) : undefined,
     });
     const data = await res.json();
-    if (!res.ok) throw new Error(data.message || 'Request failed');
+    if (!res.ok) {
+      // Provide detailed error message including debug info if available
+      const message = data.message || data.error || 'Request failed';
+      const error = new Error(message);
+      error.data = data;
+      error.status = res.status;
+      throw error;
+    }
     return data;
   },
   get:    p       => Api.req(p),
@@ -319,7 +326,10 @@ async function setOrderStatus(orderId, status) {
     loadOrders();
     refreshKPIs();
   } catch (err) {
-    Toast.error(err.message);
+    // Show detailed error message from backend
+    const errorMsg = err.message || 'Failed to update order';
+    console.error('[setOrderStatus] Error:', err);
+    Toast.error(errorMsg);
   }
 }
 

@@ -177,18 +177,29 @@ async function getOrderById(req, res) {
 /**
  * FIX: Enforce payment verification before allowing status updates.
  * Restaurant staff can only modify orders that have been paid for.
+ * 
+ * IMPROVED ERROR HANDLING:
+ * - Provides detailed error messages for debugging
+ * - Safely handles socket emitter failures
+ * - Ensures database update succeeds before socket emission
  */
 async function updateOrderStatus(req, res) {
+  const orderId = parseInt(req.params.id);
+  const { status } = req.body;
+  
   try {
     const userId = req.user?.user_id || req.user?.id;
     const restaurant = await getRestaurantRow(userId);
     if (!restaurant) return res.status(403).json({ success: false, message: 'Restaurant not found.' });
 
-    const orderId = parseInt(req.params.id);
-    const { status } = req.body;
-    const valid = ['processing', 'preparing', 'ready_for_pickup', 'out_for_delivery', 'cancelled'];
+    // Validate order ID
+    if (!Number.isInteger(orderId) || orderId <= 0) {
+      return res.status(400).json({ success: false, message: 'Invalid order ID.' });
+    }
 
-    if (!valid.includes(status)) {
+    // Validate status value
+    const valid = ['processing', 'preparing', 'ready_for_pickup', 'out_for_delivery', 'cancelled'];
+    if (!status || !valid.includes(status)) {
       return res.status(400).json({ success: false, message: `Invalid status. Must be one of: ${valid.join(', ')}` });
     }
 
@@ -201,41 +212,79 @@ async function updateOrderStatus(req, res) {
       return res.status(403).json({ success: false, message: 'Cannot modify unpaid orders. Payment must be verified first.' });
     }
 
+    // Fetch current order
     const rows = safeRows(await query(
-      'SELECT status FROM orders WHERE order_id=? AND restaurant_id=?',
+      'SELECT status, user_id FROM orders WHERE order_id=? AND restaurant_id=?',
       [orderId, restaurant.restaurant_id]
     ));
     if (!rows.length) return res.status(404).json({ success: false, message: 'Order not found.' });
 
-    await query('UPDATE orders SET status=?, updated_at=NOW() WHERE order_id=?', [status, orderId]);
+    const oldStatus = rows[0].status;
+    const orderedUserId = rows[0].user_id;
 
-    // Emit socket event if available
-    const se = req.app?.get?.('socketEmitters');
-    if (se) {
-      se.adminOrderUpdate?.({ orderId, status });
-      const labels = {
-        processing:       '✅ Your order has been confirmed!',
-        preparing:        '👨‍🍳 Your order is being prepared!',
-        ready_for_pickup: '🍽️ Your order is ready!',
-        out_for_delivery: '🚀 Your order is on the way!',
-        cancelled:        '❌ Your order was cancelled.',
-      };
-      if (labels[status]) {
-        const userRow = safeRows(await query('SELECT user_id FROM orders WHERE order_id=?', [orderId]));
-        if (userRow[0]?.user_id) se.toastUser?.(userRow[0].user_id, { type: 'info', message: labels[status] });
+    // Update order status (must succeed before socket emission)
+    try {
+      await query('UPDATE orders SET status=?, updated_at=NOW() WHERE order_id=?', [status, orderId]);
+    } catch (dbErr) {
+      console.error('[restaurantAdmin] Database update failed:', dbErr);
+      // Provide more specific error message
+      if (dbErr.message?.includes('Incorrect enum value')) {
+        return res.status(400).json({ success: false, message: `Status enum mismatch. "${status}" is not a valid order status.` });
       }
+      throw dbErr;
     }
 
+    // Emit socket events (non-blocking — do not throw)
+    try {
+      const se = req.app?.get?.('socketEmitters');
+      if (se && typeof se === 'object') {
+        // Emit admin dashboard update
+        if (typeof se.adminOrderUpdate === 'function') {
+          se.adminOrderUpdate({ orderId, status });
+        }
+
+        // Emit user notification toast
+        if (orderedUserId && typeof se.toastUser === 'function') {
+          const labels = {
+            processing:       '✅ Your order has been confirmed!',
+            preparing:        '👨‍🍳 Your order is being prepared!',
+            ready_for_pickup: '🍽️ Your order is ready!',
+            out_for_delivery: '🚀 Your order is on the way!',
+            cancelled:        '❌ Your order was cancelled.',
+          };
+          const message = labels[status];
+          if (message) {
+            se.toastUser(orderedUserId, { type: 'info', message });
+          }
+        }
+      }
+    } catch (socketErr) {
+      // Log socket emission errors but do NOT fail the request
+      console.error('[restaurantAdmin] Socket emission failed (non-critical):', socketErr.message);
+    }
+
+    // Log the action (has its own error handling)
     await log({
       actorId: userId, actorRole: req.user?.role,
       action: 'ORDER_STATUS_UPDATE', entityType: 'order', entityId: orderId,
-      oldValue: { status: rows[0].status }, newValue: { status }, ip: req.ip,
+      oldValue: { status: oldStatus }, newValue: { status }, ip: req.ip,
     });
 
     return res.json({ success: true, message: `Order updated to ${status}.` });
   } catch (err) {
-    console.error('[restaurantAdmin] updateOrderStatus', err);
-    return res.status(500).json({ success: false, message: 'Failed to update order.' });
+    console.error('[restaurantAdmin] updateOrderStatus failed:', err);
+    
+    // Provide useful error details to client
+    const errorMessage = err.message || 'Failed to update order.';
+    const isDbError = errorMessage.includes('ENUM') || errorMessage.includes('enum') || errorMessage.includes('Unknown column');
+    
+    return res.status(500).json({ 
+      success: false, 
+      message: isDbError 
+        ? `Database error: ${errorMessage}` 
+        : 'Failed to update order. Please try again or contact support.',
+      debug: process.env.NODE_ENV === 'development' ? errorMessage : undefined
+    });
   }
 }
 
