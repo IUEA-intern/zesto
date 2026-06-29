@@ -134,7 +134,7 @@ router.get('/stats', async (req, res) => {
       ? safeRows(await query(`SELECT COALESCE(SUM(p.amount),0) AS total_revenue FROM payments p WHERE p.status='verified'`))
       : [{ total_revenue: 0 }];
     const failedPayments = paymentsAvailable
-      ? safeRows(await query(`SELECT COUNT(*) AS cnt FROM payments WHERE status='failed' AND DATE(created_at)=CURDATE()`))
+      ? safeRows(await query(`SELECT COUNT(*) AS cnt FROM payments WHERE status IN ('failed','expired') AND DATE(created_at)=CURDATE()`))
       : [{ cnt: 0 }];
 
     return res.json({
@@ -622,10 +622,10 @@ router.get('/analytics/revenue', async (req, res) => {
     const paymentsAvailable = await tableExists('payments');
     const daily = safeRows(await query(
       `SELECT DATE(o.created_at) AS date,
-              COUNT(*)           AS order_count,
+              COUNT(DISTINCT ${paymentsAvailable ? 'p.order_id' : 'o.order_id'}) AS order_count,
               COALESCE(SUM(${paymentsAvailable ? 'p.amount' : '0'}), 0) AS revenue
        FROM orders o
-       ${paymentsAvailable ? "LEFT JOIN payments p ON p.order_id = o.order_id AND p.status='verified'" : ''}
+       ${paymentsAvailable ? "JOIN payments p ON p.order_id = o.order_id AND p.status='verified'" : ''}
        WHERE o.created_at >= DATE_SUB(CURDATE(), INTERVAL ? DAY)
        GROUP BY DATE(o.created_at)
        ORDER BY date ASC`,
@@ -636,6 +636,7 @@ router.get('/analytics/revenue', async (req, res) => {
       `SELECT oi.name, SUM(oi.qty) AS units_sold, SUM(oi.subtotal) AS revenue
        FROM order_items oi
        JOIN orders o ON o.order_id = oi.order_id
+       ${paymentsAvailable ? "JOIN payments p ON p.order_id = o.order_id AND p.status='verified'" : ''}
        WHERE o.created_at >= DATE_SUB(CURDATE(), INTERVAL ? DAY)
          AND o.status != 'cancelled'
        GROUP BY oi.product_id, oi.name

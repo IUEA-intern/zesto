@@ -226,7 +226,7 @@ CREATE TABLE IF NOT EXISTS payments (
   order_id         INT UNSIGNED  NOT NULL,
   user_id          INT UNSIGNED  NOT NULL,
   method           ENUM('mobile_money','card','cash') NOT NULL DEFAULT 'mobile_money',
-  status           ENUM('pending','verified','failed','refunded') NOT NULL DEFAULT 'pending',
+  status           ENUM('pending','verified','failed','expired','refunded') NOT NULL DEFAULT 'pending',
   amount           DECIMAL(10,2) NOT NULL,
   currency         VARCHAR(5)    NOT NULL DEFAULT 'UGX',
   flw_tx_ref       VARCHAR(120)  NULL UNIQUE COMMENT 'generated tx_ref sent to Flutterwave',
@@ -239,7 +239,7 @@ CREATE TABLE IF NOT EXISTS payments (
   updated_at       TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
   PRIMARY KEY (payment_id),
-  INDEX idx_pay_order (order_id),
+  UNIQUE KEY uq_pay_order (order_id),
   INDEX idx_pay_user (user_id),
   INDEX idx_pay_status (status),
   INDEX idx_pay_flw_ref (flw_tx_ref),
