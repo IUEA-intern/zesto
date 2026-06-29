@@ -404,6 +404,72 @@ async function updateSettings(req, res) {
 }
 
 /* ── Users (platform-wide) ─────────────────────────────────── */
+/**
+ * NEW: Super Admin Orders endpoint
+ * Platform-wide view of all orders with payment verification
+ * Only shows paid orders to platform admins
+ */
+async function getOrders(req, res) {
+  try {
+    const page   = Math.max(1, parseInt(req.query.page)  || 1);
+    const limit  = Math.min(50, parseInt(req.query.limit) || 20);
+    const offset = (page - 1) * limit;
+    const status = req.query.status || null;
+    const restaurantId = req.query.restaurant_id || null;
+
+    const paymentsAvailable = await tableExists('payments');
+    
+    // Only show orders with verified payments
+    let sql = `SELECT DISTINCT o.*, 
+                      u.name AS customer_name, u.email AS customer_email, u.phone AS customer_phone,
+                      r.name AS restaurant_name`;
+    if (paymentsAvailable) {
+      sql += `, p.status AS payment_status, p.method AS payment_method, p.amount AS payment_amount`;
+    }
+    
+    sql += ` FROM orders o 
+             JOIN users u ON u.user_id = o.user_id
+             JOIN restaurants r ON r.restaurant_id = o.restaurant_id`;
+    
+    if (paymentsAvailable) {
+      sql += ` INNER JOIN payments p ON p.order_id = o.order_id AND p.status='verified'`;
+    }
+    
+    sql += ` WHERE 1=1`;
+
+    const params = [];
+    if (status) { sql += ' AND o.status = ?'; params.push(status); }
+    if (restaurantId) { sql += ' AND o.restaurant_id = ?'; params.push(parseInt(restaurantId)); }
+    
+    sql += ' ORDER BY o.created_at DESC LIMIT ? OFFSET ?';
+    params.push(limit, offset);
+
+    // Count query also filters by verified payments and restaurant
+    let countQuery = paymentsAvailable
+      ? `SELECT COUNT(DISTINCT o.order_id) AS total FROM orders o
+         JOIN payments p ON o.order_id = p.order_id
+         WHERE p.status='verified'`
+      : `SELECT COUNT(*) AS total FROM orders WHERE 1=1`;
+    
+    if (status) countQuery += ` AND o.status=?`;
+    if (restaurantId) countQuery += ` AND o.restaurant_id=?`;
+
+    const [orders, countRow] = await Promise.all([
+      safeRows(await query(sql, params)),
+      safeRows(await query(countQuery, [status, restaurantId].filter(x => x))),
+    ]);
+
+    return res.json({
+      success: true,
+      data:    orders,
+      meta:    { page, limit, total: Number(countRow[0]?.total) || 0 },
+    });
+  } catch (err) {
+    console.error('[superAdmin] getOrders', err);
+    return res.status(500).json({ success: false, message: 'Failed to fetch orders.' });
+  }
+}
+
 async function getUsers(req, res) {
   try {
     const page   = Math.max(1, parseInt(req.query.page)  || 1);
@@ -449,5 +515,6 @@ module.exports = {
   getPlatformAnalytics,
   getSettings,
   updateSettings,
+  getOrders,
   getUsers,
 };
