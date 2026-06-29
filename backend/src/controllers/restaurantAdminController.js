@@ -238,9 +238,14 @@ async function updateOrderStatus(req, res) {
     try {
       const se = req.app?.get?.('socketEmitters');
       if (se && typeof se === 'object') {
-        // Emit admin dashboard update
+        // Emit to admin dashboard
         if (typeof se.adminOrderUpdate === 'function') {
           se.adminOrderUpdate({ orderId, status });
+        }
+
+        // Emit to restaurant-specific room
+        if (typeof se.restaurantOrderUpdate === 'function') {
+          se.restaurantOrderUpdate(restaurant.restaurant_id, { orderId, status });
         }
 
         // Emit user notification toast
@@ -260,7 +265,7 @@ async function updateOrderStatus(req, res) {
       }
     } catch (socketErr) {
       // Log socket emission errors but do NOT fail the request
-      console.error('[restaurantAdmin] Socket emission failed (non-critical):', socketErr.message);
+      console.error('[restaurantAdmin] Socket emission failed (non-blocking):', socketErr.message);
     }
 
     // Log the action (has its own error handling)
