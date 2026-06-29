@@ -282,7 +282,27 @@ async function verifyPayment(req, res) {
         method:     payment.method,
         flwTxId:    String(transaction_id),
       });
+      // NEW ORDER appears in Super Admin feed
+      socket.adminNewOrder({
+        orderId:     order_id,
+        orderNumber: flwTx.tx_ref,
+        total:       orderAmount,
+        itemCount:   'multiple',
+      });
       socket.adminOrderUpdate({ orderId: order_id, status: 'processing' });
+
+      // Notify restaurant admin (if restaurant exists)
+      const orderDetails = await query('SELECT restaurant_id FROM orders WHERE order_id=?', [order_id]);
+      const restaurantId = orderDetails[0]?.restaurant_id;
+      if (restaurantId && socket.restaurantNewOrder && socket.restaurantOrderUpdate) {
+        socket.restaurantNewOrder(restaurantId, {
+          orderId:     order_id,
+          orderNumber: flwTx.tx_ref,
+          total:       orderAmount,
+          itemCount:   'multiple',
+        });
+        socket.restaurantOrderUpdate(restaurantId, { orderId: order_id, status: 'processing' });
+      }
 
       // Notify kitchen
       const orderRows = await query('SELECT * FROM orders WHERE order_id=?', [order_id]);
@@ -601,6 +621,13 @@ async function finalizePesapalPayment(payment, pesapalData, req) {
       amount,
       method: payment.method,
       flwTxId: payment.flw_tx_id,
+    });
+    // NEW ORDER appears in Super Admin feed
+    socket.adminNewOrder({
+      orderId: payment.order_id,
+      orderNumber: payment.flw_tx_ref || `#${payment.order_id}`,
+      total: amount,
+      itemCount: 'multiple',
     });
     socket.adminOrderUpdate({ orderId: payment.order_id, status: 'processing' });
   }

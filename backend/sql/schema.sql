@@ -184,7 +184,7 @@ CREATE TABLE IF NOT EXISTS orders (
   updated_at        TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
   PRIMARY KEY (order_id),
-  UNIQUE KEY uq_order_number (order_number),
+  UNIQUE KEY uq_order_number (order_number),Shift+
   INDEX idx_orders_user (user_id),
   INDEX idx_orders_restaurant (restaurant_id),
   INDEX idx_orders_status (status),
