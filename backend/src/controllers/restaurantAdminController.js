@@ -49,12 +49,16 @@ async function getDashboard(req, res) {
     const rid = restaurant.restaurant_id;
 
     const [todayOrders, todayRevenue, pendingOrders, productCount, lowStock] = await Promise.all([
-      query(`SELECT COUNT(*) AS cnt FROM orders WHERE restaurant_id=? AND DATE(created_at)=CURDATE()`, [rid]),
+      query(`SELECT COUNT(DISTINCT o.order_id) AS cnt FROM orders o
+             JOIN payments p ON o.order_id=p.order_id
+             WHERE o.restaurant_id=? AND p.status='verified' AND DATE(o.created_at)=CURDATE()`, [rid]),
       query(`SELECT COALESCE(SUM(p.amount),0) AS total FROM payments p
              JOIN orders o ON o.order_id=p.order_id
              WHERE o.restaurant_id=? AND p.status='verified' AND DATE(p.created_at)=CURDATE()`,
              [rid]).catch(() => [{ total: 0 }]),
-      query(`SELECT COUNT(*) AS cnt FROM orders WHERE restaurant_id=? AND status='pending'`, [rid]),
+      query(`SELECT COUNT(DISTINCT o.order_id) AS cnt FROM orders o
+             JOIN payments p ON o.order_id=p.order_id
+             WHERE o.restaurant_id=? AND o.status='pending' AND p.status='verified'`, [rid]),
       query(`SELECT COUNT(*) AS cnt FROM products WHERE restaurant_id=? AND is_active=1`, [rid]),
       query(`SELECT COUNT(*) AS cnt FROM products
              WHERE restaurant_id=? AND stock <= low_stock_threshold AND is_active=1`, [rid]),
@@ -79,6 +83,11 @@ async function getDashboard(req, res) {
 }
 
 /* ── Orders ────────────────────────────────────────────────── */
+/**
+ * FIX: Only show orders with verified payments to restaurant staff.
+ * This prevents unpaid orders from appearing in the restaurant's order list.
+ * Orders only appear after payment is confirmed by Pesapal/Flutterwave.
+ */
 async function getOrders(req, res) {
   try {
     const userId = req.user?.user_id || req.user?.id;
@@ -91,15 +100,20 @@ async function getOrders(req, res) {
     const offset = (page - 1) * limit;
     const status = req.query.status || null;
 
-    let sql = `SELECT o.*, u.name AS customer_name, u.phone AS customer_phone
-               FROM orders o JOIN users u ON u.user_id = o.user_id
-               WHERE o.restaurant_id = ?`;
+    let sql = `SELECT DISTINCT o.*, u.name AS customer_name, u.phone AS customer_phone
+               FROM orders o 
+               JOIN users u ON u.user_id = o.user_id
+               JOIN payments p ON o.order_id = p.order_id
+               WHERE o.restaurant_id = ? AND p.status = 'verified'`;
     const params = [rid];
     if (status) { sql += ' AND o.status = ?'; params.push(status); }
     sql += ' ORDER BY o.created_at DESC LIMIT ? OFFSET ?';
     params.push(limit, offset);
 
-    const countSql    = `SELECT COUNT(*) AS total FROM orders WHERE restaurant_id=?${status ? ' AND status=?' : ''}`;
+    const countSql    = `SELECT COUNT(DISTINCT o.order_id) AS total 
+                         FROM orders o 
+                         JOIN payments p ON o.order_id = p.order_id 
+                         WHERE o.restaurant_id=? AND p.status='verified'${status ? ' AND o.status=?' : ''}`;
     const countParams = status ? [rid, status] : [rid];
 
     const [orders, countRow] = await Promise.all([
@@ -118,7 +132,11 @@ async function getOrders(req, res) {
   }
 }
 
-/** FIX: single order detail endpoint — avoids O(n) client-side scan */
+/** 
+ * FIX: single order detail endpoint with payment verification
+ * Only show order details if payment has been verified.
+ * This prevents accessing unpaid order details.
+ */
 async function getOrderById(req, res) {
   try {
     const userId = req.user?.user_id || req.user?.id;
@@ -126,6 +144,17 @@ async function getOrderById(req, res) {
     if (!restaurant) return res.status(403).json({ success: false, message: 'Restaurant not found.' });
 
     const orderId = parseInt(req.params.id);
+    
+    // Verify payment is confirmed before allowing order access
+    const paymentCheck = safeRows(await query(
+      `SELECT p.payment_id FROM payments p 
+       WHERE p.order_id = ? AND p.status = 'verified'`,
+      [orderId]
+    ));
+    if (!paymentCheck.length) {
+      return res.status(403).json({ success: false, message: 'Order payment not verified. Cannot access unpaid orders.' });
+    }
+    
     const orders = safeRows(await query(
       `SELECT o.*, u.name AS customer_name, u.phone AS customer_phone
        FROM orders o JOIN users u ON u.user_id = o.user_id
@@ -145,6 +174,10 @@ async function getOrderById(req, res) {
   }
 }
 
+/**
+ * FIX: Enforce payment verification before allowing status updates.
+ * Restaurant staff can only modify orders that have been paid for.
+ */
 async function updateOrderStatus(req, res) {
   try {
     const userId = req.user?.user_id || req.user?.id;
@@ -157,6 +190,15 @@ async function updateOrderStatus(req, res) {
 
     if (!valid.includes(status)) {
       return res.status(400).json({ success: false, message: `Invalid status. Must be one of: ${valid.join(', ')}` });
+    }
+
+    // CRITICAL: Verify payment before allowing status change
+    const paymentVerified = safeRows(await query(
+      `SELECT p.payment_id FROM payments p WHERE p.order_id = ? AND p.status = 'verified'`,
+      [orderId]
+    ));
+    if (!paymentVerified.length) {
+      return res.status(403).json({ success: false, message: 'Cannot modify unpaid orders. Payment must be verified first.' });
     }
 
     const rows = safeRows(await query(
@@ -372,26 +414,32 @@ async function getAnalytics(req, res) {
 
     const [dailySales, topProducts, statusBreakdown] = await Promise.all([
       query(`SELECT DATE(o.created_at) AS date,
-                    COUNT(*) AS order_count,
-                    COALESCE(SUM(o.total),0) AS revenue
+                    COUNT(DISTINCT o.order_id) AS order_count,
+                    COALESCE(SUM(p.amount),0) AS revenue
              FROM orders o
+             JOIN payments p ON o.order_id = p.order_id
              WHERE o.restaurant_id=?
+               AND p.status='verified'
                AND o.created_at >= DATE_SUB(CURDATE(), INTERVAL ? DAY)
              GROUP BY DATE(o.created_at)
              ORDER BY date ASC`, [rid, days]),
       query(`SELECT oi.name, SUM(oi.qty) AS units_sold, SUM(oi.subtotal) AS revenue
              FROM order_items oi
              JOIN orders o ON o.order_id = oi.order_id
+             JOIN payments p ON o.order_id = p.order_id
              WHERE o.restaurant_id=?
+               AND p.status='verified'
                AND o.created_at >= DATE_SUB(CURDATE(), INTERVAL ? DAY)
                AND o.status != 'cancelled'
              GROUP BY oi.product_id, oi.name
              ORDER BY units_sold DESC LIMIT 5`, [rid, days]),
-      query(`SELECT status, COUNT(*) AS cnt
-             FROM orders
-             WHERE restaurant_id=?
-               AND created_at >= DATE_SUB(CURDATE(), INTERVAL ? DAY)
-             GROUP BY status`, [rid, days]),
+      query(`SELECT o.status, COUNT(DISTINCT o.order_id) AS cnt
+             FROM orders o
+             JOIN payments p ON o.order_id = p.order_id
+             WHERE o.restaurant_id=?
+               AND p.status='verified'
+               AND o.created_at >= DATE_SUB(CURDATE(), INTERVAL ? DAY)
+             GROUP BY o.status`, [rid, days]),
     ]);
 
     return res.json({
