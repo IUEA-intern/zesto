@@ -270,15 +270,16 @@ router.post('/:id/verify', async (req, res) => {
       return res.status(400).json({ success: false, message: 'Transaction reference mismatch.' });
     }
 
-    await query(
+    const paymentUpdate = await query(
     `
     UPDATE payments
     SET
-    status='paid',
+    status='verified',
     flw_tx_ref=?,
     flw_tx_id=?,
+    verified_at=CURRENT_TIMESTAMP,
     updated_at=CURRENT_TIMESTAMP
-    WHERE order_id=? AND user_id=?
+    WHERE order_id=? AND user_id=? AND status='pending'
     `,
     [
     tx_ref || flwRes.data.tx_ref,
@@ -287,6 +288,10 @@ router.post('/:id/verify', async (req, res) => {
     req.user.user_id
     ]
     );
+
+    if (!Number(paymentUpdate.affectedRows || 0)) {
+      return res.status(409).json({ success: false, message: 'Payment already processed or not found.' });
+    }
 
     await query(
     `
@@ -304,7 +309,7 @@ router.post('/:id/verify', async (req, res) => {
     const io = req.app.get('io');
     if (io) {
       io.to(`user_${req.user.user_id}`).emit('order:status', {
-        order_id: orderId, status: 'paid', payment_status: 'paid'
+        order_id: orderId, status: 'processing', payment_status: 'verified'
       });
     }
 
