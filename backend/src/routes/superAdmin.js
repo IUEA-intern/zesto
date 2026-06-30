@@ -13,6 +13,7 @@
  * PUT  /api/super-admin/riders/:id/approve
  * PUT  /api/super-admin/riders/:id/suspend
  * GET  /api/super-admin/users
+ * GET  /api/super-admin/orders               — platform-wide orders (verified payments only)
  * GET  /api/super-admin/analytics
  * GET  /api/super-admin/settings
  * PUT  /api/super-admin/settings
@@ -37,6 +38,7 @@ router.put('/riders/:id/approve',           ctrl.approveRider);
 router.put('/riders/:id/suspend',           ctrl.suspendRider);
 
 router.get('/users',                        ctrl.getUsers);
+router.get('/orders',                       ctrl.getOrders);
 
 router.get('/analytics',                    ctrl.getPlatformAnalytics);
 

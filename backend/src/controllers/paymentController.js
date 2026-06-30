@@ -27,6 +27,68 @@ const { log, ACTIONS } = require('../config/audit');
 
 const EXPECTED_CURRENCY = 'UGX';
 
+function buildGatewayRefs(gateway, orderId, userId, orderNumber) {
+  const safeOrder = String(orderNumber || orderId).replace(/[^A-Za-z0-9-]/g, '');
+  return {
+    txRef: `ZST-${gateway}-${safeOrder}-${userId}`,
+    idempotencyKey: `${gateway}-order-${orderId}`,
+  };
+}
+
+async function getOrCreatePendingPayment({ order, userId, method, gateway }) {
+  const paid = await query(
+    "SELECT payment_id FROM payments WHERE order_id = ? AND status = 'verified' LIMIT 1",
+    [order.order_id]
+  );
+  if (paid.length) {
+    const err = new Error('Order already paid.');
+    err.statusCode = 409;
+    throw err;
+  }
+
+  const { txRef, idempotencyKey } = buildGatewayRefs(gateway, order.order_id, userId, order.order_number);
+  const existing = await query(
+    'SELECT * FROM payments WHERE order_id = ? ORDER BY payment_id ASC LIMIT 1',
+    [order.order_id]
+  );
+
+  if (existing.length) {
+    const payment = existing[0];
+    if (payment.status !== 'pending') {
+      await query(
+        `UPDATE payments
+         SET status='pending', method=?, amount=?, currency=?, flw_tx_ref=?, flw_tx_id=NULL,
+             flw_raw_response=NULL, failure_reason=NULL, verified_at=NULL,
+             idempotency_key=?, updated_at=CURRENT_TIMESTAMP
+         WHERE payment_id=?`,
+        [method, order.total, EXPECTED_CURRENCY, txRef, idempotencyKey, payment.payment_id]
+      );
+    } else if (!payment.flw_tx_ref || !payment.idempotency_key || payment.flw_tx_ref !== txRef) {
+      await query(
+        `UPDATE payments
+         SET method=?, amount=?, currency=?, flw_tx_ref=?, idempotency_key=?,
+             flw_tx_id=NULL, flw_raw_response=NULL,
+             updated_at=CURRENT_TIMESTAMP
+         WHERE payment_id=?`,
+        [method, order.total, EXPECTED_CURRENCY, txRef, idempotencyKey, payment.payment_id]
+      );
+    }
+
+    const rows = await query('SELECT * FROM payments WHERE payment_id = ?', [payment.payment_id]);
+    return rows[0];
+  }
+
+  const result = await query(
+    `INSERT INTO payments
+       (order_id, user_id, method, status, amount, currency, flw_tx_ref, idempotency_key)
+     VALUES (?, ?, ?, 'pending', ?, ?, ?, ?)`,
+    [order.order_id, userId, method, order.total, EXPECTED_CURRENCY, txRef, idempotencyKey]
+  );
+
+  const rows = await query('SELECT * FROM payments WHERE payment_id = ?', [Number(result.insertId)]);
+  return rows[0];
+}
+
 /* ============================================================
    STEP 1 — Initiate payment (creates pending payment row)
    ============================================================ */
@@ -53,49 +115,34 @@ async function initiatePayment(req, res) {
 
     const order = orders[0];
 
-    // Check no verified payment exists already
-    const existing = await query(
-      "SELECT payment_id FROM payments WHERE order_id = ? AND status = 'verified'",
-      [order_id]
-    );
-    if (existing.length) {
-      return res.status(409).json({ success: false, message: 'Order already paid.' });
-    }
-
-    // Generate unique references
-    const txRef          = `ZST-${Date.now()}-${userId}-${order_id}`;
-    const idempotencyKey = `pay-${order_id}-${userId}-${Date.now()}`;
-
-    // Insert pending payment row
-    const result = await query(
-      `INSERT INTO payments
-         (order_id, user_id, method, status, amount, currency, flw_tx_ref, idempotency_key)
-       VALUES (?, ?, ?, 'pending', ?, ?, ?, ?)`,
-      [order_id, userId, req.body.method || 'mobile_money',
-       order.total, EXPECTED_CURRENCY, txRef, idempotencyKey]
-    );
+    const payment = await getOrCreatePendingPayment({
+      order,
+      userId,
+      method: req.body.method || 'mobile_money',
+      gateway: 'flw',
+    });
 
     await log({
       actorId:    userId,
       actorRole:  'customer',
       action:     ACTIONS.PAYMENT_INITIATED,
       entityType: 'payment',
-      entityId:   Number(result.insertId),
-      newValue:   { order_id, amount: order.total, txRef },
+      entityId:   payment.payment_id,
+      newValue:   { order_id, amount: order.total, txRef: payment.flw_tx_ref },
       ip:         req.ip,
       userAgent:  req.headers['user-agent'],
     });
 
     return res.json({
       success:   true,
-      tx_ref:    txRef,
+      tx_ref:    payment.flw_tx_ref,
       amount:    order.total,
       currency:  EXPECTED_CURRENCY,
       public_key: process.env.FLW_PUBLIC_KEY,
     });
   } catch (err) {
     console.error('[initiatePayment]', err);
-    return res.status(500).json({ success: false, message: 'Failed to initiate payment.' });
+    return res.status(err.statusCode || 500).json({ success: false, message: err.statusCode ? err.message : 'Failed to initiate payment.' });
   }
 }
 
@@ -235,7 +282,27 @@ async function verifyPayment(req, res) {
         method:     payment.method,
         flwTxId:    String(transaction_id),
       });
+      // NEW ORDER appears in Super Admin feed
+      socket.adminNewOrder({
+        orderId:     order_id,
+        orderNumber: flwTx.tx_ref,
+        total:       orderAmount,
+        itemCount:   'multiple',
+      });
       socket.adminOrderUpdate({ orderId: order_id, status: 'processing' });
+
+      // Notify restaurant admin (if restaurant exists)
+      const orderDetails = await query('SELECT restaurant_id FROM orders WHERE order_id=?', [order_id]);
+      const restaurantId = orderDetails[0]?.restaurant_id;
+      if (restaurantId && socket.restaurantNewOrder && socket.restaurantOrderUpdate) {
+        socket.restaurantNewOrder(restaurantId, {
+          orderId:     order_id,
+          orderNumber: flwTx.tx_ref,
+          total:       orderAmount,
+          itemCount:   'multiple',
+        });
+        socket.restaurantOrderUpdate(restaurantId, { orderId: order_id, status: 'processing' });
+      }
 
       // Notify kitchen
       const orderRows = await query('SELECT * FROM orders WHERE order_id=?', [order_id]);
@@ -347,16 +414,13 @@ async function initiatePesapalPayment(req, res) {
     }
 
     const order = orders[0];
-    const existing = await query(
-      "SELECT payment_id FROM payments WHERE order_id = ? AND status = 'verified'",
-      [order_id]
-    );
-    if (existing.length) {
-      return res.status(409).json({ success: false, message: 'Order already paid.' });
-    }
-
-    const merchantReference = `ZST-${Date.now()}-${userId}-${order_id}`;
-    const idempotencyKey = `pesapal-${order_id}-${userId}-${Date.now()}`;
+    const payment = await getOrCreatePendingPayment({
+      order,
+      userId,
+      method: req.body.method || 'mobile_money',
+      gateway: 'pesapal',
+    });
+    const merchantReference = payment.flw_tx_ref;
     const appUrl = (process.env.APP_URL || `${req.protocol}://${req.get('host')}`).replace(/\/$/, '');
     const callbackUrl = `${appUrl}/api/payments/pesapal/callback`;
     const notificationId = process.env.PESAPAL_NOTIFICATION_ID || process.env.PESAPAL_IPN_ID || '';
@@ -368,13 +432,26 @@ async function initiatePesapalPayment(req, res) {
       });
     }
 
-    const result = await query(
-      `INSERT INTO payments
-         (order_id, user_id, method, status, amount, currency, flw_tx_ref, idempotency_key)
-       VALUES (?, ?, ?, 'pending', ?, ?, ?, ?)
-       ON DUPLICATE KEY UPDATE updated_at = CURRENT_TIMESTAMP`,
-      [order_id, userId, req.body.method || 'mobile_money', order.total, EXPECTED_CURRENCY, merchantReference, idempotencyKey]
-    );
+    if (payment.flw_tx_id && payment.flw_raw_response) {
+      try {
+        const existingResponse = typeof payment.flw_raw_response === 'string'
+          ? JSON.parse(payment.flw_raw_response)
+          : payment.flw_raw_response;
+        if (existingResponse?.redirect_url) {
+          return res.json({
+            success: true,
+            gateway: 'pesapal',
+            order_id,
+            merchant_reference: merchantReference,
+            order_tracking_id: payment.flw_tx_id,
+            redirect_url: existingResponse.redirect_url,
+            data: existingResponse,
+          });
+        }
+      } catch {
+        // Fall through and re-submit if stored gateway response is unreadable.
+      }
+    }
 
     const [firstName, ...restName] = String(order.customer_name || 'Zesto Customer').trim().split(/\s+/);
     const lastName = restName.join(' ') || firstName;
@@ -395,13 +472,12 @@ async function initiatePesapalPayment(req, res) {
     };
 
     const pesapalResponse = await pesapal.submitOrderRequest(pesapalOrder);
-    const paymentId = Number(result.insertId) || null;
 
     await query(
       `UPDATE payments
        SET flw_tx_id = ?, flw_raw_response = ?, updated_at = CURRENT_TIMESTAMP
-       WHERE flw_tx_ref = ? AND order_id = ? AND user_id = ?`,
-      [pesapalResponse.order_tracking_id || null, JSON.stringify(pesapalResponse), merchantReference, order_id, userId]
+       WHERE payment_id = ? AND order_id = ? AND user_id = ? AND status = 'pending'`,
+      [pesapalResponse.order_tracking_id || null, JSON.stringify(pesapalResponse), payment.payment_id, order_id, userId]
     );
 
     await log({
@@ -409,7 +485,7 @@ async function initiatePesapalPayment(req, res) {
       actorRole: 'customer',
       action: ACTIONS.PAYMENT_INITIATED,
       entityType: 'payment',
-      entityId: paymentId,
+      entityId: payment.payment_id,
       newValue: { order_id, amount: order.total, merchantReference, gateway: 'pesapal' },
       ip: req.ip,
       userAgent: req.headers['user-agent'],
@@ -426,7 +502,7 @@ async function initiatePesapalPayment(req, res) {
     });
   } catch (err) {
     console.error('[initiatePesapalPayment]', err.data || err);
-    return res.status(500).json({ success: false, message: err.message || 'Failed to initiate Pesapal payment.' });
+    return res.status(err.statusCode || 500).json({ success: false, message: err.statusCode ? err.message : (err.message || 'Failed to initiate Pesapal payment.') });
   }
 }
 
@@ -513,13 +589,14 @@ async function registerPesapalIpn(req, res) {
 async function finalizePesapalPayment(payment, pesapalData, req) {
   const socket = req.app.get('socketEmitters');
   const amount = parseFloat(payment.amount);
-  await query(
+  const result = await query(
     `UPDATE payments
      SET status = 'verified', flw_raw_response = ?, verified_at = CURRENT_TIMESTAMP,
          updated_at = CURRENT_TIMESTAMP
      WHERE payment_id = ? AND status = 'pending'`,
     [JSON.stringify(pesapalData), payment.payment_id]
   );
+  if (!Number(result.affectedRows || 0)) return;
   await query(
     `UPDATE orders SET status = 'processing', updated_at = CURRENT_TIMESTAMP WHERE order_id = ?`,
     [payment.order_id]
@@ -544,6 +621,13 @@ async function finalizePesapalPayment(payment, pesapalData, req) {
       amount,
       method: payment.method,
       flwTxId: payment.flw_tx_id,
+    });
+    // NEW ORDER appears in Super Admin feed
+    socket.adminNewOrder({
+      orderId: payment.order_id,
+      orderNumber: payment.flw_tx_ref || `#${payment.order_id}`,
+      total: amount,
+      itemCount: 'multiple',
     });
     socket.adminOrderUpdate({ orderId: payment.order_id, status: 'processing' });
   }
@@ -571,7 +655,7 @@ async function webhookCallback(req, res) {
         const flwAmount   = parseFloat(payload.data.amount);
 
         const rows = await query(
-          "SELECT * FROM payments WHERE flw_tx_ref=? AND status='pending'",
+          "SELECT * FROM payments WHERE flw_tx_ref=? AND status='pending' ORDER BY payment_id ASC LIMIT 1",
           [txRef]
         );
         if (!rows.length) return; // Already processed or doesn't exist
@@ -582,12 +666,13 @@ async function webhookCallback(req, res) {
           return;
         }
 
-        await query(
+        const update = await query(
           `UPDATE payments
            SET status='verified', flw_tx_id=?, flw_raw_response=?, verified_at=CURRENT_TIMESTAMP
-           WHERE payment_id=?`,
+           WHERE payment_id=? AND status='pending'`,
           [String(txId), JSON.stringify(payload), payment.payment_id]
         );
+        if (!Number(update.affectedRows || 0)) return;
         await query(
           "UPDATE orders SET status='processing' WHERE order_id=?",
           [payment.order_id]
