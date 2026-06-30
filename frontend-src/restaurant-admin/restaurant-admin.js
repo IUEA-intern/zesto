@@ -364,6 +364,10 @@ function updateOrderRowButtons(row, status) {
     buttons += `<button class="btn-sm edit" onclick="setOrderStatus(${row.dataset.orderId},'preparing')">👨‍🍳 Preparing</button>`;
   } else if (status === 'preparing') {
     buttons += `<button class="btn-sm edit" onclick="setOrderStatus(${row.dataset.orderId},'ready_for_pickup')">🍽️ Ready</button>`;
+  } else if (status === 'ready_for_pickup') {
+    buttons += `<button class="btn-sm edit" onclick="setOrderStatus(${row.dataset.orderId},'out_for_delivery')">🚀 Out for Delivery</button>`;
+  } else if (status === 'out_for_delivery') {
+    buttons += `<button class="btn-sm edit" onclick="promptConfirmDelivery(${row.dataset.orderId})">🔑 Confirm Delivery</button>`;
   }
   
   const buttonContainer = actionsCell.querySelector('div') || actionsCell;
@@ -399,6 +403,8 @@ async function loadOrders() {
             ${o.status === 'pending'     ? `<button class="btn-sm danger" onclick="setOrderStatus(${o.order_id},'cancelled')">❌ Reject</button>` : ''}
             ${o.status === 'processing'  ? `<button class="btn-sm edit" onclick="setOrderStatus(${o.order_id},'preparing')">👨‍🍳 Preparing</button>` : ''}
             ${o.status === 'preparing'   ? `<button class="btn-sm edit" onclick="setOrderStatus(${o.order_id},'ready_for_pickup')">🍽️ Ready</button>` : ''}
+            ${o.status === 'ready_for_pickup' ? `<button class="btn-sm edit" onclick="setOrderStatus(${o.order_id},'out_for_delivery')">🚀 Out for Delivery</button>` : ''}
+            ${o.status === 'out_for_delivery' ? `<button class="btn-sm edit" onclick="promptConfirmDelivery(${o.order_id})">🔑 Confirm Delivery</button>` : ''}
           </div>
         </td>
       </tr>`).join('');
@@ -419,6 +425,31 @@ async function setOrderStatus(orderId, status) {
     // Show detailed error message from backend
     const errorMsg = err.message || 'Failed to update order';
     console.error('[setOrderStatus] Error:', err);
+    Toast.error(errorMsg);
+  }
+}
+
+/** Ask the rider for the customer's delivery confirmation code, then confirm */
+function promptConfirmDelivery(orderId) {
+  const code = window.prompt('Enter the 6-digit delivery confirmation code given by the customer:');
+  if (code === null) return; // cancelled
+  const trimmed = String(code).trim();
+  if (!/^\d{6}$/.test(trimmed)) {
+    Toast.error('Please enter a valid 6-digit code.');
+    return;
+  }
+  confirmDelivery(orderId, trimmed);
+}
+
+async function confirmDelivery(orderId, code) {
+  try {
+    await Api.post(`/restaurant/orders/${orderId}/confirm-delivery`, { code });
+    Toast.success('🎉 Delivery confirmed! Order marked as delivered.');
+    loadOrders();
+    refreshKPIs();
+  } catch (err) {
+    const errorMsg = err.message || 'Failed to confirm delivery';
+    console.error('[confirmDelivery] Error:', err);
     Toast.error(errorMsg);
   }
 }
@@ -461,6 +492,8 @@ async function viewOrder(id) {
         ${order.status === 'pending'    ? `<button class="btn-sm danger" style="padding:10px 20px" onclick="setOrderStatus(${order.order_id},'cancelled'); document.getElementById('orderDetailModal').classList.add('hidden')">❌ Reject</button>` : ''}
         ${order.status === 'processing' ? `<button class="btn-primary" onclick="setOrderStatus(${order.order_id},'preparing'); document.getElementById('orderDetailModal').classList.add('hidden')">👨‍🍳 Start Preparing</button>` : ''}
         ${order.status === 'preparing'  ? `<button class="btn-primary" onclick="setOrderStatus(${order.order_id},'ready_for_pickup'); document.getElementById('orderDetailModal').classList.add('hidden')">🍽️ Mark Ready</button>` : ''}
+        ${order.status === 'ready_for_pickup' ? `<button class="btn-primary" onclick="setOrderStatus(${order.order_id},'out_for_delivery'); document.getElementById('orderDetailModal').classList.add('hidden')">🚀 Send Out for Delivery</button>` : ''}
+        ${order.status === 'out_for_delivery' ? `<button class="btn-primary" onclick="promptConfirmDelivery(${order.order_id}); document.getElementById('orderDetailModal').classList.add('hidden')">🔑 Confirm Delivery</button>` : ''}
       </div>`;
   } catch (err) {
     content.innerHTML = `<p style="color:var(--danger)">${Utils.escape(err.message)}</p>`;

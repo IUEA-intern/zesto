@@ -215,6 +215,32 @@ function initSocket() {
 
   /* ── Order Events ──────────────────────────────────── */
   
+  /** Payment pending — customer just started paying */
+  State.socket.on('payment:pending', ({ data }) => {
+    console.log('⏳ Payment pending event:', data);
+    addFeedItem({
+      icon: '⏳',
+      title: `Payment Pending`,
+      meta: `Order #${data.orderNumber || data.orderId} — ${Utils.escape(data.method || 'mobile money')}`,
+      amt: Utils.currency(data.amount),
+    });
+    refreshKPIs();
+    if (State.currentPage === 'payments') loadPayments();
+  });
+
+  /** Payment made — gateway received payment, awaiting server verification */
+  State.socket.on('payment:made', ({ data }) => {
+    console.log('💸 Payment made event:', data);
+    addFeedItem({
+      icon: '💸',
+      title: `Payment Made`,
+      meta: `Order #${data.orderNumber || data.orderId}`,
+      amt: Utils.currency(data.amount),
+    });
+    refreshKPIs();
+    if (State.currentPage === 'payments') loadPayments();
+  });
+
   /** New paid order received (payment verified) */
   State.socket.on('order:new', ({ data }) => {
     console.log('📦 New order event:', data);

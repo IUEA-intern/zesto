@@ -574,11 +574,102 @@ async function updateSettings(req, res) {
   }
 }
 
+/**
+ * POST /restaurant-admin/orders/:id/confirm-delivery
+ * The delivery rider enters the 6-digit code the customer received.
+ * If it matches, the order is marked as delivered.
+ */
+async function confirmDelivery(req, res) {
+  const orderId = parseInt(req.params.id);
+  const { code } = req.body;
+
+  try {
+    const userId = req.user?.user_id || req.user?.id;
+    const restaurant = await getRestaurantRow(userId);
+    if (!restaurant) return res.status(403).json({ success: false, message: 'Restaurant not found.' });
+
+    if (!Number.isInteger(orderId) || orderId <= 0) {
+      return res.status(400).json({ success: false, message: 'Invalid order ID.' });
+    }
+
+    if (!code || !/^\d{6}$/.test(String(code).trim())) {
+      return res.status(400).json({ success: false, message: 'A valid 6-digit confirmation code is required.' });
+    }
+
+    // Fetch order and verify it belongs to this restaurant and is out for delivery
+    const rows = safeRows(await query(
+      `SELECT o.order_id, o.status, o.user_id, o.delivery_confirmation_code
+       FROM orders o
+       WHERE o.order_id = ? AND o.restaurant_id = ?`,
+      [orderId, restaurant.restaurant_id]
+    ));
+
+    if (!rows.length) {
+      return res.status(404).json({ success: false, message: 'Order not found.' });
+    }
+
+    const order = rows[0];
+
+    if (order.status === 'delivered') {
+      return res.status(409).json({ success: false, message: 'Order has already been marked as delivered.' });
+    }
+
+    if (!['out_for_delivery', 'processing', 'preparing', 'ready_for_pickup'].includes(order.status)) {
+      return res.status(409).json({ success: false, message: `Order cannot be confirmed for delivery at status: ${order.status}.` });
+    }
+
+    // Verify confirmation code
+    if (!order.delivery_confirmation_code || String(order.delivery_confirmation_code).trim() !== String(code).trim()) {
+      return res.status(400).json({ success: false, message: 'Incorrect delivery confirmation code. Please check with the customer.' });
+    }
+
+    // Mark order as delivered and clear the code
+    await query(
+      `UPDATE orders SET status='delivered', delivery_confirmation_code=NULL, updated_at=NOW() WHERE order_id=?`,
+      [orderId]
+    );
+
+    // Emit real-time notifications
+    try {
+      const se = req.app?.get?.('socketEmitters');
+      if (se && typeof se === 'object') {
+        if (typeof se.adminOrderUpdate === 'function') {
+          se.adminOrderUpdate({ orderId, status: 'delivered' });
+        }
+        if (typeof se.restaurantOrderUpdate === 'function') {
+          se.restaurantOrderUpdate(restaurant.restaurant_id, { orderId, status: 'delivered' });
+        }
+        if (order.user_id && typeof se.toastUser === 'function') {
+          se.toastUser(order.user_id, { type: 'success', message: '🎉 Your order has been delivered! Enjoy your meal!' });
+        }
+        if (order.user_id && typeof se.paymentStatus === 'function') {
+          // Re-use paymentStatus channel to push order update to customer
+          se.paymentStatus(order.user_id, { orderId, status: 'delivered' });
+        }
+      }
+    } catch (socketErr) {
+      console.error('[restaurantAdmin] Socket emission failed (confirmDelivery):', socketErr.message);
+    }
+
+    await log({
+      actorId: userId, actorRole: req.user?.role,
+      action: 'ORDER_DELIVERY_CONFIRMED', entityType: 'order', entityId: orderId,
+      newValue: { status: 'delivered', confirmedBy: 'rider_code' }, ip: req.ip,
+    });
+
+    return res.json({ success: true, message: 'Delivery confirmed! Order marked as delivered.' });
+  } catch (err) {
+    console.error('[restaurantAdmin] confirmDelivery failed:', err);
+    return res.status(500).json({ success: false, message: 'Failed to confirm delivery.' });
+  }
+}
+
 module.exports = {
   getDashboard,
   getOrders,
   getOrderById,
   updateOrderStatus,
+  confirmDelivery,
   getProducts,
   getProductById,
   createProduct,

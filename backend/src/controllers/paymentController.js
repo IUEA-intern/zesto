@@ -27,6 +27,11 @@ const { log, ACTIONS } = require('../config/audit');
 
 const EXPECTED_CURRENCY = 'UGX';
 
+/** Generate a random 6-digit numeric delivery confirmation code */
+function generateDeliveryCode() {
+  return String(Math.floor(100000 + Math.random() * 900000));
+}
+
 function buildGatewayRefs(gateway, orderId, userId, orderNumber) {
   const safeOrder = String(orderNumber || orderId).replace(/[^A-Za-z0-9-]/g, '');
   return {
@@ -132,6 +137,19 @@ async function initiatePayment(req, res) {
       ip:         req.ip,
       userAgent:  req.headers['user-agent'],
     });
+
+    // Notify admins that a payment has been initiated (pending)
+    const socket = req.app.get('socketEmitters');
+    if (socket && typeof socket.adminPaymentPending === 'function') {
+      socket.adminPaymentPending({
+        paymentId:   payment.payment_id,
+        orderId:     order_id,
+        userId,
+        amount:      order.total,
+        method:      payment.method || 'mobile_money',
+        orderNumber: order.order_number,
+      });
+    }
 
     return res.json({
       success:   true,
@@ -241,6 +259,8 @@ async function verifyPayment(req, res) {
 
   // ── ALL CHECKS PASSED — STEP 4: Finalize ────────────────────
   try {
+    const deliveryCode = generateDeliveryCode();
+
     await query(
       `UPDATE payments
        SET status='verified', flw_tx_id=?, flw_raw_response=?, verified_at=CURRENT_TIMESTAMP,
@@ -250,8 +270,8 @@ async function verifyPayment(req, res) {
     );
 
     await query(
-      `UPDATE orders SET status='processing', updated_at=CURRENT_TIMESTAMP WHERE order_id=?`,
-      [order_id]
+      `UPDATE orders SET status='processing', delivery_confirmation_code=?, updated_at=CURRENT_TIMESTAMP WHERE order_id=?`,
+      [deliveryCode, order_id]
     );
 
     // Audit
@@ -268,10 +288,10 @@ async function verifyPayment(req, res) {
 
     // ── Real-time notifications ──────────────────────────────
     if (socket) {
-      // Notify user
-      socket.paymentStatus(userId, { orderId: order_id, status: 'verified', amount: orderAmount });
-      socket.toastUser(userId, { type: 'success', message: 'Payment confirmed! Your order is being prepared.' });
-      socket.orderCreated(userId, { orderId: order_id, orderNumber: flwTx.tx_ref });
+      // Notify user (include delivery code)
+      socket.paymentStatus(userId, { orderId: order_id, status: 'verified', amount: orderAmount, deliveryCode });
+      socket.toastUser(userId, { type: 'success', message: `Payment confirmed! Your delivery code is ${deliveryCode}. Give this to the rider when your order arrives.` });
+      socket.orderCreated(userId, { orderId: order_id, orderNumber: flwTx.tx_ref, deliveryCode });
 
       // Notify admin dashboard
       socket.adminPaymentVerified({
@@ -315,7 +335,7 @@ async function verifyPayment(req, res) {
       }
     }
 
-    return res.json({ success: true, message: 'Payment verified! Order is being prepared.' });
+    return res.json({ success: true, message: 'Payment verified! Order is being prepared.', deliveryCode });
   } catch (err) {
     console.error('[verifyPayment] Finalization error:', err);
     return res.status(500).json({ success: false, message: 'Payment verified but order update failed. Contact support.' });
@@ -491,6 +511,20 @@ async function initiatePesapalPayment(req, res) {
       userAgent: req.headers['user-agent'],
     });
 
+    // Notify admins that a payment has been initiated (pending)
+    const socketEmitters = req.app.get('socketEmitters');
+    if (socketEmitters && typeof socketEmitters.adminPaymentPending === 'function') {
+      socketEmitters.adminPaymentPending({
+        paymentId:   payment.payment_id,
+        orderId:     order_id,
+        userId,
+        amount:      order.total,
+        method:      payment.method || 'mobile_money',
+        orderNumber: order.order_number,
+        gateway:     'pesapal',
+      });
+    }
+
     return res.json({
       success: true,
       gateway: 'pesapal',
@@ -589,6 +623,8 @@ async function registerPesapalIpn(req, res) {
 async function finalizePesapalPayment(payment, pesapalData, req) {
   const socket = req.app.get('socketEmitters');
   const amount = parseFloat(payment.amount);
+  const deliveryCode = generateDeliveryCode();
+
   const result = await query(
     `UPDATE payments
      SET status = 'verified', flw_raw_response = ?, verified_at = CURRENT_TIMESTAMP,
@@ -598,8 +634,8 @@ async function finalizePesapalPayment(payment, pesapalData, req) {
   );
   if (!Number(result.affectedRows || 0)) return;
   await query(
-    `UPDATE orders SET status = 'processing', updated_at = CURRENT_TIMESTAMP WHERE order_id = ?`,
-    [payment.order_id]
+    `UPDATE orders SET status = 'processing', delivery_confirmation_code = ?, updated_at = CURRENT_TIMESTAMP WHERE order_id = ?`,
+    [deliveryCode, payment.order_id]
   );
   await log({
     actorId: payment.user_id,
@@ -612,8 +648,8 @@ async function finalizePesapalPayment(payment, pesapalData, req) {
     userAgent: req.headers['user-agent'],
   });
   if (socket) {
-    socket.paymentStatus(payment.user_id, { orderId: payment.order_id, status: 'verified', amount });
-    socket.toastUser(payment.user_id, { type: 'success', message: 'Payment confirmed! Your order is being prepared.' });
+    socket.paymentStatus(payment.user_id, { orderId: payment.order_id, status: 'verified', amount, deliveryCode });
+    socket.toastUser(payment.user_id, { type: 'success', message: `Payment confirmed! Your delivery code is ${deliveryCode}. Give this to the rider when your order arrives.` });
     socket.adminPaymentVerified({
       paymentId: payment.payment_id,
       orderId: payment.order_id,

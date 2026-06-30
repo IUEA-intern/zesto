@@ -179,12 +179,13 @@ CREATE TABLE IF NOT EXISTS orders (
   delivery_lat      DECIMAL(10,7) NULL,
   delivery_lng      DECIMAL(10,7) NULL,
   notes             TEXT          NULL,
-  assigned_staff_id INT UNSIGNED  NULL,
+  assigned_staff_id          INT UNSIGNED  NULL,
+  delivery_confirmation_code CHAR(6)       NULL COMMENT '6-digit code generated on payment; rider enters to confirm delivery',
   created_at        TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at        TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
   PRIMARY KEY (order_id),
-  UNIQUE KEY uq_order_number (order_number),Shift+
+  UNIQUE KEY uq_order_number (order_number),
   INDEX idx_orders_user (user_id),
   INDEX idx_orders_restaurant (restaurant_id),
   INDEX idx_orders_status (status),
@@ -383,3 +384,12 @@ INSERT IGNORE INTO platform_settings (setting_key, setting_value, setting_group,
 ('session_timeout',       '30',               'security',   'Session Timeout (minutes)'),
 ('audit_logs_enabled',    '1',                'audit',      'Enable Audit Logs'),
 ('audit_retention_days',  '90',               'audit',      'Log Retention (days)');
+
+-- ============================================================
+-- MIGRATION: Add delivery_confirmation_code to orders
+-- Run this on existing databases that already have the orders table.
+-- ============================================================
+ALTER TABLE orders
+  ADD COLUMN IF NOT EXISTS delivery_confirmation_code CHAR(6) NULL
+    COMMENT '6-digit code generated on payment; rider enters to confirm delivery'
+  AFTER assigned_staff_id;
