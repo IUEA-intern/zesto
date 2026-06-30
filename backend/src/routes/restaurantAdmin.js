@@ -55,6 +55,7 @@ router.get('/dashboard',          ctrl.getDashboard);
 router.get('/orders',             ctrl.getOrders);
 router.get('/orders/:id',         ctrl.getOrderById);       // FIX: was missing
 router.put('/orders/:id/status',  ctrl.updateOrderStatus);
+router.post('/orders/:id/confirm-delivery', ctrl.confirmDelivery);
 
 router.get('/products',           ctrl.getProducts);
 router.get('/products/:id',       ctrl.getProductById);     // FIX: was missing

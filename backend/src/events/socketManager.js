@@ -175,6 +175,18 @@ function emitters(io) {
       }
     },
 
+    /** Customer just initiated a payment (status: pending) */
+    adminPaymentPending(paymentData) {
+      io.to('admin:dashboard').emit('payment:pending',
+        envelope('payment:pending', paymentData));
+    },
+
+    /** Customer completed payment (gateway received, not yet verified) */
+    adminPaymentMade(paymentData) {
+      io.to('admin:dashboard').emit('payment:made',
+        envelope('payment:made', paymentData));
+    },
+
     /** Payment verified alert */
     adminPaymentVerified(paymentData) {
       io.to('admin:dashboard').emit('payment:verified',
