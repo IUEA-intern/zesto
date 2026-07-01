@@ -35,6 +35,7 @@ const State = {
   editProductId: null,
   socket:       null,
   liveFeedItems: [],
+  restaurantId: null,
 };
 
 /* ── Utils ─────────────────────────────────────────────────── */
@@ -84,7 +85,14 @@ const Api = {
       body: body instanceof FormData ? body : body ? JSON.stringify(body) : undefined,
     });
     const data = await res.json();
-    if (!res.ok) throw new Error(data.message || 'Request failed');
+    if (!res.ok) {
+      // Provide detailed error message including debug info if available
+      const message = data.message || data.error || 'Request failed';
+      const error = new Error(message);
+      error.data = data;
+      error.status = res.status;
+      throw error;
+    }
     return data;
   },
   get:    p       => Api.req(p),
@@ -154,19 +162,80 @@ function initSocket() {
     document.getElementById('liveIndicator').style.color = '#9CA3AF';
     return;
   }
-  State.socket = io({ credentials: true });
+  State.socket = io({ credentials: true, reconnection: true, reconnectionDelay: 1000, reconnectionDelayMax: 5000 });
+  
   State.socket.on('connect', () => {
-    State.socket.emit('restaurant:join');
+    State.socket.emit('restaurant:join', State.restaurantId);
     document.getElementById('liveIndicator').style.color = '';
+    console.log('🔌 Socket connected to restaurant', State.restaurantId);
   });
-  State.socket.on('disconnect', () => {
+  
+  State.socket.on('disconnect', (reason) => {
     document.getElementById('liveIndicator').style.color = '#9CA3AF';
+    console.log('🔌 Socket disconnected:', reason);
   });
+
+  State.socket.on('reconnect', () => {
+    console.log('🔄 Socket reconnected');
+    if (State.currentPage === 'orders') loadOrders();
+    refreshKPIs();
+  });
+
+  /* ── Order Events ──────────────────────────────────── */
+  
+  /** New paid order received (payment verified) */
   State.socket.on('order:new', ({ data }) => {
-    addFeedItem({ icon:'📦', title:`New Order ${data.orderNumber||'#'+data.orderId}`, meta:`${data.itemCount} item(s)`, amt: Utils.currency(data.total) });
+    console.log('📦 New order event:', data);
+    const orderId = data.orderId || data.order_id;
+    const orderNumber = data.orderNumber || data.order_number || '#' + orderId;
+    addFeedItem({ 
+      icon:'📦', 
+      title:`New Order ${orderNumber}`, 
+      meta:`${data.itemCount || '?'} item(s)`, 
+      amt: Utils.currency(data.total) 
+    });
     refreshKPIs();
     bumpBadge();
-    if (State.currentPage === 'orders') loadOrders();
+    if (State.currentPage === 'orders') {
+      // Reload orders if on orders page to show new order
+      loadOrders();
+    }
+  });
+
+  /** Order status changed */
+  State.socket.on('order:update', ({ data }) => {
+    console.log('🔄 Order update event:', data);
+    const orderId = data.orderId || data.order_id;
+    const newStatus = data.status;
+    if (!orderId || !newStatus) return;
+
+    // Update order row in current table without reloading
+    const row = document.querySelector(`tr[data-order-id="${orderId}"]`);
+    if (row) {
+      // Find status cell (usually 5th column) and update it
+      const statusCell = row.querySelector('td:nth-child(5)');
+      if (statusCell) {
+        statusCell.innerHTML = Utils.statusPill(newStatus);
+        console.log(`✅ Updated order ${orderId} to ${newStatus}`);
+      }
+      // Update action buttons if on orders page
+      updateOrderRowButtons(row, newStatus);
+    }
+    
+    // Refresh KPIs since pending count might have changed
+    if (State.currentPage === 'orders') {
+      refreshKPIs();
+    }
+  });
+
+  /** Payment verified - order is ready to be displayed */
+  State.socket.on('payment:verified', ({ data }) => {
+    console.log('💳 Payment verified event:', data);
+    refreshKPIs();
+    if (State.currentPage === 'orders') {
+      // Reload orders to show newly paid orders
+      loadOrders();
+    }
   });
 }
 
@@ -236,6 +305,12 @@ async function refreshKPIs() {
   try {
     const res = await Api.get('/restaurant/dashboard');
     const d   = res.data;
+    
+    // Store restaurant ID for socket emissions
+    if (d.restaurantId) {
+      State.restaurantId = d.restaurantId;
+    }
+    
     document.getElementById('kpiTodayOrders').textContent  = d.todayOrders;
     document.getElementById('kpiTodayRevenue').textContent = Utils.currency(d.todayRevenue);
     document.getElementById('kpiPending').textContent      = d.pendingOrders;
@@ -273,6 +348,32 @@ async function loadTopProducts() {
 /* ────────────────────────────────────────────────────────────
    ORDERS
    ──────────────────────────────────────────────────────────── */
+
+/** Update action buttons for an order row based on its status */
+function updateOrderRowButtons(row, status) {
+  const actionsCell = row.querySelector('td:last-child');
+  if (!actionsCell) return;
+  
+  let buttons = '';
+  buttons += `<button class="btn-sm edit" onclick="viewOrder(${row.dataset.orderId})">View</button>`;
+  
+  if (status === 'pending') {
+    buttons += `<button class="btn-sm edit" onclick="setOrderStatus(${row.dataset.orderId},'processing')">✅ Accept</button>`;
+    buttons += `<button class="btn-sm danger" onclick="setOrderStatus(${row.dataset.orderId},'cancelled')">❌ Reject</button>`;
+  } else if (status === 'processing') {
+    buttons += `<button class="btn-sm edit" onclick="setOrderStatus(${row.dataset.orderId},'preparing')">👨‍🍳 Preparing</button>`;
+  } else if (status === 'preparing') {
+    buttons += `<button class="btn-sm edit" onclick="setOrderStatus(${row.dataset.orderId},'ready_for_pickup')">🍽️ Ready</button>`;
+  } else if (status === 'ready_for_pickup') {
+    buttons += `<button class="btn-sm edit" onclick="setOrderStatus(${row.dataset.orderId},'out_for_delivery')">🚀 Out for Delivery</button>`;
+  } else if (status === 'out_for_delivery') {
+    buttons += `<button class="btn-sm edit" onclick="promptConfirmDelivery(${row.dataset.orderId})">🔑 Confirm Delivery</button>`;
+  }
+  
+  const buttonContainer = actionsCell.querySelector('div') || actionsCell;
+  buttonContainer.innerHTML = buttons;
+}
+
 async function loadOrders() {
   const tbody = document.getElementById('ordersBody');
   tbody.innerHTML = '<tr><td colspan="7" class="table-loading">Loading…</td></tr>';
@@ -288,7 +389,7 @@ async function loadOrders() {
     }
 
     tbody.innerHTML = rows.map(o => `
-      <tr>
+      <tr data-order-id="${o.order_id}">
         <td><strong>${Utils.escape(o.order_number)}</strong></td>
         <td>${Utils.escape(o.customer_name || '—')}</td>
         <td>${Utils.escape(o.customer_phone || '—')}</td>
@@ -302,6 +403,8 @@ async function loadOrders() {
             ${o.status === 'pending'     ? `<button class="btn-sm danger" onclick="setOrderStatus(${o.order_id},'cancelled')">❌ Reject</button>` : ''}
             ${o.status === 'processing'  ? `<button class="btn-sm edit" onclick="setOrderStatus(${o.order_id},'preparing')">👨‍🍳 Preparing</button>` : ''}
             ${o.status === 'preparing'   ? `<button class="btn-sm edit" onclick="setOrderStatus(${o.order_id},'ready_for_pickup')">🍽️ Ready</button>` : ''}
+            ${o.status === 'ready_for_pickup' ? `<button class="btn-sm edit" onclick="setOrderStatus(${o.order_id},'out_for_delivery')">🚀 Out for Delivery</button>` : ''}
+            ${o.status === 'out_for_delivery' ? `<button class="btn-sm edit" onclick="promptConfirmDelivery(${o.order_id})">🔑 Confirm Delivery</button>` : ''}
           </div>
         </td>
       </tr>`).join('');
@@ -319,7 +422,35 @@ async function setOrderStatus(orderId, status) {
     loadOrders();
     refreshKPIs();
   } catch (err) {
-    Toast.error(err.message);
+    // Show detailed error message from backend
+    const errorMsg = err.message || 'Failed to update order';
+    console.error('[setOrderStatus] Error:', err);
+    Toast.error(errorMsg);
+  }
+}
+
+/** Ask the rider for the customer's delivery confirmation code, then confirm */
+function promptConfirmDelivery(orderId) {
+  const code = window.prompt('Enter the 6-digit delivery confirmation code given by the customer:');
+  if (code === null) return; // cancelled
+  const trimmed = String(code).trim();
+  if (!/^\d{6}$/.test(trimmed)) {
+    Toast.error('Please enter a valid 6-digit code.');
+    return;
+  }
+  confirmDelivery(orderId, trimmed);
+}
+
+async function confirmDelivery(orderId, code) {
+  try {
+    await Api.post(`/restaurant/orders/${orderId}/confirm-delivery`, { code });
+    Toast.success('🎉 Delivery confirmed! Order marked as delivered.');
+    loadOrders();
+    refreshKPIs();
+  } catch (err) {
+    const errorMsg = err.message || 'Failed to confirm delivery';
+    console.error('[confirmDelivery] Error:', err);
+    Toast.error(errorMsg);
   }
 }
 
@@ -361,6 +492,8 @@ async function viewOrder(id) {
         ${order.status === 'pending'    ? `<button class="btn-sm danger" style="padding:10px 20px" onclick="setOrderStatus(${order.order_id},'cancelled'); document.getElementById('orderDetailModal').classList.add('hidden')">❌ Reject</button>` : ''}
         ${order.status === 'processing' ? `<button class="btn-primary" onclick="setOrderStatus(${order.order_id},'preparing'); document.getElementById('orderDetailModal').classList.add('hidden')">👨‍🍳 Start Preparing</button>` : ''}
         ${order.status === 'preparing'  ? `<button class="btn-primary" onclick="setOrderStatus(${order.order_id},'ready_for_pickup'); document.getElementById('orderDetailModal').classList.add('hidden')">🍽️ Mark Ready</button>` : ''}
+        ${order.status === 'ready_for_pickup' ? `<button class="btn-primary" onclick="setOrderStatus(${order.order_id},'out_for_delivery'); document.getElementById('orderDetailModal').classList.add('hidden')">🚀 Send Out for Delivery</button>` : ''}
+        ${order.status === 'out_for_delivery' ? `<button class="btn-primary" onclick="promptConfirmDelivery(${order.order_id}); document.getElementById('orderDetailModal').classList.add('hidden')">🔑 Confirm Delivery</button>` : ''}
       </div>`;
   } catch (err) {
     content.innerHTML = `<p style="color:var(--danger)">${Utils.escape(err.message)}</p>`;

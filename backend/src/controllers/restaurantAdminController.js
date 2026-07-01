@@ -49,12 +49,16 @@ async function getDashboard(req, res) {
     const rid = restaurant.restaurant_id;
 
     const [todayOrders, todayRevenue, pendingOrders, productCount, lowStock] = await Promise.all([
-      query(`SELECT COUNT(*) AS cnt FROM orders WHERE restaurant_id=? AND DATE(created_at)=CURDATE()`, [rid]),
+      query(`SELECT COUNT(DISTINCT o.order_id) AS cnt FROM orders o
+             JOIN payments p ON o.order_id=p.order_id
+             WHERE o.restaurant_id=? AND p.status='verified' AND DATE(o.created_at)=CURDATE()`, [rid]),
       query(`SELECT COALESCE(SUM(p.amount),0) AS total FROM payments p
              JOIN orders o ON o.order_id=p.order_id
              WHERE o.restaurant_id=? AND p.status='verified' AND DATE(p.created_at)=CURDATE()`,
              [rid]).catch(() => [{ total: 0 }]),
-      query(`SELECT COUNT(*) AS cnt FROM orders WHERE restaurant_id=? AND status='pending'`, [rid]),
+      query(`SELECT COUNT(DISTINCT o.order_id) AS cnt FROM orders o
+             JOIN payments p ON o.order_id=p.order_id
+             WHERE o.restaurant_id=? AND o.status='pending' AND p.status='verified'`, [rid]),
       query(`SELECT COUNT(*) AS cnt FROM products WHERE restaurant_id=? AND is_active=1`, [rid]),
       query(`SELECT COUNT(*) AS cnt FROM products
              WHERE restaurant_id=? AND stock <= low_stock_threshold AND is_active=1`, [rid]),
@@ -79,6 +83,11 @@ async function getDashboard(req, res) {
 }
 
 /* ── Orders ────────────────────────────────────────────────── */
+/**
+ * FIX: Only show orders with verified payments to restaurant staff.
+ * This prevents unpaid orders from appearing in the restaurant's order list.
+ * Orders only appear after payment is confirmed by Pesapal/Flutterwave.
+ */
 async function getOrders(req, res) {
   try {
     const userId = req.user?.user_id || req.user?.id;
@@ -91,15 +100,20 @@ async function getOrders(req, res) {
     const offset = (page - 1) * limit;
     const status = req.query.status || null;
 
-    let sql = `SELECT o.*, u.name AS customer_name, u.phone AS customer_phone
-               FROM orders o JOIN users u ON u.user_id = o.user_id
-               WHERE o.restaurant_id = ?`;
+    let sql = `SELECT DISTINCT o.*, u.name AS customer_name, u.phone AS customer_phone
+               FROM orders o 
+               JOIN users u ON u.user_id = o.user_id
+               JOIN payments p ON o.order_id = p.order_id
+               WHERE o.restaurant_id = ? AND p.status = 'verified'`;
     const params = [rid];
     if (status) { sql += ' AND o.status = ?'; params.push(status); }
     sql += ' ORDER BY o.created_at DESC LIMIT ? OFFSET ?';
     params.push(limit, offset);
 
-    const countSql    = `SELECT COUNT(*) AS total FROM orders WHERE restaurant_id=?${status ? ' AND status=?' : ''}`;
+    const countSql    = `SELECT COUNT(DISTINCT o.order_id) AS total 
+                         FROM orders o 
+                         JOIN payments p ON o.order_id = p.order_id 
+                         WHERE o.restaurant_id=? AND p.status='verified'${status ? ' AND o.status=?' : ''}`;
     const countParams = status ? [rid, status] : [rid];
 
     const [orders, countRow] = await Promise.all([
@@ -118,7 +132,11 @@ async function getOrders(req, res) {
   }
 }
 
-/** FIX: single order detail endpoint — avoids O(n) client-side scan */
+/** 
+ * FIX: single order detail endpoint with payment verification
+ * Only show order details if payment has been verified.
+ * This prevents accessing unpaid order details.
+ */
 async function getOrderById(req, res) {
   try {
     const userId = req.user?.user_id || req.user?.id;
@@ -126,6 +144,17 @@ async function getOrderById(req, res) {
     if (!restaurant) return res.status(403).json({ success: false, message: 'Restaurant not found.' });
 
     const orderId = parseInt(req.params.id);
+    
+    // Verify payment is confirmed before allowing order access
+    const paymentCheck = safeRows(await query(
+      `SELECT p.payment_id FROM payments p 
+       WHERE p.order_id = ? AND p.status = 'verified'`,
+      [orderId]
+    ));
+    if (!paymentCheck.length) {
+      return res.status(403).json({ success: false, message: 'Order payment not verified. Cannot access unpaid orders.' });
+    }
+    
     const orders = safeRows(await query(
       `SELECT o.*, u.name AS customer_name, u.phone AS customer_phone
        FROM orders o JOIN users u ON u.user_id = o.user_id
@@ -145,55 +174,122 @@ async function getOrderById(req, res) {
   }
 }
 
+/**
+ * FIX: Enforce payment verification before allowing status updates.
+ * Restaurant staff can only modify orders that have been paid for.
+ * 
+ * IMPROVED ERROR HANDLING:
+ * - Provides detailed error messages for debugging
+ * - Safely handles socket emitter failures
+ * - Ensures database update succeeds before socket emission
+ */
 async function updateOrderStatus(req, res) {
+  const orderId = parseInt(req.params.id);
+  const { status } = req.body;
+  
   try {
     const userId = req.user?.user_id || req.user?.id;
     const restaurant = await getRestaurantRow(userId);
     if (!restaurant) return res.status(403).json({ success: false, message: 'Restaurant not found.' });
 
-    const orderId = parseInt(req.params.id);
-    const { status } = req.body;
-    const valid = ['processing', 'preparing', 'ready_for_pickup', 'out_for_delivery', 'cancelled'];
+    // Validate order ID
+    if (!Number.isInteger(orderId) || orderId <= 0) {
+      return res.status(400).json({ success: false, message: 'Invalid order ID.' });
+    }
 
-    if (!valid.includes(status)) {
+    // Validate status value
+    const valid = ['processing', 'preparing', 'ready_for_pickup', 'out_for_delivery', 'cancelled'];
+    if (!status || !valid.includes(status)) {
       return res.status(400).json({ success: false, message: `Invalid status. Must be one of: ${valid.join(', ')}` });
     }
 
+    // CRITICAL: Verify payment before allowing status change
+    const paymentVerified = safeRows(await query(
+      `SELECT p.payment_id FROM payments p WHERE p.order_id = ? AND p.status = 'verified'`,
+      [orderId]
+    ));
+    if (!paymentVerified.length) {
+      return res.status(403).json({ success: false, message: 'Cannot modify unpaid orders. Payment must be verified first.' });
+    }
+
+    // Fetch current order
     const rows = safeRows(await query(
-      'SELECT status FROM orders WHERE order_id=? AND restaurant_id=?',
+      'SELECT status, user_id FROM orders WHERE order_id=? AND restaurant_id=?',
       [orderId, restaurant.restaurant_id]
     ));
     if (!rows.length) return res.status(404).json({ success: false, message: 'Order not found.' });
 
-    await query('UPDATE orders SET status=?, updated_at=NOW() WHERE order_id=?', [status, orderId]);
+    const oldStatus = rows[0].status;
+    const orderedUserId = rows[0].user_id;
 
-    // Emit socket event if available
-    const se = req.app?.get?.('socketEmitters');
-    if (se) {
-      se.adminOrderUpdate?.({ orderId, status });
-      const labels = {
-        processing:       '✅ Your order has been confirmed!',
-        preparing:        '👨‍🍳 Your order is being prepared!',
-        ready_for_pickup: '🍽️ Your order is ready!',
-        out_for_delivery: '🚀 Your order is on the way!',
-        cancelled:        '❌ Your order was cancelled.',
-      };
-      if (labels[status]) {
-        const userRow = safeRows(await query('SELECT user_id FROM orders WHERE order_id=?', [orderId]));
-        if (userRow[0]?.user_id) se.toastUser?.(userRow[0].user_id, { type: 'info', message: labels[status] });
+    // Update order status (must succeed before socket emission)
+    try {
+      await query('UPDATE orders SET status=?, updated_at=NOW() WHERE order_id=?', [status, orderId]);
+    } catch (dbErr) {
+      console.error('[restaurantAdmin] Database update failed:', dbErr);
+      // Provide more specific error message
+      if (dbErr.message?.includes('Incorrect enum value')) {
+        return res.status(400).json({ success: false, message: `Status enum mismatch. "${status}" is not a valid order status.` });
       }
+      throw dbErr;
     }
 
+    // Emit socket events (non-blocking — do not throw)
+    try {
+      const se = req.app?.get?.('socketEmitters');
+      if (se && typeof se === 'object') {
+        // Emit to admin dashboard
+        if (typeof se.adminOrderUpdate === 'function') {
+          se.adminOrderUpdate({ orderId, status });
+        }
+
+        // Emit to restaurant-specific room
+        if (typeof se.restaurantOrderUpdate === 'function') {
+          se.restaurantOrderUpdate(restaurant.restaurant_id, { orderId, status });
+        }
+
+        // Emit user notification toast
+        if (orderedUserId && typeof se.toastUser === 'function') {
+          const labels = {
+            processing:       '✅ Your order has been confirmed!',
+            preparing:        '👨‍🍳 Your order is being prepared!',
+            ready_for_pickup: '🍽️ Your order is ready!',
+            out_for_delivery: '🚀 Your order is on the way!',
+            cancelled:        '❌ Your order was cancelled.',
+          };
+          const message = labels[status];
+          if (message) {
+            se.toastUser(orderedUserId, { type: 'info', message });
+          }
+        }
+      }
+    } catch (socketErr) {
+      // Log socket emission errors but do NOT fail the request
+      console.error('[restaurantAdmin] Socket emission failed (non-blocking):', socketErr.message);
+    }
+
+    // Log the action (has its own error handling)
     await log({
       actorId: userId, actorRole: req.user?.role,
       action: 'ORDER_STATUS_UPDATE', entityType: 'order', entityId: orderId,
-      oldValue: { status: rows[0].status }, newValue: { status }, ip: req.ip,
+      oldValue: { status: oldStatus }, newValue: { status }, ip: req.ip,
     });
 
     return res.json({ success: true, message: `Order updated to ${status}.` });
   } catch (err) {
-    console.error('[restaurantAdmin] updateOrderStatus', err);
-    return res.status(500).json({ success: false, message: 'Failed to update order.' });
+    console.error('[restaurantAdmin] updateOrderStatus failed:', err);
+    
+    // Provide useful error details to client
+    const errorMessage = err.message || 'Failed to update order.';
+    const isDbError = errorMessage.includes('ENUM') || errorMessage.includes('enum') || errorMessage.includes('Unknown column');
+    
+    return res.status(500).json({ 
+      success: false, 
+      message: isDbError 
+        ? `Database error: ${errorMessage}` 
+        : 'Failed to update order. Please try again or contact support.',
+      debug: process.env.NODE_ENV === 'development' ? errorMessage : undefined
+    });
   }
 }
 
@@ -372,26 +468,32 @@ async function getAnalytics(req, res) {
 
     const [dailySales, topProducts, statusBreakdown] = await Promise.all([
       query(`SELECT DATE(o.created_at) AS date,
-                    COUNT(*) AS order_count,
-                    COALESCE(SUM(o.total),0) AS revenue
+                    COUNT(DISTINCT o.order_id) AS order_count,
+                    COALESCE(SUM(p.amount),0) AS revenue
              FROM orders o
+             JOIN payments p ON o.order_id = p.order_id
              WHERE o.restaurant_id=?
+               AND p.status='verified'
                AND o.created_at >= DATE_SUB(CURDATE(), INTERVAL ? DAY)
              GROUP BY DATE(o.created_at)
              ORDER BY date ASC`, [rid, days]),
       query(`SELECT oi.name, SUM(oi.qty) AS units_sold, SUM(oi.subtotal) AS revenue
              FROM order_items oi
              JOIN orders o ON o.order_id = oi.order_id
+             JOIN payments p ON o.order_id = p.order_id
              WHERE o.restaurant_id=?
+               AND p.status='verified'
                AND o.created_at >= DATE_SUB(CURDATE(), INTERVAL ? DAY)
                AND o.status != 'cancelled'
              GROUP BY oi.product_id, oi.name
              ORDER BY units_sold DESC LIMIT 5`, [rid, days]),
-      query(`SELECT status, COUNT(*) AS cnt
-             FROM orders
-             WHERE restaurant_id=?
-               AND created_at >= DATE_SUB(CURDATE(), INTERVAL ? DAY)
-             GROUP BY status`, [rid, days]),
+      query(`SELECT o.status, COUNT(DISTINCT o.order_id) AS cnt
+             FROM orders o
+             JOIN payments p ON o.order_id = p.order_id
+             WHERE o.restaurant_id=?
+               AND p.status='verified'
+               AND o.created_at >= DATE_SUB(CURDATE(), INTERVAL ? DAY)
+             GROUP BY o.status`, [rid, days]),
     ]);
 
     return res.json({
@@ -472,11 +574,102 @@ async function updateSettings(req, res) {
   }
 }
 
+/**
+ * POST /restaurant-admin/orders/:id/confirm-delivery
+ * The delivery rider enters the 6-digit code the customer received.
+ * If it matches, the order is marked as delivered.
+ */
+async function confirmDelivery(req, res) {
+  const orderId = parseInt(req.params.id);
+  const { code } = req.body;
+
+  try {
+    const userId = req.user?.user_id || req.user?.id;
+    const restaurant = await getRestaurantRow(userId);
+    if (!restaurant) return res.status(403).json({ success: false, message: 'Restaurant not found.' });
+
+    if (!Number.isInteger(orderId) || orderId <= 0) {
+      return res.status(400).json({ success: false, message: 'Invalid order ID.' });
+    }
+
+    if (!code || !/^\d{6}$/.test(String(code).trim())) {
+      return res.status(400).json({ success: false, message: 'A valid 6-digit confirmation code is required.' });
+    }
+
+    // Fetch order and verify it belongs to this restaurant and is out for delivery
+    const rows = safeRows(await query(
+      `SELECT o.order_id, o.status, o.user_id, o.delivery_confirmation_code
+       FROM orders o
+       WHERE o.order_id = ? AND o.restaurant_id = ?`,
+      [orderId, restaurant.restaurant_id]
+    ));
+
+    if (!rows.length) {
+      return res.status(404).json({ success: false, message: 'Order not found.' });
+    }
+
+    const order = rows[0];
+
+    if (order.status === 'delivered') {
+      return res.status(409).json({ success: false, message: 'Order has already been marked as delivered.' });
+    }
+
+    if (!['out_for_delivery', 'processing', 'preparing', 'ready_for_pickup'].includes(order.status)) {
+      return res.status(409).json({ success: false, message: `Order cannot be confirmed for delivery at status: ${order.status}.` });
+    }
+
+    // Verify confirmation code
+    if (!order.delivery_confirmation_code || String(order.delivery_confirmation_code).trim() !== String(code).trim()) {
+      return res.status(400).json({ success: false, message: 'Incorrect delivery confirmation code. Please check with the customer.' });
+    }
+
+    // Mark order as delivered and clear the code
+    await query(
+      `UPDATE orders SET status='delivered', delivery_confirmation_code=NULL, updated_at=NOW() WHERE order_id=?`,
+      [orderId]
+    );
+
+    // Emit real-time notifications
+    try {
+      const se = req.app?.get?.('socketEmitters');
+      if (se && typeof se === 'object') {
+        if (typeof se.adminOrderUpdate === 'function') {
+          se.adminOrderUpdate({ orderId, status: 'delivered' });
+        }
+        if (typeof se.restaurantOrderUpdate === 'function') {
+          se.restaurantOrderUpdate(restaurant.restaurant_id, { orderId, status: 'delivered' });
+        }
+        if (order.user_id && typeof se.toastUser === 'function') {
+          se.toastUser(order.user_id, { type: 'success', message: '🎉 Your order has been delivered! Enjoy your meal!' });
+        }
+        if (order.user_id && typeof se.paymentStatus === 'function') {
+          // Re-use paymentStatus channel to push order update to customer
+          se.paymentStatus(order.user_id, { orderId, status: 'delivered' });
+        }
+      }
+    } catch (socketErr) {
+      console.error('[restaurantAdmin] Socket emission failed (confirmDelivery):', socketErr.message);
+    }
+
+    await log({
+      actorId: userId, actorRole: req.user?.role,
+      action: 'ORDER_DELIVERY_CONFIRMED', entityType: 'order', entityId: orderId,
+      newValue: { status: 'delivered', confirmedBy: 'rider_code' }, ip: req.ip,
+    });
+
+    return res.json({ success: true, message: 'Delivery confirmed! Order marked as delivered.' });
+  } catch (err) {
+    console.error('[restaurantAdmin] confirmDelivery failed:', err);
+    return res.status(500).json({ success: false, message: 'Failed to confirm delivery.' });
+  }
+}
+
 module.exports = {
   getDashboard,
   getOrders,
   getOrderById,
   updateOrderStatus,
+  confirmDelivery,
   getProducts,
   getProductById,
   createProduct,

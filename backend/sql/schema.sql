@@ -169,7 +169,7 @@ CREATE TABLE IF NOT EXISTS orders (
   user_id           INT UNSIGNED NOT NULL,
   restaurant_id     INT UNSIGNED NULL,
   order_number      VARCHAR(20)  NOT NULL COMMENT 'human-readable e.g. ZST-00142',
-  status            ENUM('pending','processing','preparing','out_for_delivery','delivered','cancelled')
+  status            ENUM('pending','processing','preparing','ready_for_pickup','out_for_delivery','delivered','cancelled')
                     NOT NULL DEFAULT 'pending',
   subtotal          DECIMAL(10,2) NOT NULL DEFAULT 0.00,
   discount_amount   DECIMAL(10,2) NOT NULL DEFAULT 0.00,
@@ -179,7 +179,8 @@ CREATE TABLE IF NOT EXISTS orders (
   delivery_lat      DECIMAL(10,7) NULL,
   delivery_lng      DECIMAL(10,7) NULL,
   notes             TEXT          NULL,
-  assigned_staff_id INT UNSIGNED  NULL,
+  assigned_staff_id          INT UNSIGNED  NULL,
+  delivery_confirmation_code CHAR(6)       NULL COMMENT '6-digit code generated on payment; rider enters to confirm delivery',
   created_at        TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at        TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
@@ -226,7 +227,7 @@ CREATE TABLE IF NOT EXISTS payments (
   order_id         INT UNSIGNED  NOT NULL,
   user_id          INT UNSIGNED  NOT NULL,
   method           ENUM('mobile_money','card','cash') NOT NULL DEFAULT 'mobile_money',
-  status           ENUM('pending','verified','failed','refunded') NOT NULL DEFAULT 'pending',
+  status           ENUM('pending','verified','failed','expired','refunded') NOT NULL DEFAULT 'pending',
   amount           DECIMAL(10,2) NOT NULL,
   currency         VARCHAR(5)    NOT NULL DEFAULT 'UGX',
   flw_tx_ref       VARCHAR(120)  NULL UNIQUE COMMENT 'generated tx_ref sent to Flutterwave',
@@ -239,7 +240,7 @@ CREATE TABLE IF NOT EXISTS payments (
   updated_at       TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
   PRIMARY KEY (payment_id),
-  INDEX idx_pay_order (order_id),
+  UNIQUE KEY uq_pay_order (order_id),
   INDEX idx_pay_user (user_id),
   INDEX idx_pay_status (status),
   INDEX idx_pay_flw_ref (flw_tx_ref),
@@ -383,3 +384,12 @@ INSERT IGNORE INTO platform_settings (setting_key, setting_value, setting_group,
 ('session_timeout',       '30',               'security',   'Session Timeout (minutes)'),
 ('audit_logs_enabled',    '1',                'audit',      'Enable Audit Logs'),
 ('audit_retention_days',  '90',               'audit',      'Log Retention (days)');
+
+-- ============================================================
+-- MIGRATION: Add delivery_confirmation_code to orders
+-- Run this on existing databases that already have the orders table.
+-- ============================================================
+ALTER TABLE orders
+  ADD COLUMN IF NOT EXISTS delivery_confirmation_code CHAR(6) NULL
+    COMMENT '6-digit code generated on payment; rider enters to confirm delivery'
+  AFTER assigned_staff_id;

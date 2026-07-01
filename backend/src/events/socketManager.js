@@ -84,6 +84,15 @@ function initSocketManager(io) {
       console.log(`   ↳ Joined admin:dashboard`);
     });
 
+    /* ── JOIN: restaurant admin dashboard room ──────────── */
+    socket.on('restaurant:join', (restaurantId) => {
+      if (!restaurantId || isNaN(restaurantId)) return;
+      const room = `restaurant:${restaurantId}`;
+      socket.join(room);
+      socket.data.restaurantId = restaurantId;
+      console.log(`   ↳ Joined ${room}`);
+    });
+
     /* ── JOIN: per-order tracking room ──────────────────────── */
     socket.on('order:track', (orderId) => {
       if (!orderId || isNaN(orderId)) return;
@@ -150,6 +159,32 @@ function emitters(io) {
       // Also push to per-order room for customer tracking
       io.to(`order:${orderData.orderId}`).emit('order:update',
         envelope('order:update', orderData));
+    },
+
+    /** Order status changed for a specific restaurant */
+    restaurantOrderUpdate(restaurantId, orderData) {
+      if (restaurantId) {
+        io.to(`restaurant:${restaurantId}`).emit('order:update', envelope('order:update', orderData));
+      }
+    },
+
+    /** New order for specific restaurant (after payment verified) */
+    restaurantNewOrder(restaurantId, orderData) {
+      if (restaurantId) {
+        io.to(`restaurant:${restaurantId}`).emit('order:new', envelope('order:new', orderData));
+      }
+    },
+
+    /** Customer just initiated a payment (status: pending) */
+    adminPaymentPending(paymentData) {
+      io.to('admin:dashboard').emit('payment:pending',
+        envelope('payment:pending', paymentData));
+    },
+
+    /** Customer completed payment (gateway received, not yet verified) */
+    adminPaymentMade(paymentData) {
+      io.to('admin:dashboard').emit('payment:made',
+        envelope('payment:made', paymentData));
     },
 
     /** Payment verified alert */

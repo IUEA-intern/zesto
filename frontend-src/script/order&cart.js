@@ -16,7 +16,7 @@
    ============================================================ */
 const API        = '/api';
 const STORAGE_KEY = 'zesto_cart';    // [{ product_id, qty }]
-const DELIVERY_FEE = 5000;          // UGX — mirrors server .env
+let DELIVERY_FEE = 5000;            // UGX — loaded from backend settings
 
 /* ============================================================
    STATE
@@ -94,6 +94,72 @@ const Utils = {
 /* ============================================================
    TOAST SYSTEM
    ============================================================ */
+async function loadDeliveryFee() {
+  try {
+    const res = await fetch('/api/settings/delivery-fee');
+    const data = await res.json();
+    if (res.ok && data?.data?.delivery_fee != null) {
+      DELIVERY_FEE = Number(data.data.delivery_fee);
+      if (!Number.isFinite(DELIVERY_FEE) || DELIVERY_FEE < 0) DELIVERY_FEE = 5000;
+    }
+  } catch (err) {
+    console.warn('[delivery-fee] using fallback value', err);
+  }
+}
+
+/* ============================================================
+   DELIVERY CONFIRMATION CODE MODAL
+   Shown to the customer right after payment is verified.
+   The code must be given to the delivery rider on arrival.
+   ============================================================ */
+const DeliveryCodeModal = {
+  show(code, orderNumber) {
+    if (!code) return;
+
+    // Persist so the customer can find it again if they navigate away
+    try {
+      const stored = JSON.parse(localStorage.getItem('zesto_delivery_codes') || '{}');
+      stored[orderNumber || 'latest'] = code;
+      localStorage.setItem('zesto_delivery_codes', JSON.stringify(stored));
+    } catch {}
+
+    let overlay = document.getElementById('deliveryCodeOverlay');
+    if (overlay) overlay.remove();
+
+    overlay = document.createElement('div');
+    overlay.id = 'deliveryCodeOverlay';
+    overlay.style.cssText = `
+      position: fixed; inset: 0; background: rgba(0,0,0,.55);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 9999; padding: 20px;
+    `;
+    overlay.innerHTML = `
+      <div style="background:#fff;border-radius:16px;max-width:380px;width:100%;
+                  padding:28px 24px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.3)">
+        <div style="font-size:42px;margin-bottom:8px">🎉</div>
+        <h2 style="margin:0 0 6px;font-size:1.2rem;font-weight:800">Payment Confirmed!</h2>
+        <p style="margin:0 0 18px;color:#666;font-size:.9rem">
+          Your order is being prepared. Give this code to the delivery rider when your order arrives.
+        </p>
+        <div style="background:#fff7ed;border:2px dashed #f97316;border-radius:12px;
+                    padding:16px;margin-bottom:18px">
+          <div style="font-size:.72rem;text-transform:uppercase;letter-spacing:1px;color:#9a5b1f;margin-bottom:4px">
+            Delivery Confirmation Code
+          </div>
+          <div style="font-size:2.1rem;font-weight:800;letter-spacing:6px;color:#ea580c">${Utils.escape(String(code))}</div>
+        </div>
+        <button id="deliveryCodeCloseBtn" style="width:100%;padding:12px;border:none;border-radius:10px;
+                background:#ea580c;color:#fff;font-weight:700;font-size:.95rem;cursor:pointer">
+          Got it!
+        </button>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+    document.getElementById('deliveryCodeCloseBtn').addEventListener('click', () => overlay.remove());
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
+  },
+};
+
 const Toast = {
   container: null,
 
@@ -746,10 +812,12 @@ const Cart = {
     const total = subtotal + (items.length ? DELIVERY_FEE : 0);
 
     // Summary sidebar
-    const summaryRows  = document.getElementById('summaryRows');
-    const grandTotal   = document.getElementById('grandTotal');
-    const modalSub     = document.getElementById('modalSubtotal');
-    const modalTotalEl = document.getElementById('modalTotal');
+    const summaryRows       = document.getElementById('summaryRows');
+    const grandTotal        = document.getElementById('grandTotal');
+    const modalSub          = document.getElementById('modalSubtotal');
+    const modalTotalEl      = document.getElementById('modalTotal');
+    const modalDeliveryFee  = document.getElementById('modalDeliveryFee');
+    const summaryDeliveryFee = document.getElementById('summaryDeliveryFee');
 
     if (summaryRows) {
       summaryRows.innerHTML = items.map(({ product_id, qty }) => {
@@ -759,9 +827,13 @@ const Cart = {
       }).join('');
     }
 
+    const displayFee = items.length ? DELIVERY_FEE : 0;
+
     if (grandTotal)   grandTotal.textContent   = Utils.currency(total);
     if (modalSub)     modalSub.textContent     = Utils.currency(subtotal);
     if (modalTotalEl) modalTotalEl.textContent = Utils.currency(total);
+    if (modalDeliveryFee) modalDeliveryFee.textContent = Utils.currency(displayFee);
+    if (summaryDeliveryFee) summaryDeliveryFee.textContent = Utils.currency(displayFee);
   },
 
   /** Qty decrease handler */
@@ -1080,6 +1152,17 @@ const SocketManager = {
         const msg = labels[data.status] || `Order status: ${data.status}`;
         Toast.info(msg, 6000);
       });
+
+      this.socket.on('payment:status', ({ data }) => {
+        if (!data) return;
+        if (data.status === 'verified' && data.deliveryCode) {
+          DeliveryCodeModal.show(data.deliveryCode, data.orderId);
+        } else if (data.status === 'delivered') {
+          Toast.success('🎉 Your order has been delivered! Enjoy your meal!');
+        } else if (data.status === 'failed') {
+          Toast.error('Payment failed. Please try again.');
+        }
+      });
     } catch (err) {
       console.warn('[SocketManager]', err);
     }
@@ -1105,11 +1188,23 @@ function handlePaymentReturn() {
   const payment = params.get('payment');
   if (!payment) return;
 
+  const orderId = params.get('order_id');
+
   if (payment === 'success') {
     LocalCart.clear();
     Cart.syncFromStorage();
     Cart.updateBadge();
     Toast.success('Payment confirmed! Your order is being prepared.');
+
+    // Fetch the order to retrieve the delivery confirmation code
+    if (orderId) {
+      Api.get(`/orders/${orderId}`)
+        .then((res) => {
+          const code = res?.data?.delivery_confirmation_code;
+          if (code) DeliveryCodeModal.show(code, res.data.order_number || orderId);
+        })
+        .catch((err) => console.warn('[handlePaymentReturn] Failed to fetch delivery code:', err));
+    }
   } else if (payment === 'pending' || payment === 'already-processed') {
     Toast.info('Payment is being processed. We will update your order shortly.');
   } else if (payment === 'failed') {
@@ -1127,6 +1222,7 @@ function handlePaymentReturn() {
    ============================================================ */
 async function bootPage() {
   Toast.init();
+  await loadDeliveryFee();
 
   // Shared init across all pages
   await Auth.init();

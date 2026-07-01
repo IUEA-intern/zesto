@@ -101,12 +101,31 @@ async function tableExists(tableName) {
 router.use(requireAuth, requireAdmin);
 
 /* ── GET /api/admin/stats ──────────────────────────────────── */
+/**
+ * FIX: Dashboard stats now only count PAID orders
+ * Statistics exclude unpaid, pending, failed, and cancelled payment orders
+ */
 router.get('/stats', async (req, res) => {
   try {
     const paymentsAvailable = await tableExists('payments');
+    
+    // FIX: Only count orders with verified payments
+    const ordersTodayQuery = paymentsAvailable
+      ? `SELECT COUNT(DISTINCT o.order_id) AS cnt FROM orders o
+         JOIN payments p ON o.order_id = p.order_id
+         WHERE p.status='verified' AND DATE(o.created_at)=CURDATE()`
+      : `SELECT COUNT(*) AS cnt FROM orders WHERE DATE(created_at)=CURDATE()`;
+    
+    // FIX: Only count active orders with verified payments
+    const activeOrdersQuery = paymentsAvailable
+      ? `SELECT COUNT(DISTINCT o.order_id) AS cnt FROM orders o
+         JOIN payments p ON o.order_id = p.order_id
+         WHERE p.status='verified' AND o.status NOT IN ('delivered','cancelled')`
+      : `SELECT COUNT(*) AS cnt FROM orders WHERE status NOT IN ('delivered','cancelled')`;
+    
     const [ordersToday, activeOrders, totalUsers, lowStock] = await Promise.all([
-      query(`SELECT COUNT(*) AS cnt FROM orders WHERE DATE(created_at)=CURDATE()`),
-      query(`SELECT COUNT(*) AS cnt FROM orders WHERE status NOT IN ('delivered','cancelled')`),
+      query(ordersTodayQuery),
+      query(activeOrdersQuery),
       query(`SELECT COUNT(*) AS cnt FROM users WHERE role='customer'`),
       query(`SELECT COUNT(*) AS cnt FROM products WHERE stock <= 5 AND is_active=1`),
     ]);
@@ -115,7 +134,7 @@ router.get('/stats', async (req, res) => {
       ? safeRows(await query(`SELECT COALESCE(SUM(p.amount),0) AS total_revenue FROM payments p WHERE p.status='verified'`))
       : [{ total_revenue: 0 }];
     const failedPayments = paymentsAvailable
-      ? safeRows(await query(`SELECT COUNT(*) AS cnt FROM payments WHERE status='failed' AND DATE(created_at)=CURDATE()`))
+      ? safeRows(await query(`SELECT COUNT(*) AS cnt FROM payments WHERE status IN ('failed','expired') AND DATE(created_at)=CURDATE()`))
       : [{ cnt: 0 }];
 
     return res.json({
@@ -136,6 +155,11 @@ router.get('/stats', async (req, res) => {
 });
 
 /* ── GET /api/admin/orders ─────────────────────────────────── */
+/**
+ * FIX: Orders list now requires verified payment (INNER JOIN)
+ * Includes restaurant details
+ * Only shows orders with confirmed payments to admin
+ */
 router.get('/orders', async (req, res) => {
   try {
     const page   = Math.max(1, parseInt(req.query.page)  || 1);
@@ -144,14 +168,23 @@ router.get('/orders', async (req, res) => {
     const status = req.query.status || null;
 
     const paymentsAvailable = await tableExists('payments');
-    let sql = `SELECT o.*, u.name AS customer_name, u.email AS customer_email, u.phone AS customer_phone`;
+    
+    // FIX: Use INNER JOIN to require payment verification
+    // Add restaurants table JOIN to display restaurant
+    let sql = `SELECT DISTINCT o.*, u.name AS customer_name, u.email AS customer_email, u.phone AS customer_phone`;
     if (paymentsAvailable) {
-      sql += `, p.status AS payment_status, p.method AS payment_method`;
+      sql += `, p.status AS payment_status, p.method AS payment_method, p.amount AS payment_amount`;
     }
-    sql += ` FROM orders o JOIN users u ON u.user_id = o.user_id`;
+    sql += `, r.name AS restaurant_name`;
+    
+    sql += ` FROM orders o 
+             JOIN users u ON u.user_id = o.user_id
+             JOIN restaurants r ON r.restaurant_id = o.restaurant_id`;
+    
     if (paymentsAvailable) {
-      sql += ` LEFT JOIN payments p ON p.order_id = o.order_id AND p.status='verified'`;
+      sql += ` INNER JOIN payments p ON p.order_id = o.order_id AND p.status='verified'`;
     }
+    
     sql += ` WHERE 1=1`;
 
     const params = [];
@@ -159,9 +192,16 @@ router.get('/orders', async (req, res) => {
     sql += ' ORDER BY o.created_at DESC LIMIT ? OFFSET ?';
     params.push(limit, offset);
 
+    // FIX: Count query also filters by verified payments
+    const countQuery = paymentsAvailable
+      ? `SELECT COUNT(DISTINCT o.order_id) AS total FROM orders o
+         JOIN payments p ON o.order_id = p.order_id
+         WHERE p.status='verified'${status ? ' AND o.status=?' : ''}`
+      : `SELECT COUNT(*) AS total FROM orders${status ? ' WHERE status=?' : ''}`;
+
     const [orders, countRow] = await Promise.all([
       safeRows(await query(sql, params)),
-      safeRows(await query(`SELECT COUNT(*) AS total FROM orders ${status ? 'WHERE status=?' : ''}`, status ? [status] : [])),
+      safeRows(await query(countQuery, status ? [status] : [])),
     ]);
 
     return res.json({
@@ -176,19 +216,43 @@ router.get('/orders', async (req, res) => {
 });
 
 /* ── GET /api/admin/orders/:id ─────────────────────────────── */
+/**
+ * FIX: Order detail now includes restaurant and verifies payment
+ * Only shows order details if payment is verified
+ */
 router.get('/orders/:id', async (req, res) => {
   try {
     const orderId = parseInt(req.params.id);
     if (!orderId) return res.status(400).json({ success: false, message: 'Invalid order ID.' });
 
     const paymentsAvailable = await tableExists('payments');
+    
+    // FIX: Verify payment is confirmed before showing order details
+    if (paymentsAvailable) {
+      const paymentCheck = safeRows(await query(
+        `SELECT p.payment_id FROM payments p WHERE p.order_id = ? AND p.status = 'verified'`,
+        [orderId]
+      ));
+      if (!paymentCheck.length) {
+        return res.status(403).json({ 
+          success: false, 
+          message: 'Order payment not verified. Cannot access details.' 
+        });
+      }
+    }
+    
     let sql = `SELECT o.*, u.name AS customer_name, u.email AS customer_email, u.phone AS customer_phone`;
     if (paymentsAvailable) {
-      sql += `, p.status AS payment_status, p.method AS payment_method, p.flw_tx_id`;
+      sql += `, p.status AS payment_status, p.method AS payment_method, p.flw_tx_id, p.amount AS payment_amount`;
     }
-    sql += ` FROM orders o JOIN users u ON u.user_id = o.user_id`;
+    sql += `, r.name AS restaurant_name`;
+    
+    sql += ` FROM orders o 
+             JOIN users u ON u.user_id = o.user_id
+             JOIN restaurants r ON r.restaurant_id = o.restaurant_id`;
+    
     if (paymentsAvailable) {
-      sql += ` LEFT JOIN payments p ON p.order_id = o.order_id AND p.status = 'verified'`;
+      sql += ` INNER JOIN payments p ON p.order_id = o.order_id AND p.status = 'verified'`;
     }
     sql += ` WHERE o.order_id = ?`;
 
@@ -211,14 +275,33 @@ router.get('/orders/:id', async (req, res) => {
 });
 
 /* ── PUT /api/admin/orders/:id/status ──────────────────────── */
+/**
+ * FIX: Now verifies payment before allowing status update
+ * Prevents unpaid orders from being marked as processed
+ */
 router.put('/orders/:id/status', async (req, res) => {
   try {
     const orderId = parseInt(req.params.id);
     const { status } = req.body;
-    const valid = ['pending','processing','preparing','out_for_delivery','delivered','cancelled'];
+    const valid = ['pending','processing','preparing','ready_for_pickup','out_for_delivery','delivered','cancelled'];
 
     if (!valid.includes(status)) {
-      return res.status(400).json({ success: false, message: 'Invalid status value.' });
+      return res.status(400).json({ success: false, message: `Invalid status value. Must be one of: ${valid.join(', ')}` });
+    }
+
+    // FIX: Verify payment before allowing status change
+    const paymentsAvailable = await tableExists('payments');
+    if (paymentsAvailable) {
+      const paymentVerified = safeRows(await query(
+        `SELECT p.payment_id FROM payments p WHERE p.order_id = ? AND p.status = 'verified'`,
+        [orderId]
+      ));
+      if (!paymentVerified.length) {
+        return res.status(403).json({ 
+          success: false, 
+          message: 'Cannot update unpaid orders. Payment must be verified first.' 
+        });
+      }
     }
 
     const current = await query('SELECT status FROM orders WHERE order_id=?', [orderId]);
@@ -539,10 +622,10 @@ router.get('/analytics/revenue', async (req, res) => {
     const paymentsAvailable = await tableExists('payments');
     const daily = safeRows(await query(
       `SELECT DATE(o.created_at) AS date,
-              COUNT(*)           AS order_count,
+              COUNT(DISTINCT ${paymentsAvailable ? 'p.order_id' : 'o.order_id'}) AS order_count,
               COALESCE(SUM(${paymentsAvailable ? 'p.amount' : '0'}), 0) AS revenue
        FROM orders o
-       ${paymentsAvailable ? "LEFT JOIN payments p ON p.order_id = o.order_id AND p.status='verified'" : ''}
+       ${paymentsAvailable ? "JOIN payments p ON p.order_id = o.order_id AND p.status='verified'" : ''}
        WHERE o.created_at >= DATE_SUB(CURDATE(), INTERVAL ? DAY)
        GROUP BY DATE(o.created_at)
        ORDER BY date ASC`,
@@ -553,6 +636,7 @@ router.get('/analytics/revenue', async (req, res) => {
       `SELECT oi.name, SUM(oi.qty) AS units_sold, SUM(oi.subtotal) AS revenue
        FROM order_items oi
        JOIN orders o ON o.order_id = oi.order_id
+       ${paymentsAvailable ? "JOIN payments p ON p.order_id = o.order_id AND p.status='verified'" : ''}
        WHERE o.created_at >= DATE_SUB(CURDATE(), INTERVAL ? DAY)
          AND o.status != 'cancelled'
        GROUP BY oi.product_id, oi.name

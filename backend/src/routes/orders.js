@@ -16,7 +16,21 @@ const { requireAuth } = require('../middleware/auth');
 
 require('dotenv').config({ path: __dirname + '/../.env' });
 
-const DELIVERY_FEE = parseFloat(process.env.DELIVERY_FEE) || 5000;
+async function getBaseDeliveryFee() {
+  try {
+    const rows = await query('SELECT setting_value FROM platform_settings WHERE setting_key = ?', ['base_delivery_fee']);
+    const rawValue = rows?.[0]?.setting_value;
+    if (rawValue === undefined || rawValue === null || rawValue === '') {
+      return 5000;
+    }
+
+    const value = Number(rawValue);
+    return Number.isFinite(value) && value >= 0 ? value : 5000;
+  } catch (err) {
+    console.warn('[orders] failed to load base delivery fee, falling back to 5000', err);
+    return 5000;
+  }
+}
 
 router.use(requireAuth);
 
@@ -68,7 +82,8 @@ router.post('/', async (req, res) => {
       validatedItems.push({ product_id: pid, name: p.name, price: p.price, qty, lineTotal });
     }
 
-    const total = subtotal + DELIVERY_FEE;
+    const deliveryFee = await getBaseDeliveryFee();
+    const total = subtotal + deliveryFee;
 
     // Insert order row
     const orderNumber = `ZST-${Date.now()}`;
@@ -92,7 +107,7 @@ router.post('/', async (req, res) => {
         restaurant_id,
         orderNumber,
         subtotal,
-        DELIVERY_FEE,
+        deliveryFee,
         total,
         delivery_address,
         notes || null
@@ -255,15 +270,16 @@ router.post('/:id/verify', async (req, res) => {
       return res.status(400).json({ success: false, message: 'Transaction reference mismatch.' });
     }
 
-    await query(
+    const paymentUpdate = await query(
     `
     UPDATE payments
     SET
-    status='paid',
+    status='verified',
     flw_tx_ref=?,
     flw_tx_id=?,
+    verified_at=CURRENT_TIMESTAMP,
     updated_at=CURRENT_TIMESTAMP
-    WHERE order_id=? AND user_id=?
+    WHERE order_id=? AND user_id=? AND status='pending'
     `,
     [
     tx_ref || flwRes.data.tx_ref,
@@ -272,6 +288,10 @@ router.post('/:id/verify', async (req, res) => {
     req.user.user_id
     ]
     );
+
+    if (!Number(paymentUpdate.affectedRows || 0)) {
+      return res.status(409).json({ success: false, message: 'Payment already processed or not found.' });
+    }
 
     await query(
     `
@@ -289,7 +309,7 @@ router.post('/:id/verify', async (req, res) => {
     const io = req.app.get('io');
     if (io) {
       io.to(`user_${req.user.user_id}`).emit('order:status', {
-        order_id: orderId, status: 'paid', payment_status: 'paid'
+        order_id: orderId, status: 'processing', payment_status: 'verified'
       });
     }
 
