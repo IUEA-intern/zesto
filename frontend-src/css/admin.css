@@ -172,6 +172,41 @@ button, input, select, textarea { font-family: inherit; }
 .sidebar-toggle {
   display: none; background: none; border: none; font-size: 1.3rem; cursor: pointer;
 }
+
+/* Sidebar Close Button (Hidden by default) */
+.sidebar-close {
+  display: none;
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: rgba(255,255,255,0.1);
+  border: none;
+  color: #fff;
+  font-size: 1.5rem;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  z-index: 210;
+}
+
+/* Mobile Overlay/Backdrop */
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.5);
+  backdrop-filter: blur(4px);
+  z-index: 150;
+}
+
+/* Platform Settings Centering */
+#page-settings > div {
+  margin: 0 auto;
+}
+
 .topbar-title { font-size: 1.15rem; font-weight: 800; flex: 1; }
 .topbar-actions { display: flex; align-items: center; gap: 12px; }
 .live-indicator {
@@ -423,6 +458,8 @@ button, input, select, textarea { font-family: inherit; }
 @media (max-width: 900px) {
   .sidebar { transform: translateX(-100%); }
   .sidebar.open { transform: translateX(0); box-shadow: var(--shadow-lg); }
+  .sidebar-close { display: flex; }
+  .sidebar.open + .sidebar-overlay { display: block; }
   .main-wrap { margin-left: 0; }
   .sidebar-toggle { display: block; }
   .dash-grid { grid-template-columns: 1fr; }

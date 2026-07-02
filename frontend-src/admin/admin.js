@@ -168,33 +168,122 @@ function showAuthGate() {
   document.getElementById('appShell').classList.add('hidden');
 }
 
+function refreshActivePage() {
+  const page = State.currentPage;
+
+  const loaders = {
+    dashboard: loadDashboard,
+    orders: loadOrders,
+    payments: loadPayments,
+    restaurants: loadRestaurants,
+    riders: loadRiders,
+    users: loadUsers,
+    analytics: loadAnalytics,
+    audit: loadAudit,
+    settings: loadSettings
+  };
+
+  if (loaders[page]) {
+    loaders[page]();
+  }
+}
+
 /* ── Socket.IO ─────────────────────────────────────────────── */
 function initSocket() {
   if (typeof io === 'undefined') {
     document.getElementById('liveIndicator').style.color = '#9CA3AF';
     return;
   }
-  State.socket = io({ credentials: true });
+  State.socket = io({ credentials: true, reconnection: true, reconnectionDelay: 1000, reconnectionDelayMax: 5000 });
+  
   State.socket.on('connect', () => {
     State.socket.emit('admin:join');
     document.getElementById('liveIndicator').style.color = '';
+    console.log('🔌 Socket connected');
   });
-  State.socket.on('disconnect', () => {
+  
+  State.socket.on('disconnect', (reason) => {
     document.getElementById('liveIndicator').style.color = '#9CA3AF';
+    console.log('🔌 Socket disconnected:', reason);
   });
-  State.socket.on('order:new', ({ data }) => {
+
+  State.socket.on('reconnect', () => {
+    console.log('🔄 Socket reconnected');
+    if (State.currentPage === 'orders') loadOrders();
+    refreshKPIs();
+  });
+
+  /* ── Order Events ──────────────────────────────────── */
+  
+  /** Payment pending — customer just started paying */
+  State.socket.on('payment:pending', ({ data }) => {
+    console.log('⏳ Payment pending event:', data);
     addFeedItem({
-      icon: '📦',
-      title: `New Order ${data.orderNumber || '#' + data.orderId}`,
-      meta: `${data.itemCount} item(s)`,
-      amt: Utils.currency(data.total),
+      icon: '⏳',
+      title: `Payment Pending`,
+      meta: `Order #${data.orderNumber || data.orderId} — ${Utils.escape(data.method || 'mobile money')}`,
+      amt: Utils.currency(data.amount),
     });
     refreshKPIs();
+    if (State.currentPage === 'payments') loadPayments();
+  });
+
+  /** Payment made — gateway received payment, awaiting server verification */
+  State.socket.on('payment:made', ({ data }) => {
+    console.log('💸 Payment made event:', data);
+    addFeedItem({
+      icon: '💸',
+      title: `Payment Made`,
+      meta: `Order #${data.orderNumber || data.orderId}`,
+      amt: Utils.currency(data.amount),
+    });
+    refreshKPIs();
+    if (State.currentPage === 'payments') loadPayments();
+  });
+
+  /** New paid order received (payment verified) */
+  State.socket.on('order:new', ({ data }) => {
+    console.log('📦 New order event:', data);
+
+    const orderNumber = data.orderNumber || data.order_id || data.orderId;
+
+    addFeedItem({
+      icon: '📦',
+      title: `New Order ${orderNumber}`,
+      meta: `${data.itemCount || '?'} item(s)`,
+      amt: Utils.currency(data.total),
+    });
+
+    refreshKPIs();
     bumpBadge();
+
+    refreshActivePage();
   });
-  State.socket.on('order:status_update', ({ orderId, status }) => {
-    if (State.currentPage === 'orders') loadOrders();
+
+  /** Order status changed */
+  State.socket.on('order:update', ({ data }) => {
+    console.log('🔄 Order update event:', data);
+
+    refreshKPIs();
+    refreshActivePage();
   });
+
+  /** Payment verified - order is ready to be displayed */
+  State.socket.on('payment:verified', ({ data }) => {
+    console.log('💳 Payment verified event:', data);
+
+    refreshKPIs();
+    refreshActivePage();
+  });
+
+  /** Payment failed */
+  State.socket.on('payment:failed', ({ data }) => {
+    console.log('❌ Payment failed event:', data);
+
+    refreshKPIs();
+    refreshActivePage();
+  });
+
   State.socket.on('toast', ({ message }) => Toast.info(message));
 }
 
@@ -208,6 +297,10 @@ function navigateTo(page) {
   if (navEl)  navEl.classList.add('active');
   document.getElementById('topbarTitle').textContent = PAGE_TITLES[page] || page;
   State.currentPage = page;
+
+  // Mobile: Close sidebar on navigate
+  document.getElementById('sidebar')?.classList.remove('open');
+
   const loaders = {
     dashboard:   loadDashboard,
     restaurants: loadRestaurants,
@@ -541,7 +634,7 @@ async function loadOrders() {
       return;
     }
     tbody.innerHTML = rows.map(o => `
-      <tr>
+      <tr data-order-id="${o.order_id}">
         <td><strong>${Utils.escape(o.order_number)}</strong></td>
         <td>${Utils.escape(o.customer_name)}</td>
         <td>${Utils.escape(o.restaurant_name||'—')}</td>
@@ -853,7 +946,15 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Sidebar toggle (mobile)
   document.getElementById('sidebarToggle')?.addEventListener('click', () => {
-    document.getElementById('sidebar').classList.toggle('open');
+    document.getElementById('sidebar').classList.add('open');
+  });
+
+  document.getElementById('sidebarClose')?.addEventListener('click', () => {
+    document.getElementById('sidebar').classList.remove('open');
+  });
+
+  document.getElementById('sidebarOverlay')?.addEventListener('click', () => {
+    document.getElementById('sidebar').classList.remove('open');
   });
 
   // Restaurant filter tabs

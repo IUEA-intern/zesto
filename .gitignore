@@ -1,3 +1,5 @@
 node_modules
 backend/node_modules
 .vscode
+backend/uploads/restaurant
+backend/.env

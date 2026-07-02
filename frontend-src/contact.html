@@ -338,7 +338,7 @@
 @media(max-width: 480px) {
   .channels-grid { grid-template-columns: 1fr; }
 }
-</style>
+<link rel="stylesheet" href="css/auth-modal.css">
 </head>
 <body>
 
@@ -762,10 +762,7 @@
       <div>
         <div class="fc-title">Cities</div>
         <div class="f-links">
-          <a href="#" class="f-link">Abidjan</a>
-          <a href="#" class="f-link">Accra</a>
-          <a href="#" class="f-link">Dakar</a>
-          <a href="#" class="f-link">Lagos</a>
+          <a href="#" class="f-link">Dar es salaam</a>
           <a href="#" class="f-link">Nairobi</a>
           <a href="#" class="f-link">Kampala</a>
         </div>
@@ -798,6 +795,6 @@ function handleSubmit(e) {
   document.getElementById('formSuccess').scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 </script>
-
+<script src="script/shared_auth.js"></script>
 </body>
 </html>

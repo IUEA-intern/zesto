@@ -16,7 +16,7 @@
    ============================================================ */
 const API        = '/api';
 const STORAGE_KEY = 'zesto_cart';    // [{ product_id, qty }]
-const DELIVERY_FEE = 5000;          // UGX — mirrors server .env
+let DELIVERY_FEE = 5000;            // UGX — loaded from backend settings
 
 /* ============================================================
    STATE
@@ -27,6 +27,8 @@ const State = {
   cartItems: [],          // [{ product_id, qty }] — mirrors localStorage
   cartServerIds: new Map(), // product_id → cart_id for server sync
   intent:    null,        // 'checkout' when login is required before completing checkout
+  restaurant_id: null,
+  currentRestaurant: null,
 };
 
 /* ============================================================
@@ -92,6 +94,72 @@ const Utils = {
 /* ============================================================
    TOAST SYSTEM
    ============================================================ */
+async function loadDeliveryFee() {
+  try {
+    const res = await fetch('/api/settings/delivery-fee');
+    const data = await res.json();
+    if (res.ok && data?.data?.delivery_fee != null) {
+      DELIVERY_FEE = Number(data.data.delivery_fee);
+      if (!Number.isFinite(DELIVERY_FEE) || DELIVERY_FEE < 0) DELIVERY_FEE = 5000;
+    }
+  } catch (err) {
+    console.warn('[delivery-fee] using fallback value', err);
+  }
+}
+
+/* ============================================================
+   DELIVERY CONFIRMATION CODE MODAL
+   Shown to the customer right after payment is verified.
+   The code must be given to the delivery rider on arrival.
+   ============================================================ */
+const DeliveryCodeModal = {
+  show(code, orderNumber) {
+    if (!code) return;
+
+    // Persist so the customer can find it again if they navigate away
+    try {
+      const stored = JSON.parse(localStorage.getItem('zesto_delivery_codes') || '{}');
+      stored[orderNumber || 'latest'] = code;
+      localStorage.setItem('zesto_delivery_codes', JSON.stringify(stored));
+    } catch {}
+
+    let overlay = document.getElementById('deliveryCodeOverlay');
+    if (overlay) overlay.remove();
+
+    overlay = document.createElement('div');
+    overlay.id = 'deliveryCodeOverlay';
+    overlay.style.cssText = `
+      position: fixed; inset: 0; background: rgba(0,0,0,.55);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 9999; padding: 20px;
+    `;
+    overlay.innerHTML = `
+      <div style="background:#fff;border-radius:16px;max-width:380px;width:100%;
+                  padding:28px 24px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.3)">
+        <div style="font-size:42px;margin-bottom:8px">🎉</div>
+        <h2 style="margin:0 0 6px;font-size:1.2rem;font-weight:800">Payment Confirmed!</h2>
+        <p style="margin:0 0 18px;color:#666;font-size:.9rem">
+          Your order is being prepared. Give this code to the delivery rider when your order arrives.
+        </p>
+        <div style="background:#fff7ed;border:2px dashed #f97316;border-radius:12px;
+                    padding:16px;margin-bottom:18px">
+          <div style="font-size:.72rem;text-transform:uppercase;letter-spacing:1px;color:#9a5b1f;margin-bottom:4px">
+            Delivery Confirmation Code
+          </div>
+          <div style="font-size:2.1rem;font-weight:800;letter-spacing:6px;color:#ea580c">${Utils.escape(String(code))}</div>
+        </div>
+        <button id="deliveryCodeCloseBtn" style="width:100%;padding:12px;border:none;border-radius:10px;
+                background:#ea580c;color:#fff;font-weight:700;font-size:.95rem;cursor:pointer">
+          Got it!
+        </button>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+    document.getElementById('deliveryCodeCloseBtn').addEventListener('click', () => overlay.remove());
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
+  },
+};
+
 const Toast = {
   container: null,
 
@@ -216,7 +284,7 @@ const Api = {
 const Auth = {
   async init() {
     try {
-      const res = await Api.get('/auth/me');
+      const res = await window.SharedAuth.checkSession();
       State.session = res.user;
     } catch {
       State.session = null;
@@ -240,40 +308,15 @@ const Auth = {
   },
 
   async login(email, password) {
-    const res = await Api.post('/auth/login', { email, password });
-    State.session = res.user;
-    this.updateUI();
-    if (document.getElementById('cartItemsList')) {
-      await Cart.mergeServerCart();
-    }
-    if (State.intent === 'checkout') {
-      State.intent = null;
-      document.getElementById('authModal')?.classList.add('hidden');
-      await Checkout.openModal();
-    }
-    return res;
+    return window.SharedAuth.login(email, password);
   },
 
   async register(name, email, phone, password) {
-    const res = await Api.post('/auth/register', { name, email, phone, password });
-    State.session = res.user;
-    this.updateUI();
-    if (document.getElementById('cartItemsList')) {
-      await Cart.mergeServerCart();
-    }
-    if (State.intent === 'checkout') {
-      State.intent = null;
-      document.getElementById('authModal')?.classList.add('hidden');
-      await Checkout.openModal();
-    }
-    return res;
+    return window.SharedAuth.registerCustomer(name, email, phone, password);
   },
 
   async logout() {
-    await Api.post('/auth/logout', {});
-    State.session = null;
-    State.intent = null;
-    this.updateUI();
+    return window.SharedAuth.logout();
   },
 };
 
@@ -331,6 +374,35 @@ const Products = {
     gridEl.innerHTML = items.map(p => this.buildCard(p)).join('');
   },
 
+  /** Fetch restaurant details and update Hero */
+  async fetchRestaurant(id) {
+    try {
+      const res = await Api.get(`/restaurants/${id}`);
+      State.currentRestaurant = res.data;
+      this.updateHero(res.data);
+    } catch (err) {
+      console.warn('[fetchRestaurant]', err);
+      Toast.error('Could not load restaurant details.');
+    }
+  },
+
+  /** Update Hero section with restaurant info */
+  updateHero(r) {
+    const title = document.querySelector('.hero-title');
+    const desc  = document.querySelector('.hero-desc');
+    const tagline = document.querySelector('.hero-tagline');
+    
+    if (title) title.innerHTML = `Order from <span class="hero-accent">${Utils.escape(r.name)}</span>`;
+    if (desc)  desc.textContent = r.description || `Fresh meals delivered from ${r.name} straight to your door.`;
+    if (tagline) tagline.textContent = r.address || 'Fast • Fresh • Flavourful';
+
+    // Set restaurant image as background image
+    const heroBg = document.querySelector('.hero-bg');
+    if (heroBg && r.logo_url) {
+      heroBg.style.backgroundImage = `url(${r.logo_url})`;
+    }
+  },
+
   /** Fetch all products, populate state map, render all 4 grids */
   async loadAll() {
     const grids = {
@@ -344,7 +416,11 @@ const Products = {
     Object.values(grids).forEach(g => g && this.renderSkeletons(g));
 
     try {
-      const res = await Api.get('/products');
+      let url = '/products';
+      if (State.restaurant_id) {
+        url += `?restaurant_id=${State.restaurant_id}`;
+      }
+      const res = await Api.get(url);
       const all = res.data || [];
 
       // Populate global products map
@@ -431,7 +507,7 @@ const Cart = {
   },
 
   /** On the order page, visually mark "added" buttons for items already in cart */
-  refreshAddButtons() {``
+  refreshAddButtons() {
     document.querySelectorAll('.product-card').forEach(card => {
       const productId = parseInt(card.dataset.id);
 
@@ -520,14 +596,50 @@ const Cart = {
     this.refreshAddButtons();
   },
 
+  /** Check if product belongs to the current restaurant or if cart is empty/same restaurant */
+  async isCartSafe(productId) {
+    const items = LocalCart.load();
+    if (!items.length) return true;
+
+    const p = State.products.get(productId);
+    if (!p) return true;
+
+    // Check existing items in cart
+    const firstItemId = items[0].product_id;
+    let firstItem = State.products.get(firstItemId);
+    
+    if (!firstItem) {
+        // Fetch it if missing
+        try {
+            const res = await Api.get(`/products/${firstItemId}`);
+            firstItem = res.data;
+            State.products.set(firstItemId, firstItem);
+        } catch (err) {
+            return true;
+        }
+    }
+
+    if (firstItem.restaurant_id !== p.restaurant_id) {
+        if (confirm("You can only order from one restaurant at a time. Clear your cart and start a new order?")) {
+            this.clearAll();
+            return true;
+        }
+        return false;
+    }
+    return true;
+  },
+
   /** Handle add-to-cart click from the product grid (event delegation) */
-  handleAddToCart(e) {
+  async handleAddToCart(e) {
     const btn = e.target.closest('.btn-add-cart');
     if (!btn || btn.disabled) return;
 
     const productId = parseInt(btn.dataset.id);
     const product   = State.products.get(productId);
     if (!product) return;
+
+    const safe = await this.isCartSafe(productId);
+    if (!safe) return;
 
     LocalCart.add(productId, 1);
     this.updateBadge();
@@ -700,10 +812,12 @@ const Cart = {
     const total = subtotal + (items.length ? DELIVERY_FEE : 0);
 
     // Summary sidebar
-    const summaryRows  = document.getElementById('summaryRows');
-    const grandTotal   = document.getElementById('grandTotal');
-    const modalSub     = document.getElementById('modalSubtotal');
-    const modalTotalEl = document.getElementById('modalTotal');
+    const summaryRows       = document.getElementById('summaryRows');
+    const grandTotal        = document.getElementById('grandTotal');
+    const modalSub          = document.getElementById('modalSubtotal');
+    const modalTotalEl      = document.getElementById('modalTotal');
+    const modalDeliveryFee  = document.getElementById('modalDeliveryFee');
+    const summaryDeliveryFee = document.getElementById('summaryDeliveryFee');
 
     if (summaryRows) {
       summaryRows.innerHTML = items.map(({ product_id, qty }) => {
@@ -713,9 +827,13 @@ const Cart = {
       }).join('');
     }
 
+    const displayFee = items.length ? DELIVERY_FEE : 0;
+
     if (grandTotal)   grandTotal.textContent   = Utils.currency(total);
     if (modalSub)     modalSub.textContent     = Utils.currency(subtotal);
     if (modalTotalEl) modalTotalEl.textContent = Utils.currency(total);
+    if (modalDeliveryFee) modalDeliveryFee.textContent = Utils.currency(displayFee);
+    if (summaryDeliveryFee) summaryDeliveryFee.textContent = Utils.currency(displayFee);
   },
 
   /** Qty decrease handler */
@@ -807,39 +925,52 @@ const Cart = {
 };
 
 /* ============================================================
-   CHECKOUT MODULE (Flutterwave)
+   CHECKOUT MODULE (Pesapal)
    ============================================================ */
+
+function resetAuthTabsToLogin() {
+  const overlay = document.getElementById('authModal');
+  const loginTab = document.getElementById('loginTab');
+  const registerTab = document.getElementById('registerTab');
+
+  if (!overlay || !loginTab || !registerTab) return;
+
+  // Fully reset visibility/state so tabs can't overlap.
+  loginTab.classList.add('active');
+  loginTab.classList.remove('hidden');
+
+  registerTab.classList.remove('active');
+  registerTab.classList.add('hidden');
+}
 
 function openAuthModal(message = '') {
   const modal = document.getElementById('authModal');
   if (!modal) return;
 
-  modal.classList.remove('hidden');
+  // Safeguard: always open from a clean login-only state.
+  resetAuthTabsToLogin();
 
-  document.getElementById('loginTab')?.classList.add('active');
-  document.getElementById('registerTab')?.classList.remove('active');
+  modal.classList.remove('hidden');
 
   if (message) {
     let warn = document.getElementById('authWarning');
-
     if (!warn) {
       warn = document.createElement('div');
       warn.id = 'authWarning';
       warn.className = 'auth-warning';
       document.getElementById('loginTab')?.prepend(warn);
     }
-
     warn.textContent = message;
   }
 }
-  
+
 const Checkout = {
   async openModal() {
     await Auth.init();
 
     if (!State.session) {
       State.intent = 'checkout';
-      openAuthModal('⚠️ Please log in to continue checkout.');
+      openAuthModal('Please log in to continue checkout.');
       Toast.warning('Please log in to continue checkout.');
       return;
     }
@@ -862,7 +993,7 @@ const Checkout = {
 
   async proceed() {
     const address = document.getElementById('deliveryAddress')?.value.trim();
-    const method  = document.getElementById('paymentMethod')?.value;
+    const method  = document.getElementById('paymentMethod')?.value || 'mobile_money';
     const notes   = document.getElementById('orderNotes')?.value.trim();
 
     if (!address) {
@@ -876,91 +1007,42 @@ const Checkout = {
       return;
     }
 
-    // Calculate total for Flutterwave
-    const subtotal = items.reduce((sum, { product_id, qty }) => {
-      const p = State.products.get(product_id);
-      return sum + (p ? parseFloat(p.price) * qty : 0);
-    }, 0);
-    const total = subtotal + DELIVERY_FEE;
-
-    if (method === 'cash') {
-      // Skip Flutterwave for COD
-      await this.placeOrder(items, address, method, notes, null, null);
-    } else {
-      // Launch Flutterwave
-      this.launchFlutterwave(total, method, items, address, notes);
-    }
+    await this.placeOrderAndStartPesapal(items, address, method, notes);
   },
 
-  launchFlutterwave(total, paymentMethod, items, address, notes) {
-    if (typeof FlutterwaveCheckout === 'undefined') {
-      Toast.error('Payment gateway not loaded. Please refresh.');
-      return;
-    }
-
-    const txRef = `zesto_${Date.now()}_${State.session.user_id}`;
-
-    FlutterwaveCheckout({
-      public_key: window.__FLW_PUBLIC_KEY__ || 'FLWPUBK_TEST-REPLACE_WITH_REAL_KEY',
-      tx_ref:     txRef,
-      amount:     total,
-      currency:   'UGX',
-      payment_options: paymentMethod === 'card' ? 'card' : 'mobilemoneyuganda',
-      customer: {
-        email: State.session.email,
-        name:  State.session.name,
-      },
-      customizations: {
-        title:       'Zesto Food Ordering',
-        description: 'Pay for your Zesto order',
-        logo:        `${window.location.origin}/images/logo.png`,
-      },
-      meta: { delivery_address: address },
-      callback: async (data) => {
-        if (data.status === 'successful') {
-          await this.placeOrder(items, address, paymentMethod, notes, data.transaction_id, txRef);
-        } else {
-          Toast.error('Payment was not completed.');
-        }
-      },
-      onclose: () => {},
-    });
-  },
-
-  async placeOrder(items, deliveryAddress, paymentMethod, notes, transactionId, txRef) {
+  async placeOrderAndStartPesapal(items, deliveryAddress, paymentMethod, notes) {
     const proceedBtn = document.getElementById('proceedPaymentBtn');
-    if (proceedBtn) { proceedBtn.disabled = true; proceedBtn.textContent = 'Placing order…'; }
+    const originalText = proceedBtn?.textContent || 'Proceed to Payment';
+    if (proceedBtn) {
+      proceedBtn.disabled = true;
+      proceedBtn.textContent = 'Opening Pesapal...';
+    }
 
     try {
-      const res = await Api.post('/orders', {
+      const orderRes = await Api.post('/orders', {
         items,
         delivery_address: deliveryAddress,
-        payment_method:   paymentMethod,
+        payment_method: paymentMethod,
         notes,
       });
 
-      // Verify payment server-side if paid online
-      if (transactionId) {
-        await Api.post(`/orders/${res.order_id}/verify`, {
-          transaction_id: transactionId,
-          tx_ref:         txRef,
-        }).catch(err => console.warn('Payment verify:', err.message));
+      const paymentRes = await Api.post('/payments/pesapal/initiate', {
+        order_id: orderRes.order_id,
+        method: paymentMethod,
+      });
+
+      if (!paymentRes.redirect_url) {
+        throw new Error('Pesapal did not return a payment link.');
       }
 
-      // Clear cart
-      LocalCart.clear();
-      this.refreshState();
-      Cart.updateBadge();
-      this.closeModal();
-
-      Toast.success(`Order #${res.order_id} placed! 🎉 We'll start preparing it now.`);
-
-      // Redirect after short delay
-      setTimeout(() => { window.location.href = 'order.html'; }, 2200);
+      Toast.info('Redirecting to Pesapal...');
+      window.location.href = paymentRes.redirect_url;
     } catch (err) {
-      Toast.error(err.message || 'Failed to place order. Please try again.');
-    } finally {
-      if (proceedBtn) { proceedBtn.disabled = false; proceedBtn.textContent = '💳 Proceed to Payment'; }
+      Toast.error(err.message || 'Failed to start payment. Please try again.');
+      if (proceedBtn) {
+        proceedBtn.disabled = false;
+        proceedBtn.textContent = originalText;
+      }
     }
   },
 };
@@ -970,77 +1052,41 @@ const Checkout = {
    ============================================================ */
 const AuthModal = {
   init() {
-    const overlay       = document.getElementById('authModal');
     const openBtn       = document.getElementById('openAuthModal');
-    const closeBtn      = document.getElementById('closeAuthModal');
-    const loginTab      = document.getElementById('loginTab');
-    const registerTab   = document.getElementById('registerTab');
-    const switchToReg   = document.getElementById('switchToRegister');
-    const switchToLogin = document.getElementById('switchToLogin');
-    const loginBtn      = document.getElementById('loginBtn');
-    const registerBtn   = document.getElementById('registerBtn');
     const logoutBtn     = document.getElementById('logoutBtn');
 
-    if (!overlay) return;
-
-    openBtn   ?.addEventListener('click', () => overlay.classList.remove('hidden'));
-    closeBtn  ?.addEventListener('click', () => overlay.classList.add('hidden'));
-    overlay   .addEventListener('click', e => { if (e.target === overlay) overlay.classList.add('hidden'); });
-
-    switchToReg?.addEventListener('click', e => {
-      e.preventDefault();
-      loginTab    ?.classList.remove('active'); loginTab    ?.classList.add('hidden');
-      registerTab ?.classList.add('active');    registerTab ?.classList.remove('hidden');
-    });
-    switchToLogin?.addEventListener('click', e => {
-      e.preventDefault();
-      registerTab ?.classList.remove('active'); registerTab ?.classList.add('hidden');
-      loginTab    ?.classList.add('active');    loginTab    ?.classList.remove('hidden');
-    });
-
-    loginBtn?.addEventListener('click', async () => {
-      const email    = document.getElementById('loginEmail')?.value.trim();
-      const password = document.getElementById('loginPassword')?.value;
-      if (!email || !password) { Toast.error('Please fill in all fields.'); return; }
-      try {
-        loginBtn.disabled = true; loginBtn.textContent = 'Logging in…';
-        const res = await Auth.login(email, password);
-        overlay.classList.add('hidden');
-        Toast.success(res.message || 'Logged in!');
-      } catch (err) {
-        Toast.error(err.message || 'Login failed.');
-      } finally {
-        loginBtn.disabled = false; loginBtn.textContent = 'Log In';
-      }
-    });
-
-    registerBtn?.addEventListener('click', async () => {
-      const name     = document.getElementById('regName')?.value.trim();
-      const email    = document.getElementById('regEmail')?.value.trim();
-      const phone    = document.getElementById('regPhone')?.value.trim();
-      const password = document.getElementById('regPassword')?.value;
-      if (!name || !email || !password) { Toast.error('Please fill in all required fields.'); return; }
-      if (password.length < 6) { Toast.error('Password must be at least 6 characters.'); return; }
-      try {
-        registerBtn.disabled = true; registerBtn.textContent = 'Creating account…';
-        const res = await Auth.register(name, email, phone, password);
-        overlay.classList.add('hidden');
-        Toast.success(res.message || 'Account created!');
-      } catch (err) {
-        Toast.error(err.message || 'Registration failed.');
-      } finally {
-        registerBtn.disabled = false; registerBtn.textContent = 'Create Account';
-      }
+    openBtn?.addEventListener('click', () => {
+      window.SharedAuth?.showLogin();
     });
 
     logoutBtn?.addEventListener('click', async () => {
       try {
-        await Auth.logout();
+        await window.SharedAuth?.logout();
         Cart.updateBadge();
         Toast.info('Logged out successfully.');
       } catch { Toast.error('Logout failed.'); }
     });
-  },
+
+    // Custom event listeners to keep order&cart state in sync with SharedAuth
+    document.addEventListener('auth-login', async (e) => {
+      State.session = e.detail;
+      Auth.updateUI();
+      if (document.getElementById('cartItemsList')) {
+        await Cart.mergeServerCart();
+      }
+      if (State.intent === 'checkout') {
+        State.intent = null;
+        document.getElementById('authModal')?.classList.add('hidden');
+        await Checkout.openModal();
+      }
+    });
+
+    document.addEventListener('auth-logout', () => {
+      State.session = null;
+      State.intent = null;
+      Auth.updateUI();
+    });
+  }
 };
 
 /* ============================================================
@@ -1106,6 +1152,17 @@ const SocketManager = {
         const msg = labels[data.status] || `Order status: ${data.status}`;
         Toast.info(msg, 6000);
       });
+
+      this.socket.on('payment:status', ({ data }) => {
+        if (!data) return;
+        if (data.status === 'verified' && data.deliveryCode) {
+          DeliveryCodeModal.show(data.deliveryCode, data.orderId);
+        } else if (data.status === 'delivered') {
+          Toast.success('🎉 Your order has been delivered! Enjoy your meal!');
+        } else if (data.status === 'failed') {
+          Toast.error('Payment failed. Please try again.');
+        }
+      });
     } catch (err) {
       console.warn('[SocketManager]', err);
     }
@@ -1125,11 +1182,47 @@ function initNavScroll() {
   }, 50));
 }
 
+
+function handlePaymentReturn() {
+  const params = new URLSearchParams(window.location.search);
+  const payment = params.get('payment');
+  if (!payment) return;
+
+  const orderId = params.get('order_id');
+
+  if (payment === 'success') {
+    LocalCart.clear();
+    Cart.syncFromStorage();
+    Cart.updateBadge();
+    Toast.success('Payment confirmed! Your order is being prepared.');
+
+    // Fetch the order to retrieve the delivery confirmation code
+    if (orderId) {
+      Api.get(`/orders/${orderId}`)
+        .then((res) => {
+          const code = res?.data?.delivery_confirmation_code;
+          if (code) DeliveryCodeModal.show(code, res.data.order_number || orderId);
+        })
+        .catch((err) => console.warn('[handlePaymentReturn] Failed to fetch delivery code:', err));
+    }
+  } else if (payment === 'pending' || payment === 'already-processed') {
+    Toast.info('Payment is being processed. We will update your order shortly.');
+  } else if (payment === 'failed') {
+    Toast.error('Payment failed. Please try again.');
+  } else {
+    Toast.error('We could not confirm the payment status. Please contact support if money was deducted.');
+  }
+
+  const cleanUrl = `${window.location.pathname}${window.location.hash || ''}`;
+  window.history.replaceState({}, document.title, cleanUrl);
+}
+
 /* ============================================================
    PAGE ROUTER — detect which page we're on and initialise
    ============================================================ */
 async function bootPage() {
   Toast.init();
+  await loadDeliveryFee();
 
   // Shared init across all pages
   await Auth.init();
@@ -1144,30 +1237,63 @@ async function bootPage() {
 
   /* ── ORDER PAGE ───────────────────────────────────────────── */
   if (isOrderPage) {
+    const params = new URLSearchParams(window.location.search);
+
+    // 1. Try URL first
+    let restaurantId = params.get('restaurant_id');
+
+    // 2. Fallback to last selected restaurant
+    if (!restaurantId) {
+      restaurantId = localStorage.getItem('zesto_restaurant_id');
+    }
+
+    // 3. If still missing → redirect (prevents broken UI)
+    if (!restaurantId) {
+      window.location.href = "index.html"; // or your restaurant list page
+      return;
+    }
+
+    // 4. Set global state
+    State.restaurant_id = restaurantId;
+
+    // 5. Persist for cart/navigation
+    localStorage.setItem('zesto_restaurant_id', restaurantId);
+
+    // 6. Load restaurant data
+    await Products.fetchRestaurant(restaurantId);
+
     CategoryTabs.init();
     await Products.loadAll();
 
     // Event delegation for add-to-cart
     document.querySelector('.menu-main')?.addEventListener('click', e => {
-
       if (e.target.closest('.btn-add-cart')) {
         Cart.handleAddToCart(e);
       }
-
       else if (e.target.closest('.btn-order-minus')) {
         Cart.handleOrderMinus(e);
       }
-
       else if (e.target.closest('.btn-order-plus')) {
         Cart.handleOrderPlus(e);
       }
-
     });
   }
+
 
   /* ── CART PAGE ────────────────────────────────────────────── */
   if (isCartPage) {
     await Cart.initCartPage();
+
+    // ✅ RESTORE MENU LINK WITH RESTAURANT ID
+    const restaurantId = localStorage.getItem('zesto_restaurant_id');
+
+    const menuUrl = restaurantId
+      ? `order.html?restaurant_id=${restaurantId}`
+      : 'order.html';
+
+    document.querySelectorAll('a[href="order.html"]').forEach(link => {
+      link.href = menuUrl;
+    });
 
     // Event delegation for qty controls and remove buttons
     const listEl = document.getElementById('cartItemsList');

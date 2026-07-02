@@ -30,6 +30,7 @@
 
     <!-- Sidebar -->
     <aside class="sidebar" id="sidebar">
+        <button class="sidebar-close" id="sidebarClose">&times;</button>
         <div class="sidebar-brand">
         <span class="brand-logo">Zes<span class="brand-accent">to</span></span>
         <span class="admin-badge">Super Admin</span>
@@ -73,6 +74,7 @@
         <button class="btn-logout-admin" id="adminLogout">↩ Sign Out</button>
         </div>
     </aside>
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
     <!-- Main content -->
     <div class="main-wrap">
@@ -276,7 +278,7 @@
                 <button class="filter-tab" data-status="preparing">Preparing</button>
                 <button class="filter-tab" data-status="out_for_delivery">Out for Delivery</button>
                 <button class="filter-tab" data-status="delivered">Delivered</button>
-                <button class="filter-tab" data-status="cancelled">Cancelled</button>
+                <!-- <button class="filter-tab" data-status="cancelled">Cancelled</button> -->
             </div>
             </div>
             <div class="table-card">
@@ -365,7 +367,7 @@
 
         <!-- ── PLATFORM SETTINGS PAGE ─────────────────────────── -->
         <section id="page-settings" class="page">
-            <div style="max-width:760px;">
+            <div style="max-width:760px; margin: 0 auto;">
 
             <!-- General -->
             <div class="dash-card" style="margin-bottom:20px;">

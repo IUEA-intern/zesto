@@ -22,20 +22,20 @@ router.get('/', async (req, res) => {
   try {
     const rows = await query(
       `SELECT
-         ci.cart_id,
-         ci.qty,
-         ci.added_at,
-         p.product_id,
-         p.name,
-         p.category,
-         p.type,
-         p.image_url,
-         p.price,
-         p.stock
-       FROM cart_items ci
-       JOIN products p ON p.product_id = ci.product_id
-       WHERE ci.user_id = ? AND p.is_active = 1
-       ORDER BY ci.added_at DESC`,
+        ci.cart_id,
+        ci.qty,
+        ci.added_at,
+        p.product_id,
+        p.name,
+        p.category_id,
+        p.type,
+        p.image_url,
+        p.price,
+        p.stock
+      FROM cart_items ci
+      JOIN products p ON p.product_id = ci.product_id
+      WHERE ci.user_id = ? AND p.is_active = 1
+      ORDER BY ci.added_at DESC`,
       [req.user.user_id]
     );
     return res.json({ success: true, data: rows });

@@ -21,10 +21,78 @@
 require('dotenv').config({ path: __dirname + '/../.env' });
 
 const https         = require('https');
+const pesapal      = require('../services/pesapalService');
 const { query }     = require('../config/db');
 const { log, ACTIONS } = require('../config/audit');
 
 const EXPECTED_CURRENCY = 'UGX';
+
+/** Generate a random 6-digit numeric delivery confirmation code */
+function generateDeliveryCode() {
+  return String(Math.floor(100000 + Math.random() * 900000));
+}
+
+function buildGatewayRefs(gateway, orderId, userId, orderNumber) {
+  const safeOrder = String(orderNumber || orderId).replace(/[^A-Za-z0-9-]/g, '');
+  return {
+    txRef: `ZST-${gateway}-${safeOrder}-${userId}`,
+    idempotencyKey: `${gateway}-order-${orderId}`,
+  };
+}
+
+async function getOrCreatePendingPayment({ order, userId, method, gateway }) {
+  const paid = await query(
+    "SELECT payment_id FROM payments WHERE order_id = ? AND status = 'verified' LIMIT 1",
+    [order.order_id]
+  );
+  if (paid.length) {
+    const err = new Error('Order already paid.');
+    err.statusCode = 409;
+    throw err;
+  }
+
+  const { txRef, idempotencyKey } = buildGatewayRefs(gateway, order.order_id, userId, order.order_number);
+  const existing = await query(
+    'SELECT * FROM payments WHERE order_id = ? ORDER BY payment_id ASC LIMIT 1',
+    [order.order_id]
+  );
+
+  if (existing.length) {
+    const payment = existing[0];
+    if (payment.status !== 'pending') {
+      await query(
+        `UPDATE payments
+         SET status='pending', method=?, amount=?, currency=?, flw_tx_ref=?, flw_tx_id=NULL,
+             flw_raw_response=NULL, failure_reason=NULL, verified_at=NULL,
+             idempotency_key=?, updated_at=CURRENT_TIMESTAMP
+         WHERE payment_id=?`,
+        [method, order.total, EXPECTED_CURRENCY, txRef, idempotencyKey, payment.payment_id]
+      );
+    } else if (!payment.flw_tx_ref || !payment.idempotency_key || payment.flw_tx_ref !== txRef) {
+      await query(
+        `UPDATE payments
+         SET method=?, amount=?, currency=?, flw_tx_ref=?, idempotency_key=?,
+             flw_tx_id=NULL, flw_raw_response=NULL,
+             updated_at=CURRENT_TIMESTAMP
+         WHERE payment_id=?`,
+        [method, order.total, EXPECTED_CURRENCY, txRef, idempotencyKey, payment.payment_id]
+      );
+    }
+
+    const rows = await query('SELECT * FROM payments WHERE payment_id = ?', [payment.payment_id]);
+    return rows[0];
+  }
+
+  const result = await query(
+    `INSERT INTO payments
+       (order_id, user_id, method, status, amount, currency, flw_tx_ref, idempotency_key)
+     VALUES (?, ?, ?, 'pending', ?, ?, ?, ?)`,
+    [order.order_id, userId, method, order.total, EXPECTED_CURRENCY, txRef, idempotencyKey]
+  );
+
+  const rows = await query('SELECT * FROM payments WHERE payment_id = ?', [Number(result.insertId)]);
+  return rows[0];
+}
 
 /* ============================================================
    STEP 1 — Initiate payment (creates pending payment row)
@@ -52,49 +120,47 @@ async function initiatePayment(req, res) {
 
     const order = orders[0];
 
-    // Check no verified payment exists already
-    const existing = await query(
-      "SELECT payment_id FROM payments WHERE order_id = ? AND status = 'verified'",
-      [order_id]
-    );
-    if (existing.length) {
-      return res.status(409).json({ success: false, message: 'Order already paid.' });
-    }
-
-    // Generate unique references
-    const txRef          = `ZST-${Date.now()}-${userId}-${order_id}`;
-    const idempotencyKey = `pay-${order_id}-${userId}-${Date.now()}`;
-
-    // Insert pending payment row
-    const result = await query(
-      `INSERT INTO payments
-         (order_id, user_id, method, status, amount, currency, flw_tx_ref, idempotency_key)
-       VALUES (?, ?, ?, 'pending', ?, ?, ?, ?)`,
-      [order_id, userId, req.body.method || 'mobile_money',
-       order.total, EXPECTED_CURRENCY, txRef, idempotencyKey]
-    );
+    const payment = await getOrCreatePendingPayment({
+      order,
+      userId,
+      method: req.body.method || 'mobile_money',
+      gateway: 'flw',
+    });
 
     await log({
       actorId:    userId,
       actorRole:  'customer',
       action:     ACTIONS.PAYMENT_INITIATED,
       entityType: 'payment',
-      entityId:   Number(result.insertId),
-      newValue:   { order_id, amount: order.total, txRef },
+      entityId:   payment.payment_id,
+      newValue:   { order_id, amount: order.total, txRef: payment.flw_tx_ref },
       ip:         req.ip,
       userAgent:  req.headers['user-agent'],
     });
 
+    // Notify admins that a payment has been initiated (pending)
+    const socket = req.app.get('socketEmitters');
+    if (socket && typeof socket.adminPaymentPending === 'function') {
+      socket.adminPaymentPending({
+        paymentId:   payment.payment_id,
+        orderId:     order_id,
+        userId,
+        amount:      order.total,
+        method:      payment.method || 'mobile_money',
+        orderNumber: order.order_number,
+      });
+    }
+
     return res.json({
       success:   true,
-      tx_ref:    txRef,
+      tx_ref:    payment.flw_tx_ref,
       amount:    order.total,
       currency:  EXPECTED_CURRENCY,
       public_key: process.env.FLW_PUBLIC_KEY,
     });
   } catch (err) {
     console.error('[initiatePayment]', err);
-    return res.status(500).json({ success: false, message: 'Failed to initiate payment.' });
+    return res.status(err.statusCode || 500).json({ success: false, message: err.statusCode ? err.message : 'Failed to initiate payment.' });
   }
 }
 
@@ -193,6 +259,8 @@ async function verifyPayment(req, res) {
 
   // ── ALL CHECKS PASSED — STEP 4: Finalize ────────────────────
   try {
+    const deliveryCode = generateDeliveryCode();
+
     await query(
       `UPDATE payments
        SET status='verified', flw_tx_id=?, flw_raw_response=?, verified_at=CURRENT_TIMESTAMP,
@@ -202,8 +270,8 @@ async function verifyPayment(req, res) {
     );
 
     await query(
-      `UPDATE orders SET status='processing', updated_at=CURRENT_TIMESTAMP WHERE order_id=?`,
-      [order_id]
+      `UPDATE orders SET status='processing', delivery_confirmation_code=?, updated_at=CURRENT_TIMESTAMP WHERE order_id=?`,
+      [deliveryCode, order_id]
     );
 
     // Audit
@@ -220,10 +288,10 @@ async function verifyPayment(req, res) {
 
     // ── Real-time notifications ──────────────────────────────
     if (socket) {
-      // Notify user
-      socket.paymentStatus(userId, { orderId: order_id, status: 'verified', amount: orderAmount });
-      socket.toastUser(userId, { type: 'success', message: 'Payment confirmed! Your order is being prepared.' });
-      socket.orderCreated(userId, { orderId: order_id, orderNumber: flwTx.tx_ref });
+      // Notify user (include delivery code)
+      socket.paymentStatus(userId, { orderId: order_id, status: 'verified', amount: orderAmount, deliveryCode });
+      socket.toastUser(userId, { type: 'success', message: `Payment confirmed! Your delivery code is ${deliveryCode}. Give this to the rider when your order arrives.` });
+      socket.orderCreated(userId, { orderId: order_id, orderNumber: flwTx.tx_ref, deliveryCode });
 
       // Notify admin dashboard
       socket.adminPaymentVerified({
@@ -234,7 +302,27 @@ async function verifyPayment(req, res) {
         method:     payment.method,
         flwTxId:    String(transaction_id),
       });
+      // NEW ORDER appears in Super Admin feed
+      socket.adminNewOrder({
+        orderId:     order_id,
+        orderNumber: flwTx.tx_ref,
+        total:       orderAmount,
+        itemCount:   'multiple',
+      });
       socket.adminOrderUpdate({ orderId: order_id, status: 'processing' });
+
+      // Notify restaurant admin (if restaurant exists)
+      const orderDetails = await query('SELECT restaurant_id FROM orders WHERE order_id=?', [order_id]);
+      const restaurantId = orderDetails[0]?.restaurant_id;
+      if (restaurantId && socket.restaurantNewOrder && socket.restaurantOrderUpdate) {
+        socket.restaurantNewOrder(restaurantId, {
+          orderId:     order_id,
+          orderNumber: flwTx.tx_ref,
+          total:       orderAmount,
+          itemCount:   'multiple',
+        });
+        socket.restaurantOrderUpdate(restaurantId, { orderId: order_id, status: 'processing' });
+      }
 
       // Notify kitchen
       const orderRows = await query('SELECT * FROM orders WHERE order_id=?', [order_id]);
@@ -247,7 +335,7 @@ async function verifyPayment(req, res) {
       }
     }
 
-    return res.json({ success: true, message: 'Payment verified! Order is being prepared.' });
+    return res.json({ success: true, message: 'Payment verified! Order is being prepared.', deliveryCode });
   } catch (err) {
     console.error('[verifyPayment] Finalization error:', err);
     return res.status(500).json({ success: false, message: 'Payment verified but order update failed. Contact support.' });
@@ -319,6 +407,268 @@ function flutterwaveVerifyAPI(transactionId) {
 /* ============================================================
    Webhook callback (Flutterwave → your server, server-initiated)
    ============================================================ */
+
+/* ============================================================
+   PESAPAL - Initiate payment and redirect customer
+   ============================================================ */
+async function initiatePesapalPayment(req, res) {
+  const userId = req.user?.user_id || req.user?.id;
+
+  try {
+    const { order_id } = req.body;
+
+    if (!order_id) {
+      return res.status(400).json({ success: false, message: 'order_id is required.' });
+    }
+
+    const orders = await query(
+      `SELECT o.*, u.name AS customer_name, u.email AS customer_email, u.phone AS customer_phone
+       FROM orders o
+       JOIN users u ON u.user_id = o.user_id
+       WHERE o.order_id = ? AND o.user_id = ?`,
+      [order_id, userId]
+    );
+
+    if (!orders.length) {
+      return res.status(404).json({ success: false, message: 'Order not found.' });
+    }
+
+    const order = orders[0];
+    const payment = await getOrCreatePendingPayment({
+      order,
+      userId,
+      method: req.body.method || 'mobile_money',
+      gateway: 'pesapal',
+    });
+    const merchantReference = payment.flw_tx_ref;
+    const appUrl = (process.env.APP_URL || `${req.protocol}://${req.get('host')}`).replace(/\/$/, '');
+    const callbackUrl = `${appUrl}/api/payments/pesapal/callback`;
+    const notificationId = process.env.PESAPAL_NOTIFICATION_ID || process.env.PESAPAL_IPN_ID || '';
+
+    if (!notificationId) {
+      return res.status(500).json({
+        success: false,
+        message: 'Pesapal notification id is not configured. Register an IPN first and set PESAPAL_NOTIFICATION_ID.',
+      });
+    }
+
+    if (payment.flw_tx_id && payment.flw_raw_response) {
+      try {
+        const existingResponse = typeof payment.flw_raw_response === 'string'
+          ? JSON.parse(payment.flw_raw_response)
+          : payment.flw_raw_response;
+        if (existingResponse?.redirect_url) {
+          return res.json({
+            success: true,
+            gateway: 'pesapal',
+            order_id,
+            merchant_reference: merchantReference,
+            order_tracking_id: payment.flw_tx_id,
+            redirect_url: existingResponse.redirect_url,
+            data: existingResponse,
+          });
+        }
+      } catch {
+        // Fall through and re-submit if stored gateway response is unreadable.
+      }
+    }
+
+    const [firstName, ...restName] = String(order.customer_name || 'Zesto Customer').trim().split(/\s+/);
+    const lastName = restName.join(' ') || firstName;
+    const pesapalOrder = {
+      id: merchantReference,
+      currency: EXPECTED_CURRENCY,
+      amount: Number(order.total),
+      description: `Zesto order ${order.order_number || order_id}`,
+      callback_url: callbackUrl,
+      notification_id: notificationId,
+      billing_address: {
+        email_address: order.customer_email || 'customer@zesto.ug',
+        phone_number: order.customer_phone || req.body.phone || '',
+        country_code: process.env.PESAPAL_COUNTRY_CODE || 'UG',
+        first_name: firstName,
+        last_name: lastName,
+      },
+    };
+
+    const pesapalResponse = await pesapal.submitOrderRequest(pesapalOrder);
+
+    await query(
+      `UPDATE payments
+       SET flw_tx_id = ?, flw_raw_response = ?, updated_at = CURRENT_TIMESTAMP
+       WHERE payment_id = ? AND order_id = ? AND user_id = ? AND status = 'pending'`,
+      [pesapalResponse.order_tracking_id || null, JSON.stringify(pesapalResponse), payment.payment_id, order_id, userId]
+    );
+
+    await log({
+      actorId: userId,
+      actorRole: 'customer',
+      action: ACTIONS.PAYMENT_INITIATED,
+      entityType: 'payment',
+      entityId: payment.payment_id,
+      newValue: { order_id, amount: order.total, merchantReference, gateway: 'pesapal' },
+      ip: req.ip,
+      userAgent: req.headers['user-agent'],
+    });
+
+    // Notify admins that a payment has been initiated (pending)
+    const socketEmitters = req.app.get('socketEmitters');
+    if (socketEmitters && typeof socketEmitters.adminPaymentPending === 'function') {
+      socketEmitters.adminPaymentPending({
+        paymentId:   payment.payment_id,
+        orderId:     order_id,
+        userId,
+        amount:      order.total,
+        method:      payment.method || 'mobile_money',
+        orderNumber: order.order_number,
+        gateway:     'pesapal',
+      });
+    }
+
+    return res.json({
+      success: true,
+      gateway: 'pesapal',
+      order_id,
+      merchant_reference: merchantReference,
+      order_tracking_id: pesapalResponse.order_tracking_id,
+      redirect_url: pesapalResponse.redirect_url,
+      data: pesapalResponse,
+    });
+  } catch (err) {
+    console.error('[initiatePesapalPayment]', err.data || err);
+    return res.status(err.statusCode || 500).json({ success: false, message: err.statusCode ? err.message : (err.message || 'Failed to initiate Pesapal payment.') });
+  }
+}
+
+async function pesapalCallback(req, res) {
+  const orderTrackingId = req.query.OrderTrackingId || req.query.orderTrackingId || req.body?.OrderTrackingId;
+  const merchantReference = req.query.OrderMerchantReference || req.query.orderMerchantReference || req.body?.OrderMerchantReference;
+
+  if (!orderTrackingId && !merchantReference) {
+    return res.redirect('/cart.html?payment=missing');
+  }
+
+  try {
+    const rows = await query(
+      `SELECT * FROM payments
+       WHERE (flw_tx_id = ? OR flw_tx_ref = ?) AND status = 'pending'
+       ORDER BY created_at DESC LIMIT 1`,
+      [orderTrackingId || '', merchantReference || '']
+    );
+    if (!rows.length) {
+      return res.redirect('/cart.html?payment=already-processed');
+    }
+
+    const payment = rows[0];
+    const status = orderTrackingId ? await pesapal.getTransactionStatus(orderTrackingId) : null;
+    const paymentStatus = String(status?.payment_status_description || status?.status || '').toUpperCase();
+
+    if (paymentStatus === 'COMPLETED' || paymentStatus === 'PAID') {
+      await finalizePesapalPayment(payment, status || {}, req);
+      return res.redirect(`/cart.html?payment=success&order_id=${payment.order_id}`);
+    }
+
+    if (paymentStatus === 'FAILED' || paymentStatus === 'INVALID') {
+      await _markFailed(payment, payment.user_id, payment.flw_tx_ref, status, `Pesapal status: ${paymentStatus}`, req, req.app.get('socketEmitters'), payment.order_id);
+      return res.redirect(`/cart.html?payment=failed&order_id=${payment.order_id}`);
+    }
+
+    await query(
+      `UPDATE payments SET flw_raw_response = ?, updated_at = CURRENT_TIMESTAMP WHERE payment_id = ?`,
+      [JSON.stringify(status || { orderTrackingId, merchantReference }), payment.payment_id]
+    );
+    return res.redirect(`/cart.html?payment=pending&order_id=${payment.order_id}`);
+  } catch (err) {
+    console.error('[pesapalCallback]', err.data || err);
+    return res.redirect('/cart.html?payment=error');
+  }
+}
+
+async function pesapalIpn(req, res) {
+  res.status(200).json({ received: true });
+  setImmediate(async () => {
+    try {
+      const orderTrackingId = req.body?.OrderTrackingId || req.query.OrderTrackingId || req.body?.order_tracking_id;
+      if (!orderTrackingId) return;
+      const rows = await query(
+        "SELECT * FROM payments WHERE flw_tx_id = ? AND status = 'pending' ORDER BY created_at DESC LIMIT 1",
+        [orderTrackingId]
+      );
+      if (!rows.length) return;
+      const status = await pesapal.getTransactionStatus(orderTrackingId);
+      const paymentStatus = String(status?.payment_status_description || status?.status || '').toUpperCase();
+      if (paymentStatus === 'COMPLETED' || paymentStatus === 'PAID') {
+        await finalizePesapalPayment(rows[0], status, req);
+      } else if (paymentStatus === 'FAILED' || paymentStatus === 'INVALID') {
+        await _markFailed(rows[0], rows[0].user_id, rows[0].flw_tx_ref, status, `Pesapal status: ${paymentStatus}`, req, req.app.get('socketEmitters'), rows[0].order_id);
+      }
+    } catch (err) {
+      console.error('[pesapalIpn async]', err.data || err);
+    }
+  });
+}
+
+async function registerPesapalIpn(req, res) {
+  try {
+    const appUrl = (process.env.APP_URL || `${req.protocol}://${req.get('host')}`).replace(/\/$/, '');
+    const url = req.body?.url || `${appUrl}/api/payments/pesapal/ipn`;
+    const data = await pesapal.registerIpn(url, req.body?.ipn_notification_type || 'POST');
+    return res.json({ success: true, data });
+  } catch (err) {
+    console.error('[registerPesapalIpn]', err.data || err);
+    return res.status(500).json({ success: false, message: err.message || 'Failed to register Pesapal IPN.' });
+  }
+}
+
+async function finalizePesapalPayment(payment, pesapalData, req) {
+  const socket = req.app.get('socketEmitters');
+  const amount = parseFloat(payment.amount);
+  const deliveryCode = generateDeliveryCode();
+
+  const result = await query(
+    `UPDATE payments
+     SET status = 'verified', flw_raw_response = ?, verified_at = CURRENT_TIMESTAMP,
+         updated_at = CURRENT_TIMESTAMP
+     WHERE payment_id = ? AND status = 'pending'`,
+    [JSON.stringify(pesapalData), payment.payment_id]
+  );
+  if (!Number(result.affectedRows || 0)) return;
+  await query(
+    `UPDATE orders SET status = 'processing', delivery_confirmation_code = ?, updated_at = CURRENT_TIMESTAMP WHERE order_id = ?`,
+    [deliveryCode, payment.order_id]
+  );
+  await log({
+    actorId: payment.user_id,
+    actorRole: 'customer',
+    action: ACTIONS.PAYMENT_VERIFIED,
+    entityType: 'payment',
+    entityId: payment.payment_id,
+    newValue: { status: 'verified', gateway: 'pesapal', amount },
+    ip: req.ip,
+    userAgent: req.headers['user-agent'],
+  });
+  if (socket) {
+    socket.paymentStatus(payment.user_id, { orderId: payment.order_id, status: 'verified', amount, deliveryCode });
+    socket.toastUser(payment.user_id, { type: 'success', message: `Payment confirmed! Your delivery code is ${deliveryCode}. Give this to the rider when your order arrives.` });
+    socket.adminPaymentVerified({
+      paymentId: payment.payment_id,
+      orderId: payment.order_id,
+      userId: payment.user_id,
+      amount,
+      method: payment.method,
+      flwTxId: payment.flw_tx_id,
+    });
+    // NEW ORDER appears in Super Admin feed
+    socket.adminNewOrder({
+      orderId: payment.order_id,
+      orderNumber: payment.flw_tx_ref || `#${payment.order_id}`,
+      total: amount,
+      itemCount: 'multiple',
+    });
+    socket.adminOrderUpdate({ orderId: payment.order_id, status: 'processing' });
+  }
+}
+
 async function webhookCallback(req, res) {
   // Validate secret hash header
   const secretHash = process.env.FLW_SECRET_HASH;
@@ -341,7 +691,7 @@ async function webhookCallback(req, res) {
         const flwAmount   = parseFloat(payload.data.amount);
 
         const rows = await query(
-          "SELECT * FROM payments WHERE flw_tx_ref=? AND status='pending'",
+          "SELECT * FROM payments WHERE flw_tx_ref=? AND status='pending' ORDER BY payment_id ASC LIMIT 1",
           [txRef]
         );
         if (!rows.length) return; // Already processed or doesn't exist
@@ -352,12 +702,13 @@ async function webhookCallback(req, res) {
           return;
         }
 
-        await query(
+        const update = await query(
           `UPDATE payments
            SET status='verified', flw_tx_id=?, flw_raw_response=?, verified_at=CURRENT_TIMESTAMP
-           WHERE payment_id=?`,
+           WHERE payment_id=? AND status='pending'`,
           [String(txId), JSON.stringify(payload), payment.payment_id]
         );
+        if (!Number(update.affectedRows || 0)) return;
         await query(
           "UPDATE orders SET status='processing' WHERE order_id=?",
           [payment.order_id]
@@ -370,4 +721,12 @@ async function webhookCallback(req, res) {
   });
 }
 
-module.exports = { initiatePayment, verifyPayment, webhookCallback };
+module.exports = {
+  initiatePayment,
+  verifyPayment,
+  webhookCallback,
+  initiatePesapalPayment,
+  pesapalCallback,
+  pesapalIpn,
+  registerPesapalIpn,
+};

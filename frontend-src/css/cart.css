@@ -428,15 +428,33 @@ button, input, select, textarea { font-family: inherit; }
 }
 @media (max-width: 600px) {
   .nav-inner { padding: 0 16px; }
-  .nav-links  { display: none; }
+  .nav-links  { display: none; } 
+  .nav-actions {margin: 0 auto;}
+  .brand-logo { font-size: 1.5rem; }
   .cart-main  { padding: 24px 16px 60px; }
+
+  /* Fix for overlapping cart item controls */
+  .cart-item {
+    display: grid;
+    grid-template-columns: 76px 1fr auto;
+    grid-template-areas: 
+      "img info remove"
+      "img controls price";
+    gap: 8px 14px;
+    align-items: center;
+  }
+  .cart-item-img, .cart-item-img-placeholder { grid-area: img; align-self: start; }
+  .cart-item-info { grid-area: info; }
+  .cart-item-controls { grid-area: controls; justify-content: flex-start; }
+  .cart-item-price { grid-area: price; min-width: 60px; font-size: .9rem; text-align: right; }
+  .btn-remove-item { grid-area: remove; justify-self: end; }
+
   .modal-card { padding: 24px 18px; max-width: 100%; }
   .auth-tab { padding-right: 0; }
   .modal-close { top: 16px; right: 16px; width: 32px; height: 32px; }
   .form-group input,
   .form-group select,
   .form-group textarea { padding: 12px 12px; }
-  .cart-item-price { min-width: 60px; font-size: .9rem; }
   .toast-container { left: 16px; right: 16px; bottom: 16px; }
   .toast { max-width: 100%; }
 }

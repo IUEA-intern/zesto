@@ -1,0 +1,1887 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Join Zesto</title>
+
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Knewave&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap"
+            rel="stylesheet"
+        />
+
+        <link
+            rel="stylesheet"
+            href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        />
+        <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+        <style>
+            /* ─────────────────────────────────────────────
+   CSS VARIABLES
+───────────────────────────────────────────── */
+            :root {
+                --or: #ff5500;
+                --or-dk: #e04b00;
+                --or-lt: rgba(255, 85, 0, 0.07);
+                --or-mid: rgba(255, 85, 0, 0.28);
+                --dk: #141414;
+                --lt: #f8f8f8;
+                --lt2: #e6e6e6;
+                --mid: #666666;
+                --wh: #ffffff;
+                --r12: 12px;
+                --r16: 16px;
+                --r20: 20px;
+                --r50: 100px;
+                --shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+            }
+
+            /* ─────────────────────────────────────────────
+   BASE RESET
+───────────────────────────────────────────── */
+            *,
+            *::before,
+            *::after {
+                box-sizing: border-box;
+                margin: 0;
+                padding: 0;
+            }
+
+            body {
+                font-family: "Plus Jakarta Sans", sans-serif;
+                background: var(--wh);
+                overflow-x: hidden;
+            }
+
+            .btn {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                gap: 6px;
+                font-family: inherit;
+                font-weight: 600;
+                cursor: pointer;
+                border: none;
+                text-decoration: none;
+                transition: all 0.18s;
+            }
+            .btn-ghost {
+                background: transparent;
+                color: var(--mid);
+                border: 1.5px solid var(--lt2);
+                border-radius: var(--r12);
+                padding: 6px 14px;
+                font-size: 12px;
+            }
+            .btn-ghost:hover {
+                color: var(--dk);
+                border-color: var(--mid);
+                background: var(--lt);
+            }
+
+            /* ─────────────────────────────────────────────
+   PAGE LAYOUT
+───────────────────────────────────────────── */
+            .gs-page {
+                min-height: 100vh;
+                display: grid;
+                grid-template-columns: 1fr 520px;
+            }
+
+            /* ─────────────────────────────────────────────
+   LEFT PANEL
+───────────────────────────────────────────── */
+            .gs-left {
+                background: var(--dk);
+                display: flex;
+                flex-direction: column;
+                padding: 40px 48px;
+                position: relative;
+                overflow: hidden;
+            }
+
+            .gs-left::before {
+                content: "";
+                position: absolute;
+                inset: 0;
+                background-image: radial-gradient(
+                    circle,
+                    rgba(255, 85, 0, 0.12) 1px,
+                    transparent 1px
+                );
+                background-size: 32px 32px;
+                pointer-events: none;
+            }
+
+            .gs-left::after {
+                content: "";
+                position: absolute;
+                bottom: -120px;
+                left: -120px;
+                width: 500px;
+                height: 500px;
+                background: radial-gradient(
+                    circle,
+                    rgba(255, 85, 0, 0.18) 0%,
+                    transparent 70%
+                );
+                pointer-events: none;
+            }
+
+            .gs-left-nav {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                margin-bottom: 60px;
+                position: relative;
+                z-index: 2;
+            }
+
+            .gs-logo {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                text-decoration: none;
+            }
+            .gs-logo .logo-mark {
+                width: 36px;
+                height: 36px;
+                background: var(--or);
+                border-radius: 10px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            .gs-logo .logo-mark svg {
+                width: 20px;
+                height: 20px;
+                fill: white;
+            }
+            .gs-logo .logo-text {
+                font-family: "Knewave", cursive;
+                font-size: 26px;
+                color: white;
+                letter-spacing: 1px;
+            }
+            .gs-logo .logo-text span {
+                color: var(--or);
+            }
+
+            .gs-signin-link {
+                font-size: 13px;
+                color: rgba(255, 255, 255, 0.5);
+            }
+            .gs-signin-link a {
+                color: var(--or);
+                font-weight: 600;
+                text-decoration: none;
+            }
+            .gs-signin-link a:hover {
+                text-decoration: underline;
+            }
+
+            .gs-left-content {
+                position: relative;
+                z-index: 2;
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                justify-content: flex-start;
+                padding-top: 18px;
+            }
+
+            .gs-left-label {
+                font-size: 11px;
+                font-weight: 700;
+                letter-spacing: 0.14em;
+                text-transform: uppercase;
+                color: var(--or);
+                margin-bottom: 14px;
+            }
+
+            .gs-left-h1 {
+                font-family: "Knewave", cursive;
+                font-size: clamp(32px, 4vw, 56px);
+                color: white;
+                line-height: 1.05;
+                letter-spacing: -0.5px;
+                margin-bottom: 18px;
+            }
+            .gs-left-h1 span {
+                color: var(--or);
+            }
+
+            .gs-left-sub {
+                font-size: 15px;
+                color: rgba(255, 255, 255, 0.5);
+                line-height: 1.65;
+                max-width: 380px;
+                margin-bottom: 40px;
+            }
+
+            .gs-benefits {
+                display: flex;
+                flex-direction: column;
+                gap: 14px;
+                margin-bottom: 48px;
+            }
+
+            .gs-benefit {
+                display: flex;
+                align-items: center;
+                gap: 14px;
+            }
+
+            .gs-benefit-ico {
+                width: 40px;
+                height: 40px;
+                background: rgba(255, 255, 255, 0.06);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                border-radius: 12px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                flex-shrink: 0;
+            }
+            .gs-benefit-ico svg {
+                width: 18px;
+                height: 18px;
+                color: var(--or);
+            }
+            .gs-benefit-title {
+                font-size: 13px;
+                font-weight: 700;
+                color: white;
+                margin-bottom: 2px;
+            }
+            .gs-benefit-sub {
+                font-size: 12px;
+                color: rgba(255, 255, 255, 0.4);
+            }
+
+            .gs-social-proof {
+                position: relative;
+                z-index: 2;
+                margin-top: auto;
+                display: flex;
+                align-items: center;
+                gap: 14px;
+                padding-top: 32px;
+                border-top: 1px solid rgba(255, 255, 255, 0.06);
+            }
+            .gs-avatars {
+                display: flex;
+            }
+            .gs-avatar {
+                width: 32px;
+                height: 32px;
+                border-radius: 50%;
+                border: 2px solid var(--dk);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 11px;
+                font-weight: 800;
+                margin-left: -8px;
+            }
+            .gs-avatars .gs-avatar:first-child {
+                margin-left: 0;
+            }
+            .gs-proof-text {
+                font-size: 12px;
+                color: rgba(255, 255, 255, 0.4);
+                line-height: 1.5;
+            }
+            .gs-proof-text strong {
+                color: white;
+            }
+
+            /* ─────────────────────────────────────────────
+   RIGHT PANEL
+───────────────────────────────────────────── */
+            .gs-right {
+                background: var(--wh);
+                display: flex;
+                flex-direction: column;
+                padding: 40px 48px;
+                overflow-y: auto;
+                border-left: 1px solid var(--lt2);
+            }
+
+            /* ─────────────────────────────────────────────
+   STEPPER
+───────────────────────────────────────────── */
+            .stepper {
+                display: flex;
+                align-items: center;
+                margin-bottom: 40px;
+            }
+
+            .step {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+
+            .step-circle {
+                width: 28px;
+                height: 28px;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 12px;
+                font-weight: 700;
+                flex-shrink: 0;
+                transition: all 0.3s;
+            }
+            .step.done .step-circle {
+                background: var(--or);
+                color: white;
+            }
+            .step.active .step-circle {
+                background: var(--dk);
+                color: white;
+            }
+            .step.pending .step-circle {
+                background: var(--lt);
+                color: var(--mid);
+                border: 1.5px solid var(--lt2);
+            }
+
+            .step-label {
+                font-size: 12px;
+                font-weight: 600;
+                transition: color 0.3s;
+            }
+            .step.done .step-label {
+                color: var(--or);
+            }
+            .step.active .step-label {
+                color: var(--dk);
+            }
+            .step.pending .step-label {
+                color: var(--mid);
+            }
+
+            .step-line {
+                flex: 1;
+                height: 2px;
+                background: var(--lt2);
+                margin: 0 8px;
+                border-radius: 2px;
+                transition: background 0.3s;
+            }
+            .step-line.done {
+                background: var(--or);
+            }
+
+            /* ─────────────────────────────────────────────
+   PANEL TITLES
+───────────────────────────────────────────── */
+            .gs-panel-title {
+                font-family: "Knewave", cursive;
+                font-size: 28px;
+                color: var(--dk);
+                margin-bottom: 6px;
+                letter-spacing: -0.3px;
+            }
+            .gs-panel-sub {
+                font-size: 14px;
+                color: var(--mid);
+                line-height: 1.6;
+                margin-bottom: 28px;
+            }
+
+            /* ─────────────────────────────────────────────
+   ROLE CARDS
+───────────────────────────────────────────── */
+            .role-grid {
+                display: flex;
+                flex-direction: column;
+                gap: 12px;
+                margin-bottom: 28px;
+            }
+
+            .role-card {
+                background: var(--lt);
+                border: 2px solid transparent;
+                border-radius: var(--r20);
+                padding: 20px;
+                display: flex;
+                align-items: center;
+                gap: 16px;
+                cursor: pointer;
+                transition: all 0.2s;
+                position: relative;
+            }
+            .role-card:hover {
+                border-color: var(--or-mid);
+                background: var(--or-lt);
+                transform: translateX(4px);
+            }
+            .role-card.selected {
+                border-color: var(--or);
+                background: var(--or-lt);
+                box-shadow: 0 0 0 4px rgba(255, 85, 0, 0.08);
+            }
+
+            .role-emoji {
+                font-size: 34px;
+                width: 60px;
+                height: 60px;
+                background: white;
+                border-radius: 16px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                flex-shrink: 0;
+                box-shadow: var(--shadow);
+            }
+            .role-info {
+                flex: 1;
+            }
+            .role-title {
+                font-size: 16px;
+                font-weight: 700;
+                color: var(--dk);
+                margin-bottom: 4px;
+            }
+            .role-desc {
+                font-size: 13px;
+                color: var(--mid);
+                line-height: 1.5;
+            }
+
+            .role-check {
+                width: 22px;
+                height: 22px;
+                border-radius: 50%;
+                border: 2px solid var(--lt2);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                flex-shrink: 0;
+                transition: all 0.2s;
+            }
+            .role-card.selected .role-check {
+                background: var(--or);
+                border-color: var(--or);
+            }
+            .role-check svg {
+                width: 11px;
+                height: 11px;
+                color: white;
+                opacity: 0;
+                transition: opacity 0.2s;
+            }
+            .role-card.selected .role-check svg {
+                opacity: 1;
+            }
+
+            /* ─────────────────────────────────────────────
+   FORM ELEMENTS
+───────────────────────────────────────────── */
+            .gs-form {
+                display: flex;
+                flex-direction: column;
+                gap: 16px;
+            }
+
+            .gs-field {
+                display: flex;
+                flex-direction: column;
+                gap: 6px;
+            }
+
+            .gs-label {
+                font-size: 13px;
+                font-weight: 600;
+                color: var(--dk);
+            }
+            .gs-label span {
+                color: var(--or);
+            }
+
+            .gs-input,
+            .gs-select {
+                width: 100%;
+                height: 48px;
+                background: var(--lt);
+                border: 1.5px solid var(--lt2);
+                border-radius: var(--r12);
+                padding: 0 16px;
+                font-size: 14px;
+                color: var(--dk);
+                font-family: "Plus Jakarta Sans", sans-serif;
+                transition:
+                    border-color 0.18s,
+                    background 0.18s,
+                    box-shadow 0.18s;
+                outline: none;
+                appearance: auto;
+            }
+            .gs-textarea {
+                width: 100%;
+                background: var(--lt);
+                border: 1.5px solid var(--lt2);
+                border-radius: var(--r12);
+                padding: 12px 16px;
+                font-size: 14px;
+                color: var(--dk);
+                font-family: "Plus Jakarta Sans", sans-serif;
+                transition:
+                    border-color 0.18s,
+                    background 0.18s,
+                    box-shadow 0.18s;
+                outline: none;
+                resize: vertical;
+                min-height: 88px;
+            }
+            .gs-input:focus,
+            .gs-select:focus,
+            .gs-textarea:focus {
+                border-color: var(--or);
+                background: white;
+                box-shadow: 0 0 0 3px rgba(255, 85, 0, 0.08);
+            }
+            .gs-input::placeholder,
+            .gs-textarea::placeholder {
+                color: #c0b8b0;
+            }
+            .gs-input[readonly] {
+                opacity: 0.65;
+                cursor: default;
+            }
+
+            .gs-input-row {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 12px;
+            }
+
+            .gs-input-icon {
+                position: relative;
+            }
+            .gs-input-icon .gs-input {
+                padding-right: 44px;
+            }
+            .gs-input-icon-btn {
+                position: absolute;
+                right: 14px;
+                top: 50%;
+                transform: translateY(-50%);
+                background: transparent;
+                border: none;
+                cursor: pointer;
+                color: var(--mid);
+                display: flex;
+                align-items: center;
+                padding: 0;
+            }
+            .gs-input-icon-btn svg {
+                width: 16px;
+                height: 16px;
+            }
+
+            .gs-hint {
+                font-size: 11px;
+                color: var(--mid);
+                margin-top: 2px;
+            }
+
+            .password-strength {
+                display: flex;
+                gap: 4px;
+                margin-top: 6px;
+            }
+            .ps-bar {
+                flex: 1;
+                height: 3px;
+                background: var(--lt2);
+                border-radius: 2px;
+                transition: background 0.3s;
+            }
+            .ps-bar.weak {
+                background: #ef4444;
+            }
+            .ps-bar.medium {
+                background: #f59e0b;
+            }
+            .ps-bar.strong {
+                background: #22c55e;
+            }
+
+            .section-divider {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                color: var(--mid);
+                font-size: 12px;
+                font-weight: 600;
+                margin: 4px 0 0;
+            }
+            .section-divider::before,
+            .section-divider::after {
+                content: "";
+                flex: 1;
+                height: 1px;
+                background: var(--lt2);
+            }
+
+            #restaurant-map {
+                height: 260px;
+                border-radius: var(--r12);
+                overflow: hidden;
+                border: 1.5px solid var(--lt2);
+            }
+
+            .gs-checkbox {
+                display: flex;
+                align-items: flex-start;
+                gap: 10px;
+                cursor: pointer;
+            }
+            .gs-checkbox input[type="checkbox"] {
+                width: 18px;
+                height: 18px;
+                accent-color: var(--or);
+                flex-shrink: 0;
+                margin-top: 1px;
+                cursor: pointer;
+            }
+            .gs-checkbox-label {
+                font-size: 12px;
+                color: var(--mid);
+                line-height: 1.5;
+            }
+            .gs-checkbox-label a {
+                color: var(--or);
+                font-weight: 600;
+                text-decoration: none;
+            }
+            .gs-checkbox-label a:hover {
+                text-decoration: underline;
+            }
+
+            .form-error {
+                background: #fef2f2;
+                border: 1.5px solid #fecaca;
+                border-radius: var(--r12);
+                padding: 12px 16px;
+                font-size: 13px;
+                color: #dc2626;
+                display: none;
+                align-items: center;
+                gap: 8px;
+            }
+
+            /* ─────────────────────────────────────────────
+   BUTTONS
+───────────────────────────────────────────── */
+            .gs-btn-primary {
+                width: 100%;
+                height: 52px;
+                background: var(--or);
+                color: white;
+                border: none;
+                border-radius: var(--r12);
+                font-size: 15px;
+                font-weight: 700;
+                font-family: "Plus Jakarta Sans", sans-serif;
+                cursor: pointer;
+                transition:
+                    background 0.18s,
+                    transform 0.18s;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 8px;
+                text-decoration: none;
+            }
+            .gs-btn-primary:hover {
+                background: var(--or-dk);
+                transform: translateY(-1px);
+            }
+            .gs-btn-primary:disabled {
+                background: var(--lt2);
+                color: var(--mid);
+                cursor: not-allowed;
+                transform: none;
+            }
+            .gs-btn-primary svg {
+                width: 18px;
+                height: 18px;
+            }
+
+            .gs-btn-secondary {
+                flex: 1;
+                height: 48px;
+                background: transparent;
+                color: var(--mid);
+                border: 1.5px solid var(--lt2);
+                border-radius: var(--r12);
+                font-size: 13px;
+                font-weight: 600;
+                font-family: "Plus Jakarta Sans", sans-serif;
+                cursor: pointer;
+                transition: all 0.18s;
+                text-decoration: none;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            .gs-btn-secondary:hover {
+                border-color: var(--mid);
+                color: var(--dk);
+                background: var(--lt);
+            }
+
+            .back-btn {
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+                font-size: 13px;
+                font-weight: 600;
+                color: var(--mid);
+                background: transparent;
+                border: none;
+                cursor: pointer;
+                font-family: "Plus Jakarta Sans", sans-serif;
+                padding: 0;
+                margin-bottom: 24px;
+                transition: color 0.18s;
+            }
+            .back-btn:hover {
+                color: var(--dk);
+            }
+            .back-btn svg {
+                width: 16px;
+                height: 16px;
+            }
+
+            .selected-role-chip {
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+                background: var(--or-lt);
+                border: 1.5px solid var(--or-mid);
+                border-radius: var(--r50);
+                padding: 5px 14px 5px 8px;
+                font-size: 12px;
+                font-weight: 700;
+                color: var(--or);
+                margin-bottom: 20px;
+            }
+
+            /* ─────────────────────────────────────────────
+   STEP 3 — SUCCESS (perk rows reused in modal)
+───────────────────────────────────────────── */
+            .step3-content {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+                gap: 20px;
+                padding: 20px 0;
+            }
+
+            .step3-icon {
+                width: 80px;
+                height: 80px;
+                background: var(--or);
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                box-shadow: 0 8px 32px rgba(255, 85, 0, 0.3);
+            }
+            .step3-icon svg {
+                width: 38px;
+                height: 38px;
+                color: white;
+            }
+
+            .step3-title {
+                font-family: "Knewave", cursive;
+                font-size: 28px;
+                color: var(--dk);
+            }
+
+            .step3-perks {
+                width: 100%;
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+                text-align: left;
+            }
+            .perk-row {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                background: var(--lt);
+                border-radius: var(--r12);
+                padding: 12px 16px;
+            }
+            .perk-ico {
+                font-size: 22px;
+                flex-shrink: 0;
+            }
+            .perk-title {
+                font-size: 13px;
+                font-weight: 700;
+                color: var(--dk);
+            }
+            .perk-sub {
+                font-size: 11px;
+                color: var(--mid);
+                margin-top: 2px;
+            }
+
+            /* ─────────────────────────────────────────────
+   SUCCESS MODAL
+───────────────────────────────────────────── */
+            .success-modal-overlay {
+                position: fixed;
+                inset: 0;
+                background: rgba(0, 0, 0, 0.55);
+                backdrop-filter: blur(5px);
+                -webkit-backdrop-filter: blur(5px);
+                z-index: 1000;
+                display: none;
+                align-items: center;
+                justify-content: center;
+                padding: 20px;
+            }
+            .success-modal-overlay.open {
+                display: flex;
+            }
+
+            .success-modal {
+                background: white;
+                border-radius: 24px;
+                padding: 48px 40px 40px;
+                max-width: 480px;
+                width: 100%;
+                position: relative;
+                box-shadow:
+                    0 4px 6px rgba(0, 0, 0, 0.05),
+                    0 24px 80px rgba(0, 0, 0, 0.22);
+                animation: modalIn 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+                max-height: 90vh;
+                overflow-y: auto;
+            }
+
+            @keyframes modalIn {
+                from {
+                    opacity: 0;
+                    transform: scale(0.9) translateY(12px);
+                }
+                to {
+                    opacity: 1;
+                    transform: scale(1) translateY(0);
+                }
+            }
+
+            .modal-close-btn {
+                position: absolute;
+                top: 16px;
+                right: 16px;
+                width: 34px;
+                height: 34px;
+                background: var(--lt);
+                border: 1.5px solid var(--lt2);
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                color: var(--mid);
+                transition: all 0.18s;
+                font-family: "Plus Jakarta Sans", sans-serif;
+                flex-shrink: 0;
+            }
+            .modal-close-btn:hover {
+                background: var(--lt2);
+                color: var(--dk);
+                border-color: var(--mid);
+            }
+            .modal-close-btn svg {
+                width: 14px;
+                height: 14px;
+            }
+
+            .modal-action-row {
+                display: flex;
+                gap: 10px;
+                width: 100%;
+            }
+
+            /* ─────────────────────────────────────────────
+   STEP VISIBILITY
+───────────────────────────────────────────── */
+            .gs-step {
+                display: none;
+            }
+            .gs-step.active {
+                display: block;
+            }
+
+            /* ─────────────────────────────────────────────
+   MOBILE NAV
+───────────────────────────────────────────── */
+            .gs-mobile-nav {
+                display: none;
+            }
+
+            /* ─────────────────────────────────────────────
+   RESPONSIVE
+───────────────────────────────────────────── */
+            @media (max-width: 1024px) {
+                .gs-page {
+                    grid-template-columns: 1fr;
+                }
+                .gs-left {
+                    display: none;
+                }
+                .gs-right {
+                    padding: 32px 28px;
+                    min-height: 100vh;
+                }
+                .gs-mobile-nav {
+                    display: flex !important;
+                    align-items: center;
+                    justify-content: space-between;
+                    margin-bottom: 32px;
+                }
+                .success-modal {
+                    padding: 40px 24px 28px;
+                }
+            }
+
+            @media (max-width: 480px) {
+                .gs-right {
+                    padding: 24px 20px;
+                }
+                .gs-input-row {
+                    grid-template-columns: 1fr;
+                }
+                .modal-action-row {
+                    flex-direction: column;
+                }
+            }
+
+            @keyframes spin {
+                to {
+                    transform: rotate(360deg);
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="gs-page">
+            <!-- ══════════ LEFT PANEL ══════════ -->
+            <div class="gs-left">
+                <div class="gs-left-nav">
+                    <a href="index.html" class="gs-logo">
+                        <span class="logo-text">Zes<span>to</span></span>
+                    </a>
+                </div>
+
+                <div class="gs-left-content">
+                    <div class="gs-left-label">Partner with Zesto</div>
+                    <h1 class="gs-left-h1">
+                        Grow with<br /><span>Zesto</span>
+                    </h1>
+                    <p class="gs-left-sub">
+                        Register your restaurant or sign up as a rider. Get set
+                        up in minutes and start earning today.
+                    </p>
+
+                    <div class="gs-benefits">
+                        <div class="gs-benefit">
+                            <div class="gs-benefit-ico">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+                                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                                    <circle cx="9" cy="7" r="4"/>
+                                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                                    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                                </svg>
+                            </div>
+                            <div class="gs-benefit-text">
+                                <div class="gs-benefit-title">Reach thousands of customers</div>
+                                <div class="gs-benefit-sub">Get discovered by hungry customers nearby</div>
+                            </div>
+                        </div>
+                        <div class="gs-benefit">
+                            <div class="gs-benefit-ico">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+                                    <rect x="2" y="3" width="20" height="14" rx="2"/>
+                                    <path d="M8 21h8M12 17v4"/>
+                                </svg>
+                            </div>
+                            <div class="gs-benefit-text">
+                                <div class="gs-benefit-title">Simple order dashboard</div>
+                                <div class="gs-benefit-sub">Manage orders, menus and sales in one place</div>
+                            </div>
+                        </div>
+                        <div class="gs-benefit">
+                            <div class="gs-benefit-ico">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+                                    <circle cx="12" cy="12" r="10"/>
+                                    <path d="M12 6v6l4 2"/>
+                                </svg>
+                            </div>
+                            <div class="gs-benefit-text">
+                                <div class="gs-benefit-title">Earn on your schedule</div>
+                                <div class="gs-benefit-sub">Flexible hours and fast payouts for riders</div>
+                            </div>
+                        </div>
+                        <div class="gs-benefit">
+                            <div class="gs-benefit-ico">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+                                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                                </svg>
+                            </div>
+                            <div class="gs-benefit-text">
+                                <div class="gs-benefit-title">Secure & reliable platform</div>
+                                <div class="gs-benefit-sub">Your data and earnings are always protected</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="gs-social-proof">
+                    <div class="gs-avatars">
+                        <div class="gs-avatar" style="background: #ffd4bc; color: #9a3412">AK</div>
+                        <div class="gs-avatar" style="background: #dbeafe; color: #1d4ed8">MD</div>
+                        <div class="gs-avatar" style="background: #d1fae5; color: #065f46">FN</div>
+                        <div class="gs-avatar" style="background: #ede9fe; color: #5b21b6">OT</div>
+                        <div class="gs-avatar" style="background: #fef3c7; color: #92400e">+</div>
+                    </div>
+                    <div class="gs-proof-text">
+                        Trusted by <strong>1,200+ restaurants</strong><br />and riders across Uganda
+                    </div>
+                </div>
+            </div>
+
+            <!-- ══════════ RIGHT PANEL ══════════ -->
+            <div class="gs-right">
+                <!-- Mobile logo -->
+                <div class="gs-mobile-nav">
+                    <a href="index.html" class="gs-logo" style="gap: 8px">
+                        <div class="logo-mark" style="width: 30px; height: 30px">
+                            <svg viewBox="0 0 24 24"><path d="M13 2L4 13h7l-1 9 10-12h-7l1-8z"/></svg>
+                        </div>
+                        <span class="logo-text" style="font-size: 22px">Zes<span>to</span></span>
+                    </a>
+                </div>
+
+                <!-- STEPPER -->
+                <div class="stepper">
+                    <div class="step active" id="step-indicator-1">
+                        <div class="step-circle">1</div>
+                        <div class="step-label">Your role</div>
+                    </div>
+                    <div class="step-line" id="line-1"></div>
+                    <div class="step pending" id="step-indicator-2">
+                        <div class="step-circle">2</div>
+                        <div class="step-label">Your info</div>
+                    </div>
+                    <div class="step-line" id="line-2"></div>
+                    <div class="step pending" id="step-indicator-3">
+                        <div class="step-circle">3</div>
+                        <div class="step-label">All set!</div>
+                    </div>
+                </div>
+
+                <!-- ── STEP 1: Choose role ── -->
+                <div class="gs-step active" id="panel-1">
+                    <div class="gs-panel-title">Who are you?</div>
+                    <div class="gs-panel-sub">
+                        Choose your profile so we can set up the right experience for you.
+                    </div>
+
+                    <div class="role-grid">
+                        <div class="role-card" id="role-restaurant" onclick="selectRole('restaurant')">
+                            <div class="role-emoji">🏪</div>
+                            <div class="role-info">
+                                <div class="role-title">I'm a Restaurant / Shop</div>
+                                <div class="role-desc">
+                                    Register your business on Zesto and start receiving orders from customers near you.
+                                </div>
+                            </div>
+                            <div class="role-check">
+                                <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M2 6l3 3 5-5" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </div>
+                        </div>
+
+                        <div class="role-card" id="role-rider" onclick="selectRole('rider')">
+                            <div class="role-emoji">🛵</div>
+                            <div class="role-info">
+                                <div class="role-title">I'm a Rider</div>
+                                <div class="role-desc">
+                                    Deliver orders with Zesto and earn money on your own schedule.
+                                </div>
+                            </div>
+                            <div class="role-check">
+                                <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M2 6l3 3 5-5" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button class="gs-btn-primary" id="step1-next" onclick="goToStep(2)" disabled>
+                        Continue
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <path d="M5 12h14M14 7l5 5-5 5" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- ── STEP 2: Registration form ── -->
+                <div class="gs-step" id="panel-2">
+                    <button class="back-btn" onclick="goToStep(1)">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <path d="M19 12H5M10 7l-5 5 5 5" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        Back
+                    </button>
+
+                    <div class="selected-role-chip" id="role-chip">🏪 Restaurant / Shop</div>
+
+                    <div class="gs-panel-title" id="step2-title">Register your business</div>
+                    <div class="gs-panel-sub" id="step2-sub">
+                        Get your restaurant listed on Zesto and start receiving orders.
+                    </div>
+
+                    <!-- Error -->
+                    <div class="form-error" id="form-error-box">
+                        <span style="font-size: 16px">⚠️</span>
+                        <span id="form-error-msg"></span>
+                    </div>
+
+                    <form class="gs-form" id="joinForm" onsubmit="handleSignup(event)">
+                        <!-- Name -->
+                        <div class="gs-input-row">
+                            <div class="gs-field">
+                                <label class="gs-label">First name <span>*</span></label>
+                                <input class="gs-input" id="firstName" type="text" placeholder="Mohamed" required />
+                            </div>
+                            <div class="gs-field">
+                                <label class="gs-label">Last name <span>*</span></label>
+                                <input class="gs-input" id="lastName" type="text" placeholder="Diallo" required />
+                            </div>
+                        </div>
+
+                        <!-- Contact -->
+                        <div class="gs-input-row">
+                            <div class="gs-field">
+                                <label class="gs-label">Email <span>*</span></label>
+                                <input class="gs-input" id="emailInput" type="email" placeholder="you@example.com" required />
+                            </div>
+                            <div class="gs-field">
+                                <label class="gs-label">Phone <span>*</span></label>
+                                <input class="gs-input" id="phoneInput" type="tel" placeholder="+256 700 000 000" required />
+                            </div>
+                        </div>
+
+                        <!-- Password -->
+                        <div class="gs-field">
+                            <label class="gs-label">Password <span>*</span></label>
+                            <div class="gs-input-icon">
+                                <input
+                                    class="gs-input"
+                                    id="passwordInput"
+                                    type="password"
+                                    placeholder="Min. 8 characters"
+                                    required
+                                    oninput="checkStrength(this.value)"
+                                />
+                                <button type="button" class="gs-input-icon-btn" onclick="togglePassword()">
+                                    <svg id="eye-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+                                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                        <circle cx="12" cy="12" r="3"/>
+                                    </svg>
+                                </button>
+                            </div>
+                            <div class="password-strength">
+                                <div class="ps-bar" id="ps1"></div>
+                                <div class="ps-bar" id="ps2"></div>
+                                <div class="ps-bar" id="ps3"></div>
+                                <div class="ps-bar" id="ps4"></div>
+                            </div>
+                            <div class="gs-hint" id="strength-label">
+                                Use at least 8 characters, with a number and symbol.
+                            </div>
+                        </div>
+
+                        <!-- Confirm password -->
+                        <div class="gs-field">
+                            <label class="gs-label">Confirm Password <span>*</span></label>
+                            <input class="gs-input" id="confirmPassword" type="password" placeholder="Re-enter your password" required />
+                        </div>
+
+                        <!-- ══ RESTAURANT FIELDS ══ -->
+                        <div id="restaurantFields" style="display: none; flex-direction: column; gap: 16px;">
+                            <div class="section-divider">Restaurant details</div>
+
+                            <div class="gs-field">
+                                <label class="gs-label">Restaurant Name <span>*</span></label>
+                                <input class="gs-input" id="restaurantName" type="text" placeholder="e.g. Burger Shack" />
+                            </div>
+
+                            <div class="gs-field">
+                                <label class="gs-label">Address <span>*</span></label>
+                                <input class="gs-input" id="restaurantAddress" type="text" placeholder="e.g. Plot 12, Kampala Road" />
+                            </div>
+
+                            <div class="gs-field">
+                                <label class="gs-label">Select Location on Map <span>*</span></label>
+                                <div id="restaurant-map"></div>
+                                <div class="gs-hint" style="margin-top: 6px">
+                                    Click anywhere on the map to pin your exact location.
+                                </div>
+                            </div>
+
+                            <div class="gs-input-row">
+                                <div class="gs-field">
+                                    <label class="gs-label">Latitude</label>
+                                    <input class="gs-input" id="latitude" readonly placeholder="Click map to set" />
+                                </div>
+                                <div class="gs-field">
+                                    <label class="gs-label">Longitude</label>
+                                    <input class="gs-input" id="longitude" readonly placeholder="Click map to set" />
+                                </div>
+                            </div>
+
+                            <div class="gs-field">
+                                <label class="gs-label">Description</label>
+                                <textarea class="gs-textarea" id="description" placeholder="Tell customers what makes your restaurant special…"></textarea>
+                            </div>
+                        </div>
+
+                        <!-- ══ RIDER FIELDS ══ -->
+                        <div id="riderFields" style="display: none; flex-direction: column; gap: 16px;">
+                            <div class="section-divider">Rider details</div>
+
+                            <div class="gs-field">
+                                <label class="gs-label">Vehicle Type <span>*</span></label>
+                                <select class="gs-select" id="vehicleType">
+                                    <option value="boda_boda">🛵 Boda Boda (Motorcycle)</option>
+                                    <option value="bicycle">🚲 Bicycle</option>
+                                    <option value="car">🚗 Car</option>
+                                </select>
+                            </div>
+
+                            <div class="gs-field">
+                                <label class="gs-label">Vehicle Registration Number <span>*</span></label>
+                                <input class="gs-input" id="vehicleNumber" type="text" placeholder="e.g. UEE 123X" />
+                            </div>
+
+                            <div class="gs-field">
+                                <label class="gs-label">National ID <span>*</span></label>
+                                <input class="gs-input" id="nationalId" type="text" placeholder="e.g. CM010203040506" />
+                            </div>
+                        </div>
+
+                        <!-- Terms -->
+                        <label class="gs-checkbox">
+                            <input type="checkbox" id="termsCheck" required />
+                            <span class="gs-checkbox-label">
+                                I agree to Zesto's
+                                <a href="#">Terms of Service</a> and
+                                <a href="#">Privacy Policy</a>.
+                                <span style="color: var(--or)">*</span>
+                            </span>
+                        </label>
+
+                        <!-- Submit -->
+                        <button type="submit" class="gs-btn-primary" id="submitBtn">
+                            Submit Application
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                <path d="M5 12h14M14 7l5 5-5 5" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </button>
+                    </form>
+
+                    <div style="text-align: center; margin-top: 16px; font-size: 12px; color: var(--mid);">
+                        Already have an account?
+                        <a href="signin.html" style="color: var(--or); font-weight: 700">Sign in instead</a>
+                    </div>
+                </div>
+
+                <!-- ── STEP 3 panel (stepper reference only — content shown in modal) ── -->
+                <div class="gs-step" id="panel-3"></div>
+            </div>
+        </div>
+
+        <!-- ══════════ SUCCESS MODAL ══════════ -->
+        <div class="success-modal-overlay" id="successModal" onclick="handleModalOverlayClick(event)">
+            <div class="success-modal" id="successModalInner">
+
+                <!-- Close button -->
+                <button class="modal-close-btn" onclick="closeSuccessModal()" aria-label="Close and register another">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                        <path d="M18 6L6 18M6 6l12 12" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+
+                <div class="step3-content">
+                    <!-- Success icon -->
+                    <div class="step3-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </div>
+
+                    <!-- Title & subtitle -->
+                    <div>
+                        <div class="step3-title" id="modal-welcome">Application Submitted! 🎉</div>
+                        <p class="gs-panel-sub" style="margin-bottom: 0" id="modal-sub">
+                            Your account has been created and is pending approval. We'll notify you once it's active.
+                        </p>
+                    </div>
+
+                    <!-- Perks list -->
+                    <div class="step3-perks" id="modal-perks"></div>
+
+                    <!-- Dashboard CTA -->
+                    <button class="gs-btn-primary" id="modal-dashboard-btn" onclick="goToDashboard()">
+                        Go to Restaurant Portal
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <path d="M5 12h14M14 7l5 5-5 5" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
+
+                    <!-- Secondary actions -->
+                    <div class="modal-action-row">
+                        <a href="index.html" class="gs-btn-secondary">🏠 Back to home</a>
+                        <a href="contact.html" class="gs-btn-secondary">❓ Need help?</a>
+                    </div>
+
+                    <!-- Register another hint -->
+                    <p style="font-size: 12px; color: var(--mid); margin-top: -4px;">
+                        Want to register another account?
+                        <button
+                            onclick="closeSuccessModal()"
+                            style="background:none;border:none;color:var(--or);font-weight:700;font-size:12px;cursor:pointer;font-family:inherit;padding:0;"
+                        >Close this and start over →</button>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            "use strict";
+
+            /* ─── STATE ─────────────────────────────── */
+            let currentRole = null;
+            let currentStep = 1;
+            let map = null;
+            let marker = null;
+            const REGISTER_STATE_KEY = "zesto_register_state_v1";
+
+            /* ─── PERSIST / RESTORE ─────────────────── */
+            function persistRegisterState() {
+                try {
+                    const formState = {};
+                    document.querySelectorAll("input, textarea, select").forEach((el) => {
+                        if (!el.id) return;
+                        if (el.type === "checkbox") {
+                            formState[el.id] = el.checked;
+                        } else if (el.type === "radio") {
+                            if (el.checked) formState[el.id] = el.value;
+                        } else {
+                            formState[el.id] = el.value;
+                        }
+                    });
+                    localStorage.setItem(
+                        REGISTER_STATE_KEY,
+                        JSON.stringify({ currentRole, currentStep, formState }),
+                    );
+                } catch (err) {
+                    console.warn("Could not save registration state", err);
+                }
+            }
+
+            function restoreRegisterState() {
+                try {
+                    const raw = localStorage.getItem(REGISTER_STATE_KEY);
+                    if (!raw) return;
+
+                    const saved = JSON.parse(raw);
+                    if (!saved || typeof saved !== "object") return;
+
+                    if (saved.currentRole) {
+                        currentRole = saved.currentRole;
+                        selectRole(currentRole);
+                    }
+
+                    if (saved.formState && typeof saved.formState === "object") {
+                        Object.entries(saved.formState).forEach(([id, value]) => {
+                            const el = document.getElementById(id);
+                            if (!el) return;
+                            if (el.type === "checkbox") {
+                                el.checked = Boolean(value);
+                            } else if (el.type === "radio") {
+                                el.checked = el.value === String(value);
+                            } else {
+                                el.value = value ?? "";
+                            }
+                        });
+                    }
+
+                    // Only restore steps 1 and 2 — never land on step 3
+                    const step = Number.isInteger(saved.currentStep) ? saved.currentStep : 1;
+                    goToStep(Math.min(step, 2));
+                } catch (err) {
+                    console.warn("Could not restore registration state", err);
+                    goToStep(1);
+                }
+            }
+
+            function bindRegisterPersistence() {
+                document.addEventListener("input", (e) => { if (e.target?.id) persistRegisterState(); });
+                document.addEventListener("change", (e) => { if (e.target?.id) persistRegisterState(); });
+            }
+
+            /* ─── ROLE SELECTION ────────────────────── */
+            function selectRole(role) {
+                currentRole = role;
+                document.querySelectorAll(".role-card").forEach((c) => c.classList.remove("selected"));
+                document.getElementById("role-" + role).classList.add("selected");
+                document.getElementById("step1-next").disabled = false;
+                persistRegisterState();
+            }
+
+            /* ─── STEP NAVIGATION ───────────────────── */
+            function goToStep(step) {
+                currentStep = step;
+                persistRegisterState();
+
+                document.querySelectorAll(".gs-step").forEach((p) => p.classList.remove("active"));
+                document.getElementById("panel-" + step).classList.add("active");
+
+                for (let i = 1; i <= 3; i++) {
+                    const ind = document.getElementById("step-indicator-" + i);
+                    if (ind) ind.className = "step " + (i < step ? "done" : i === step ? "active" : "pending");
+                }
+                for (let i = 1; i <= 2; i++) {
+                    const line = document.getElementById("line-" + i);
+                    if (line) line.className = "step-line" + (i < step ? " done" : "");
+                }
+
+                if (step === 2 && currentRole) _setupStep2();
+
+                document.querySelector(".gs-right").scrollTo({ top: 0, behavior: "smooth" });
+            }
+
+            function _setupStep2() {
+                const meta = {
+                    restaurant: {
+                        emoji: "🏪",
+                        label: "Restaurant / Shop",
+                        title: "Register your business",
+                        sub: "Get your restaurant listed on Zesto and start receiving orders.",
+                    },
+                    rider: {
+                        emoji: "🛵",
+                        label: "Rider",
+                        title: "Apply as a rider",
+                        sub: "Join our fleet and start earning on your own schedule.",
+                    },
+                }[currentRole];
+
+                document.getElementById("role-chip").textContent = meta.emoji + " " + meta.label;
+                document.getElementById("step2-title").textContent = meta.title;
+                document.getElementById("step2-sub").textContent = meta.sub;
+
+                const restEl = document.getElementById("restaurantFields");
+                const riderEl = document.getElementById("riderFields");
+                const isRest = currentRole === "restaurant";
+                const isRider = currentRole === "rider";
+
+                restEl.style.display = isRest ? "flex" : "none";
+                riderEl.style.display = isRider ? "flex" : "none";
+
+                ["restaurantName", "restaurantAddress"].forEach((id) => {
+                    const el = document.getElementById(id);
+                    if (el) el.required = isRest;
+                });
+                ["vehicleNumber", "nationalId"].forEach((id) => {
+                    const el = document.getElementById(id);
+                    if (el) el.required = isRider;
+                });
+
+                if (isRest) {
+                    setTimeout(() => {
+                        if (!map) {
+                            const customIcon = L.icon({
+                                iconUrl: "/images/leaflet-marker-icon.svg",
+                                shadowUrl: "/images/leaflet-marker-shadow.svg",
+                                iconSize: [25, 41],
+                                iconAnchor: [12, 41],
+                                shadowSize: [41, 41],
+                                shadowAnchor: [12, 41],
+                            });
+
+                            map = L.map("restaurant-map").setView([0.3476, 32.5825], 13);
+                            L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19 }).addTo(map);
+                            map.on("click", (e) => {
+                                if (marker) map.removeLayer(marker);
+                                marker = L.marker(e.latlng, { icon: customIcon }).addTo(map);
+                                document.getElementById("latitude").value = e.latlng.lat.toFixed(6);
+                                document.getElementById("longitude").value = e.latlng.lng.toFixed(6);
+                            });
+                        } else {
+                            map.invalidateSize();
+                        }
+                    }, 120);
+                }
+            }
+
+            /* ─── SUCCESS MODAL ─────────────────────── */
+            function showSuccessModal(firstName) {
+                const role = currentRole;
+
+                // Set welcome title
+                document.getElementById("modal-welcome").textContent = `Welcome, ${firstName}! 🎉`;
+
+                // Update dashboard button label
+                const dashBtn = document.getElementById("modal-dashboard-btn");
+                if (dashBtn) {
+                    const label = role === "restaurant" ? "Go to Restaurant Portal" : "Go to Rider Dashboard";
+                    dashBtn.innerHTML = `${label}
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:18px;height:18px;">
+                            <path d="M5 12h14M14 7l5 5-5 5" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>`;
+                }
+
+                // Populate perks
+                const perks = role === "restaurant"
+                    ? [
+                        { ico: "📊", title: "Set up your menu", sub: "Add dishes, categories and prices from your dashboard" },
+                        { ico: "📦", title: "Receive orders", sub: "Orders will appear in real time once your account is approved" },
+                        { ico: "💰", title: "Track your earnings", sub: "View revenue reports and payout history in one place" },
+                    ]
+                    : [
+                        { ico: "📍", title: "Set your availability", sub: "Go online whenever you're ready to receive delivery requests" },
+                        { ico: "🗺️", title: "Pick up nearby orders", sub: "Our app routes you efficiently to the nearest restaurant" },
+                        { ico: "💸", title: "Get paid fast", sub: "Earnings released weekly directly to your mobile money account" },
+                    ];
+
+                document.getElementById("modal-perks").innerHTML = perks.map((p) => `
+                    <div class="perk-row">
+                        <div class="perk-ico">${p.ico}</div>
+                        <div>
+                            <div class="perk-title">${p.title}</div>
+                            <div class="perk-sub">${p.sub}</div>
+                        </div>
+                    </div>
+                `).join("");
+
+                // Show modal
+                document.getElementById("successModal").classList.add("open");
+                document.body.style.overflow = "hidden";
+            }
+
+            function closeSuccessModal() {
+                document.getElementById("successModal").classList.remove("open");
+                document.body.style.overflow = "";
+                resetRegistration();
+            }
+
+            function handleModalOverlayClick(e) {
+                // Close only when clicking the dark backdrop, not the modal card itself
+                if (e.target === document.getElementById("successModal")) {
+                    closeSuccessModal();
+                }
+            }
+
+            /* ─── RESET ─────────────────────────────── */
+            function resetRegistration() {
+                // Clear state
+                currentRole = null;
+                currentStep = 1;
+                localStorage.removeItem(REGISTER_STATE_KEY);
+
+                // Reset form fields
+                const form = document.getElementById("joinForm");
+                if (form) form.reset();
+
+                // Deselect role cards & disable continue
+                document.querySelectorAll(".role-card").forEach((c) => c.classList.remove("selected"));
+                document.getElementById("step1-next").disabled = true;
+
+                // Reset password strength UI
+                ["ps1", "ps2", "ps3", "ps4"].forEach((id) => {
+                    const el = document.getElementById(id);
+                    if (el) el.className = "ps-bar";
+                });
+                const strengthLabel = document.getElementById("strength-label");
+                if (strengthLabel) {
+                    strengthLabel.textContent = "Use at least 8 characters, with a number and symbol.";
+                    strengthLabel.style.color = "";
+                }
+
+                // Restore password field to hidden
+                const pwInput = document.getElementById("passwordInput");
+                if (pwInput) pwInput.type = "password";
+                const eyeIcon = document.getElementById("eye-icon");
+                if (eyeIcon) eyeIcon.innerHTML = `
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                    <circle cx="12" cy="12" r="3"/>`;
+
+                // Destroy the map so it re-initialises fresh next time
+                if (marker && map) { map.removeLayer(marker); marker = null; }
+                if (map) { map.remove(); map = null; }
+
+                // Hide error if visible
+                hideError();
+
+                // Go back to step 1
+                goToStep(1);
+            }
+
+            /* ─── PASSWORD STRENGTH ─────────────────── */
+            function checkStrength(val) {
+                const bars = ["ps1", "ps2", "ps3", "ps4"].map((id) => document.getElementById(id));
+                const label = document.getElementById("strength-label");
+                if (!bars[0]) return;
+
+                bars.forEach((b) => { b.className = "ps-bar"; });
+
+                if (!val.length) {
+                    label.textContent = "Use at least 8 characters, with a number and symbol.";
+                    label.style.color = "";
+                    return;
+                }
+
+                let score = 0;
+                if (val.length >= 8) score++;
+                if (/[A-Z]/.test(val)) score++;
+                if (/[0-9]/.test(val)) score++;
+                if (/[^A-Za-z0-9]/.test(val)) score++;
+
+                const cls = ["", "weak", "medium", "medium", "strong"];
+                const labels = ["", "Weak — add numbers and symbols", "Medium — getting better!", "Good — add a symbol", "Strong password ✓"];
+                const colors = ["", "#EF4444", "#F59E0B", "#F59E0B", "#22C55E"];
+
+                for (let i = 0; i < score; i++) bars[i].classList.add(cls[score]);
+                label.textContent = labels[score];
+                label.style.color = colors[score];
+            }
+
+            /* ─── PASSWORD TOGGLE ───────────────────── */
+            function togglePassword() {
+                const input = document.getElementById("passwordInput");
+                const icon = document.getElementById("eye-icon");
+                if (!input) return;
+
+                if (input.type === "password") {
+                    input.type = "text";
+                    icon.innerHTML = `
+                        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94
+                                 M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19
+                                 m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
+                        <line x1="1" y1="1" x2="23" y2="23"/>`;
+                } else {
+                    input.type = "password";
+                    icon.innerHTML = `
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                        <circle cx="12" cy="12" r="3"/>`;
+                }
+            }
+
+            /* ─── ERROR UI ──────────────────────────── */
+            function showError(msg) {
+                const box = document.getElementById("form-error-box");
+                const txt = document.getElementById("form-error-msg");
+                if (!box || !txt) return;
+                txt.textContent = msg;
+                box.style.display = "flex";
+                box.scrollIntoView({ behavior: "smooth", block: "nearest" });
+            }
+            function hideError() {
+                const box = document.getElementById("form-error-box");
+                if (box) box.style.display = "none";
+            }
+
+            /* ─── LOADING STATE ─────────────────────── */
+            function setLoading(on) {
+                const btn = document.getElementById("submitBtn");
+                if (!btn) return;
+                if (on) {
+                    btn.disabled = true;
+                    btn.innerHTML = `
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                             style="animation:spin .7s linear infinite;">
+                            <path d="M21 12a9 9 0 1 1-6-8.485"/>
+                        </svg>
+                        Submitting…`;
+                } else {
+                    btn.disabled = false;
+                    btn.innerHTML = `
+                        Submit Application
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:18px;height:18px;">
+                            <path d="M5 12h14M14 7l5 5-5 5" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>`;
+                }
+            }
+
+            /* ─── COLLECT VALUES ────────────────────── */
+            function getValues() {
+                const v = (id) => document.getElementById(id)?.value.trim() || "";
+                return {
+                    firstName: v("firstName"),
+                    lastName: v("lastName"),
+                    email: document.getElementById("emailInput")?.value.trim().toLowerCase() || "",
+                    phone: v("phoneInput"),
+                    password: document.getElementById("passwordInput")?.value || "",
+                    confirmPassword: document.getElementById("confirmPassword")?.value || "",
+                    terms: document.getElementById("termsCheck")?.checked || false,
+                    restaurantName: v("restaurantName"),
+                    restaurantAddress: v("restaurantAddress"),
+                    latitude: v("latitude"),
+                    longitude: v("longitude"),
+                    description: v("description"),
+                    vehicleType: document.getElementById("vehicleType")?.value || "boda_boda",
+                    vehicleNumber: v("vehicleNumber"),
+                    nationalId: v("nationalId"),
+                };
+            }
+
+            /* ─── VALIDATION ────────────────────────── */
+            function validate(f) {
+                if (!f.firstName || !f.lastName) return "Please enter your first and last name.";
+                if (!f.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.email)) return "Please enter a valid email address.";
+                if (!f.phone) return "Please enter your phone number.";
+                if (f.password.length < 8) return "Password must be at least 8 characters.";
+                if (f.password !== f.confirmPassword) return "Passwords do not match.";
+                if (!f.terms) return "You must agree to the Terms of Service and Privacy Policy.";
+
+                if (currentRole === "restaurant") {
+                    if (!f.restaurantName) return "Please enter your restaurant name.";
+                    if (!f.restaurantAddress) return "Please enter your restaurant address.";
+                    if (!f.latitude || !f.longitude) return "Please click the map to set your restaurant location.";
+                }
+
+                if (currentRole === "rider") {
+                    if (!f.vehicleNumber) return "Please enter your vehicle registration number.";
+                    if (!f.nationalId) return "Please enter your national ID.";
+                }
+
+                return null;
+            }
+
+            /* ─── FORM SUBMIT ───────────────────────── */
+            async function handleSignup(e) {
+                e.preventDefault();
+                hideError();
+
+                const f = getValues();
+                const err = validate(f);
+                if (err) { showError(err); return; }
+
+                const endpoint = currentRole === "restaurant"
+                    ? "/api/auth/register/restaurant"
+                    : "/api/auth/register/rider";
+
+                const payload = currentRole === "restaurant"
+                    ? {
+                        name: `${f.firstName} ${f.lastName}`.trim(),
+                        email: f.email,
+                        phone: f.phone,
+                        password: f.password,
+                        restaurant: {
+                            name: f.restaurantName,
+                            email: f.email,
+                            phone: f.phone,
+                            address: f.restaurantAddress,
+                            latitude: parseFloat(f.latitude),
+                            longitude: parseFloat(f.longitude),
+                            description: f.description,
+                        },
+                    }
+                    : {
+                        name: `${f.firstName} ${f.lastName}`.trim(),
+                        email: f.email,
+                        phone: f.phone,
+                        password: f.password,
+                        rider: {
+                            vehicleType: f.vehicleType,
+                            vehicleNumber: f.vehicleNumber,
+                            nationalId: f.nationalId,
+                        },
+                    };
+
+                setLoading(true);
+                try {
+                    const res = await fetch(endpoint, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        credentials: "include",
+                        body: JSON.stringify(payload),
+                    });
+
+                    if (!res.ok) {
+                        const errData = await res.json().catch(() => ({ message: "Registration failed. Please try again." }));
+                        throw new Error(errData.message || "Registration failed.");
+                    }
+
+                    const data = await res.json().catch(() => ({}));
+
+                    // Clear cache immediately on success
+                    localStorage.removeItem(REGISTER_STATE_KEY);
+
+                    const displayName = data?.user?.name || `${f.firstName} ${f.lastName}`;
+                    const firstName = displayName.split(" ")[0];
+
+                    // Show the modal instead of navigating to step 3
+                    showSuccessModal(firstName);
+
+                } catch (err) {
+                    let msg = err.message || "Something went wrong. Please try again.";
+                    if (/duplicate|already registered|already exists/i.test(msg))
+                        msg = "An account with this email already exists.";
+                    showError(msg);
+                } finally {
+                    setLoading(false);
+                }
+            }
+
+            /* ─── DASHBOARD REDIRECT ────────────────── */
+            function goToDashboard() {
+                window.location.href = "/restaurant-admin/index.html";
+            }
+
+            /* ─── KEYBOARD: ESC closes modal ────────── */
+            document.addEventListener("keydown", (e) => {
+                if (e.key === "Escape" && document.getElementById("successModal").classList.contains("open")) {
+                    closeSuccessModal();
+                }
+            });
+
+            /* ─── GLOBAL EXPORTS ────────────────────── */
+            window.selectRole = selectRole;
+            window.goToStep = goToStep;
+            window.checkStrength = checkStrength;
+            window.togglePassword = togglePassword;
+            window.handleSignup = handleSignup;
+            window.goToDashboard = goToDashboard;
+            window.showSuccessModal = showSuccessModal;
+            window.closeSuccessModal = closeSuccessModal;
+            window.handleModalOverlayClick = handleModalOverlayClick;
+
+            bindRegisterPersistence();
+            restoreRegisterState();
+        </script>
+    </body>
+</html>

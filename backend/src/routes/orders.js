@@ -16,7 +16,21 @@ const { requireAuth } = require('../middleware/auth');
 
 require('dotenv').config({ path: __dirname + '/../.env' });
 
-const DELIVERY_FEE = parseFloat(process.env.DELIVERY_FEE) || 5000;
+async function getBaseDeliveryFee() {
+  try {
+    const rows = await query('SELECT setting_value FROM platform_settings WHERE setting_key = ?', ['base_delivery_fee']);
+    const rawValue = rows?.[0]?.setting_value;
+    if (rawValue === undefined || rawValue === null || rawValue === '') {
+      return 5000;
+    }
+
+    const value = Number(rawValue);
+    return Number.isFinite(value) && value >= 0 ? value : 5000;
+  } catch (err) {
+    console.warn('[orders] failed to load base delivery fee, falling back to 5000', err);
+    return 5000;
+  }
+}
 
 router.use(requireAuth);
 
@@ -36,7 +50,7 @@ router.post('/', async (req, res) => {
     const ids          = items.map(i => parseInt(i.product_id));
     const placeholders = ids.map(() => '?').join(',');
     const products     = await query(
-      `SELECT product_id, name, price, stock FROM products WHERE product_id IN (${placeholders}) AND is_active = 1`,
+      `SELECT product_id, name, price, stock, restaurant_id FROM products WHERE product_id IN (${placeholders}) AND is_active = 1`,
       ids
     );
 
@@ -45,6 +59,7 @@ router.post('/', async (req, res) => {
 
     let subtotal = 0;
     const validatedItems = [];
+    let restaurant_id = products[0]?.restaurant_id || null;
 
     for (const item of items) {
       const pid = parseInt(item.product_id);
@@ -67,18 +82,63 @@ router.post('/', async (req, res) => {
       validatedItems.push({ product_id: pid, name: p.name, price: p.price, qty, lineTotal });
     }
 
-    const total = subtotal + DELIVERY_FEE;
+    const deliveryFee = await getBaseDeliveryFee();
+    const total = subtotal + deliveryFee;
 
     // Insert order row
+    const orderNumber = `ZST-${Date.now()}`;
+
     const orderResult = await query(
       `INSERT INTO orders
-         (user_id, status, subtotal, delivery_fee, total, delivery_address, payment_method, notes)
-       VALUES (?, 'pending', ?, ?, ?, ?, ?, ?)`,
-      [req.user.user_id, subtotal, DELIVERY_FEE, total, delivery_address,
-       payment_method || 'mobile_money', notes || null]
+        (
+          user_id,
+          restaurant_id,
+          order_number,
+          status,
+          subtotal,
+          delivery_fee,
+          total,
+          delivery_address,
+          notes
+        )
+      VALUES (?, ?, ?, 'pending', ?, ?, ?, ?, ?)`,
+      [
+        req.user.user_id,
+        restaurant_id,
+        orderNumber,
+        subtotal,
+        deliveryFee,
+        total,
+        delivery_address,
+        notes || null
+      ]
     );
 
     const orderId = Number(orderResult.insertId);
+
+    await query(
+    `
+    INSERT INTO payments
+    (
+      order_id,
+      user_id,
+      method,
+      status,
+      amount,
+      currency
+    )
+    VALUES
+    (
+      ?, ?, ?, 'pending', ?, 'UGX'
+    )
+    `,
+    [
+      orderId,
+      req.user.user_id,
+      payment_method || 'mobile_money',
+      total
+    ]
+    );
 
     // Insert order items & decrement stock
     for (const item of validatedItems) {
@@ -119,11 +179,23 @@ router.post('/', async (req, res) => {
 router.get('/', async (req, res) => {
   try {
     const orders = await query(
-      `SELECT order_id, status, subtotal, delivery_fee, total,
-              payment_method, payment_status, created_at
-       FROM orders WHERE user_id = ?
-       ORDER BY created_at DESC`,
-      [req.user.user_id]
+    `
+    SELECT
+    o.order_id,
+    o.status,
+    o.subtotal,
+    o.delivery_fee,
+    o.total,
+    p.method AS payment_method,
+    p.status AS payment_status,
+    o.created_at
+    FROM orders o
+    LEFT JOIN payments p
+    ON o.order_id = p.order_id
+    WHERE o.user_id = ?
+    ORDER BY o.created_at DESC
+    `,
+    [req.user.user_id]
     );
     return res.json({ success: true, data: orders });
   } catch (err) {
@@ -198,18 +270,46 @@ router.post('/:id/verify', async (req, res) => {
       return res.status(400).json({ success: false, message: 'Transaction reference mismatch.' });
     }
 
-    await query(
-      `UPDATE orders
-       SET payment_status = 'paid', flw_tx_ref = ?, flw_tx_id = ?, status = 'paid',
-           updated_at = CURRENT_TIMESTAMP
-       WHERE order_id = ? AND user_id = ?`,
-      [tx_ref || flwRes.data.tx_ref, String(transaction_id), orderId, req.user.user_id]
+    const paymentUpdate = await query(
+    `
+    UPDATE payments
+    SET
+    status='verified',
+    flw_tx_ref=?,
+    flw_tx_id=?,
+    verified_at=CURRENT_TIMESTAMP,
+    updated_at=CURRENT_TIMESTAMP
+    WHERE order_id=? AND user_id=? AND status='pending'
+    `,
+    [
+    tx_ref || flwRes.data.tx_ref,
+    String(transaction_id),
+    orderId,
+    req.user.user_id
+    ]
     );
+
+    if (!Number(paymentUpdate.affectedRows || 0)) {
+      return res.status(409).json({ success: false, message: 'Payment already processed or not found.' });
+    }
+
+    await query(
+    `
+    UPDATE orders
+    SET
+    status='processing',
+    updated_at=CURRENT_TIMESTAMP
+    WHERE order_id=? AND user_id=?
+    `,
+    [
+    orderId,
+    req.user.user_id
+    ]);
 
     const io = req.app.get('io');
     if (io) {
       io.to(`user_${req.user.user_id}`).emit('order:status', {
-        order_id: orderId, status: 'paid', payment_status: 'paid'
+        order_id: orderId, status: 'processing', payment_status: 'verified'
       });
     }
 
