@@ -17,6 +17,7 @@
 
   // ── Session state ──────────────────────────────────────────────────
   let session = null;
+  let pendingRegistration = null; // { name, email, phone, password } — held between send-code and verify
 
   // ── Validation helpers ─────────────────────────────────────────────
   const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
@@ -93,11 +94,11 @@
     if (!name) {
       setFieldError('regName', 'Full name is required.');
       ok = false;
-    } else if (name.length < 2) {
-      setFieldError('regName', 'Name must be at least 2 characters.');
+    } else if (name.length < 3) {
+      setFieldError('regName', 'Name must be at least 3 characters.');
       ok = false;
-    } else if (name.length > 120) {
-      setFieldError('regName', 'Name is too long (max 120 characters).');
+    } else if (name.length > 50) {
+      setFieldError('regName', 'Name is too long (max 50 characters).');
       ok = false;
     }
 
@@ -210,6 +211,14 @@
       document.dispatchEvent(new CustomEvent('auth-login', { detail: session }));
       updateUI();
       return data;
+    },
+
+    async sendVerificationCode(email) {
+      return this.request('/auth/send-code', { method: 'POST', body: { email } });
+    },
+
+    async verifyEmailCode(email, code) {
+      return this.request('/auth/verify-code', { method: 'POST', body: { email, code } });
     },
 
     async checkSession() {
@@ -387,6 +396,30 @@
       <button class="btn-primary full-width" id="registerBtn" type="button">Create Account</button>
       <p class="auth-switch">Already have an account? <a href="#" id="switchToLogin">Log In</a></p>
     </div>
+
+    <!-- ── Verify Email Tab ── -->
+    <div id="verifyTab" class="auth-tab hidden">
+      <h2 class="modal-title">Check your email 📧</h2>
+      <p class="modal-sub">We sent a 6-digit code to <strong id="verifyEmailLabel"></strong></p>
+
+      <div class="form-group">
+        <label for="verifyCode">Verification code <span aria-hidden="true" class="required-mark">*</span></label>
+        <input
+          type="text"
+          id="verifyCode"
+          inputmode="numeric"
+          autocomplete="one-time-code"
+          maxlength="6"
+          placeholder="000000"
+          style="text-align:center; letter-spacing:6px; font-weight:700; font-size:20px;"
+          aria-describedby="verifyCodeError"
+        />
+        <span class="field-error" id="verifyCodeError" role="alert"></span>
+      </div>
+
+      <button class="btn-primary full-width" id="verifyCodeBtn" type="button">Verify &amp; Create Account</button>
+      <p class="auth-switch">Didn't get it? <a href="#" id="resendVerifyCode">Resend code</a></p>
+    </div>
   </div>
 </div>`;
 
@@ -432,38 +465,40 @@
 
   // ── Modal open / close ─────────────────────────────────────────────
   function openModal(tab = 'login') {
-    const overlay     = document.getElementById('authModal');
-    const loginTab    = document.getElementById('loginTab');
-    const registerTab = document.getElementById('registerTab');
+    const overlay = document.getElementById('authModal');
     if (!overlay) return;
 
-    clearAllErrors('login');
-    clearAllErrors('reg');
+    // Always route through switchTab so the verify tab can never be
+    // left stacked underneath login/register — it's the single source
+    // of truth for "which one tab is showing".
+    switchTab(tab);
+    overlay.classList.remove('hidden');
 
     if (tab === 'login') {
-      loginTab?.classList.add('active');
-      loginTab?.classList.remove('hidden');
-      registerTab?.classList.remove('active');
-      registerTab?.classList.add('hidden');
       document.getElementById('authModalTitle')?.focus();
-    } else {
-      registerTab?.classList.add('active');
-      registerTab?.classList.remove('hidden');
-      loginTab?.classList.remove('active');
-      loginTab?.classList.add('hidden');
     }
-
-    overlay.classList.remove('hidden');
   }
 
   function closeModal() {
     const overlay = document.getElementById('authModal');
     if (!overlay) return;
     overlay.classList.add('hidden');
-    // Clear inputs
+    // Inputs are intentionally left as-is — an accidental click on the
+    // backdrop (or the × button) shouldn't wipe out what was typed.
+    // Fields are only cleared explicitly via resetAuthForms(), which
+    // runs after a successful login/registration.
+  }
+
+  // Fully clears the modal — called after a successful login or a
+  // completed (verified) registration, never on an incidental close.
+  function resetAuthForms() {
+    const overlay = document.getElementById('authModal');
+    if (!overlay) return;
     overlay.querySelectorAll('input').forEach(el => (el.value = ''));
     clearAllErrors('login');
     clearAllErrors('reg');
+    clearFieldError('verifyCode');
+    pendingRegistration = null;
   }
 
   function closeMobileMenus() {
@@ -475,18 +510,23 @@
   function switchTab(to) {
     const loginTab    = document.getElementById('loginTab');
     const registerTab = document.getElementById('registerTab');
+    const verifyTab   = document.getElementById('verifyTab');
+
+    [loginTab, registerTab, verifyTab].forEach(tab => {
+      tab?.classList.remove('active');
+      tab?.classList.add('hidden');
+    });
 
     if (to === 'login') {
       loginTab?.classList.add('active');
       loginTab?.classList.remove('hidden');
-      registerTab?.classList.remove('active');
-      registerTab?.classList.add('hidden');
       clearAllErrors('reg');
+    } else if (to === 'verify') {
+      verifyTab?.classList.add('active');
+      verifyTab?.classList.remove('hidden');
     } else {
       registerTab?.classList.add('active');
       registerTab?.classList.remove('hidden');
-      loginTab?.classList.remove('active');
-      loginTab?.classList.add('hidden');
       clearAllErrors('login');
     }
   }
@@ -532,6 +572,7 @@
       try {
         const res = await window.SharedAuth.login(email, password);
         closeModal();
+        resetAuthForms();
         Toast.success(res.message || 'Logged in!');
         if (window.location.pathname.includes('Get_Started.html')) {
           setTimeout(() => (window.location.href = 'index.html'), 1000);
@@ -546,7 +587,7 @@
       }
     });
 
-    // ── Register submit ──────────────────────────────────────────────
+    // ── Register submit (step 1: send code) ────────────────────────────
     const registerBtn = document.getElementById('registerBtn');
     registerBtn?.addEventListener('click', async () => {
       if (!validateRegisterForm()) return;
@@ -556,20 +597,82 @@
       const phone    = document.getElementById('regPhone').value.trim();
       const password = document.getElementById('regPassword').value;
 
+      pendingRegistration = { name, email, phone: phone || null, password };
+
       registerBtn.disabled = true;
-      registerBtn.textContent = 'Creating account…';
+      registerBtn.textContent = 'Sending code…';
       try {
-        const res = await window.SharedAuth.registerCustomer(name, email, phone || null, password);
+        await window.SharedAuth.sendVerificationCode(email);
+        document.getElementById('verifyEmailLabel').textContent = email;
+        document.getElementById('verifyCode').value = '';
+        clearFieldError('verifyCode');
+        switchTab('verify');
+        document.getElementById('verifyCode')?.focus();
+      } catch (err) {
+        Toast.error(err.message || 'Could not send verification code. Please try again.');
+      } finally {
+        registerBtn.disabled = false;
+        registerBtn.textContent = 'Create Account';
+      }
+    });
+
+    // ── Verify submit (step 2: confirm code, then actually register) ───
+    const verifyBtn = document.getElementById('verifyCodeBtn');
+    verifyBtn?.addEventListener('click', async () => {
+      const code = document.getElementById('verifyCode').value.trim();
+      if (!/^\d{6}$/.test(code)) {
+        setFieldError('verifyCode', 'Enter the 6-digit code from your email.');
+        return;
+      }
+      if (!pendingRegistration) { switchTab('register'); return; }
+
+      verifyBtn.disabled = true;
+      verifyBtn.textContent = 'Verifying…';
+      try {
+        await window.SharedAuth.verifyEmailCode(pendingRegistration.email, code);
+
+        const res = await window.SharedAuth.registerCustomer(
+          pendingRegistration.name,
+          pendingRegistration.email,
+          pendingRegistration.phone,
+          pendingRegistration.password
+        );
         closeModal();
+        resetAuthForms();
         Toast.success(res.message || 'Account created!');
         if (window.location.pathname.includes('Get_Started.html')) {
           setTimeout(() => (window.location.href = 'index.html'), 1000);
         }
       } catch (err) {
-        Toast.error(err.message || 'Registration failed. Please try again.');
+        setFieldError('verifyCode', err.message || 'Invalid or expired code.');
       } finally {
-        registerBtn.disabled = false;
-        registerBtn.textContent = 'Create Account';
+        verifyBtn.disabled = false;
+        verifyBtn.textContent = 'Verify & Create Account';
+      }
+    });
+
+    // ── Resend code ──────────────────────────────────────────────────
+    document.getElementById('resendVerifyCode')?.addEventListener('click', async (e) => {
+      e.preventDefault();
+      if (!pendingRegistration) return;
+      const link = e.target;
+      clearFieldError('verifyCode');
+      link.style.pointerEvents = 'none';
+      const originalText = link.textContent;
+      link.textContent = 'Sending…';
+      try {
+        await window.SharedAuth.sendVerificationCode(pendingRegistration.email);
+        document.getElementById('verifyCode').value = '';
+        document.getElementById('verifyCode').focus();
+        link.textContent = 'Code sent ✓';
+        setTimeout(() => { link.textContent = originalText; }, 2500);
+      } catch (err) {
+        // Shown right next to the code field — a corner toast is easy to
+        // miss while the modal has focus.
+        setFieldError('verifyCode', err.message || 'Could not resend code. Please try again.');
+        link.textContent = originalText;
+      } finally {
+        link.style.pointerEvents = '';
       }
     });
 

@@ -18,6 +18,7 @@
 const bcrypt      = require('bcryptjs');
 const jwt         = require('jsonwebtoken');
 const { query }   = require('../config/db');
+const { consumeEmailVerification } = require('./emailVerificationController');
 
 // ── Constants ──────────────────────────────────────────────────────
 const COOKIE_NAME   = 'zesto_token';
@@ -196,6 +197,15 @@ async function registerCustomer(req, res) {
       return res.status(409).json({
         success: false,
         message: 'An account with this email already exists. Please log in instead.',
+      });
+    }
+
+    // ── 2.5 Require verified email ─────────────────────────────────
+    const emailVerified = await consumeEmailVerification(normalizedEmail);
+    if (!emailVerified) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please verify your email before creating an account.',
       });
     }
 

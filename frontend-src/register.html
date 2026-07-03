@@ -679,6 +679,61 @@
                 gap: 8px;
             }
 
+            /* Top-level submit banner behaves like a toast: fixed,
+               top-center, above the modal/form — not squeezed in above
+               the fields where it's easy to scroll past. */
+            #form-error-box {
+                position: fixed;
+                top: 24px;
+                left: 50%;
+                display: flex;
+                transform: translateX(-50%) translateY(-10px);
+                z-index: 10000;
+                max-width: 92vw;
+                width: max-content;
+                min-width: 280px;
+                box-shadow: 0 12px 32px rgba(0, 0, 0, 0.16);
+                opacity: 0;
+                pointer-events: none;
+                transition: opacity 0.2s ease, transform 0.2s ease;
+            }
+            #form-error-box.show {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+                pointer-events: auto;
+            }
+            @media (max-width: 600px) {
+                #form-error-box { top: 16px; width: calc(100vw - 32px); }
+            }
+
+            /* ── Inline per-field errors (same look as shared_auth.js) ── */
+            .field-error {
+                display: none;
+                margin-top: 6px;
+                font-size: 0.78rem;
+                font-weight: 600;
+                color: #ef4444;
+                line-height: 1.4;
+                animation: fieldErrorReveal 0.18s ease;
+            }
+            @keyframes fieldErrorReveal {
+                from { opacity: 0; transform: translateY(-4px); }
+                to   { opacity: 1; transform: translateY(0); }
+            }
+            .gs-input.input-error,
+            .gs-select.input-error,
+            .gs-textarea.input-error {
+                border-color: #ef4444 !important;
+                background: #fff5f5;
+                box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+            }
+            .gs-input.input-error:focus,
+            .gs-select.input-error:focus,
+            .gs-textarea.input-error:focus {
+                border-color: #ef4444 !important;
+                box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.16);
+            }
+
             /* ─────────────────────────────────────────────
    BUTTONS
 ───────────────────────────────────────────── */
@@ -806,7 +861,7 @@
             }
 
             .step3-title {
-                font-family: "Knewave", cursive;
+                font-family:Arial, Helvetica, sans-serif;
                 font-size: 28px;
                 color: var(--dk);
             }
@@ -1173,10 +1228,12 @@
                             <div class="gs-field">
                                 <label class="gs-label">First name <span>*</span></label>
                                 <input class="gs-input" id="firstName" type="text" placeholder="Mohamed" required />
+                                <span class="field-error" id="firstNameError" role="alert"></span>
                             </div>
                             <div class="gs-field">
                                 <label class="gs-label">Last name <span>*</span></label>
                                 <input class="gs-input" id="lastName" type="text" placeholder="Diallo" required />
+                                <span class="field-error" id="lastNameError" role="alert"></span>
                             </div>
                         </div>
 
@@ -1185,10 +1242,12 @@
                             <div class="gs-field">
                                 <label class="gs-label">Email <span>*</span></label>
                                 <input class="gs-input" id="emailInput" type="email" placeholder="you@example.com" required />
+                                <span class="field-error" id="emailInputError" role="alert"></span>
                             </div>
                             <div class="gs-field">
                                 <label class="gs-label">Phone <span>*</span></label>
                                 <input class="gs-input" id="phoneInput" type="tel" placeholder="+256 700 000 000" required />
+                                <span class="field-error" id="phoneInputError" role="alert"></span>
                             </div>
                         </div>
 
@@ -1220,12 +1279,14 @@
                             <div class="gs-hint" id="strength-label">
                                 Use at least 8 characters, with a number and symbol.
                             </div>
+                            <span class="field-error" id="passwordInputError" role="alert"></span>
                         </div>
 
                         <!-- Confirm password -->
                         <div class="gs-field">
                             <label class="gs-label">Confirm Password <span>*</span></label>
                             <input class="gs-input" id="confirmPassword" type="password" placeholder="Re-enter your password" required />
+                            <span class="field-error" id="confirmPasswordError" role="alert"></span>
                         </div>
 
                         <!-- ══ RESTAURANT FIELDS ══ -->
@@ -1235,11 +1296,13 @@
                             <div class="gs-field">
                                 <label class="gs-label">Restaurant Name <span>*</span></label>
                                 <input class="gs-input" id="restaurantName" type="text" placeholder="e.g. Burger Shack" />
+                                <span class="field-error" id="restaurantNameError" role="alert"></span>
                             </div>
 
                             <div class="gs-field">
                                 <label class="gs-label">Address <span>*</span></label>
                                 <input class="gs-input" id="restaurantAddress" type="text" placeholder="e.g. Plot 12, Kampala Road" />
+                                <span class="field-error" id="restaurantAddressError" role="alert"></span>
                             </div>
 
                             <div class="gs-field">
@@ -1248,6 +1311,7 @@
                                 <div class="gs-hint" style="margin-top: 6px">
                                     Click anywhere on the map to pin your exact location.
                                 </div>
+                                <span class="field-error" id="locationError" role="alert"></span>
                             </div>
 
                             <div class="gs-input-row">
@@ -1283,11 +1347,13 @@
                             <div class="gs-field">
                                 <label class="gs-label">Vehicle Registration Number <span>*</span></label>
                                 <input class="gs-input" id="vehicleNumber" type="text" placeholder="e.g. UEE 123X" />
+                                <span class="field-error" id="vehicleNumberError" role="alert"></span>
                             </div>
 
                             <div class="gs-field">
                                 <label class="gs-label">National ID <span>*</span></label>
                                 <input class="gs-input" id="nationalId" type="text" placeholder="e.g. CM010203040506" />
+                                <span class="field-error" id="nationalIdError" role="alert"></span>
                             </div>
                         </div>
 
@@ -1301,6 +1367,7 @@
                                 <span style="color: var(--or)">*</span>
                             </span>
                         </label>
+                        <span class="field-error" id="termsCheckError" role="alert"></span>
 
                         <!-- Submit -->
                         <button type="submit" class="gs-btn-primary" id="submitBtn">
@@ -1323,6 +1390,68 @@
         </div>
 
         <!-- ══════════ SUCCESS MODAL ══════════ -->
+        <!-- ─── EMAIL VERIFICATION MODAL ─────────────────────── -->
+        <div class="success-modal-overlay" id="verifyModal">
+            <div class="success-modal" id="verifyModalInner" style="padding: 40px 36px 32px;">
+
+                <button class="modal-close-btn" onclick="closeVerifyModal()" aria-label="Close">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                        <path d="M18 6L6 18M6 6l12 12" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+
+                <div class="step3-content">
+                    <div class="step3-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <path d="M3 8l7.89 5.26a2 2 0 0 0 2.22 0L21 8M5 19h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2z" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </div>
+
+                    <div>
+                        <div class="step3-title">Check your email</div>
+                        <p class="gs-panel-sub" style="margin-bottom: 0;">
+                            We sent a 6-digit code to <strong id="verify-email-label"></strong>.
+                            It expires in 10 minutes.
+                        </p>
+                        <p id="verify-resume-note" class="gs-hint" style="display:none; margin-top: 8px;">
+                            if the code has expired, just tap "Resend code" below.
+                        </p>
+                    </div>
+
+                    <input
+                        type="text"
+                        id="verifyCodeInput"
+                        inputmode="numeric"
+                        autocomplete="one-time-code"
+                        maxlength="6"
+                        placeholder="000000"
+                        class="gs-input"
+                        style="text-align:center; font-size:24px; letter-spacing:8px; font-weight:700;"
+                    />
+
+                    <div id="verify-error-box" class="form-error" style="display:none;">
+                        <span id="verify-error-msg"></span>
+                    </div>
+
+                    <button class="gs-btn-primary" id="verifyConfirmBtn" onclick="confirmVerificationCode()">
+                        Verify &amp; Continue
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <path d="M5 12h14M14 7l5 5-5 5" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
+
+                    <p style="font-size: 12px; color: var(--mid); margin-top: -4px;">
+                        Didn't get it?
+                        <button
+                            onclick="resendVerificationCode()"
+                            id="resendCodeBtn"
+                            style="background:none;border:none;color:var(--or);font-weight:700;font-size:12px;cursor:pointer;font-family:inherit;padding:0;"
+                        >Resend code</button>
+                    </p>
+                </div>
+            </div>
+        </div>
+
         <div class="success-modal-overlay" id="successModal" onclick="handleModalOverlayClick(event)">
             <div class="success-modal" id="successModalInner">
 
@@ -1384,6 +1513,9 @@
             /* ─── STATE ─────────────────────────────── */
             let currentRole = null;
             let currentStep = 1;
+            let verifiedEmail = null;   // email that has passed code verification
+            let pendingFormValues = null; // form values stashed while verify modal is open
+            let awaitingVerification = false; // true while the verify-code modal is open — survives a reload
             let map = null;
             let marker = null;
             const REGISTER_STATE_KEY = "zesto_register_state_v1";
@@ -1404,7 +1536,7 @@
                     });
                     localStorage.setItem(
                         REGISTER_STATE_KEY,
-                        JSON.stringify({ currentRole, currentStep, formState }),
+                        JSON.stringify({ currentRole, currentStep, formState, awaitingVerification }),
                     );
                 } catch (err) {
                     console.warn("Could not save registration state", err);
@@ -1441,6 +1573,16 @@
                     // Only restore steps 1 and 2 — never land on step 3
                     const step = Number.isInteger(saved.currentStep) ? saved.currentStep : 1;
                     goToStep(Math.min(step, 2));
+
+                    // If a verification was in progress when the tab got
+                    // reloaded/discarded (backgrounding on mobile, etc.),
+                    // reopen the modal instead of silently losing it — the
+                    // code they already received is still valid for a
+                    // while, so let them come back and type it in.
+                    if (saved.awaitingVerification && saved.formState?.emailInput) {
+                        pendingFormValues = getValues();
+                        openVerifyModal(pendingFormValues.email, { resumed: true });
+                    }
                 } catch (err) {
                     console.warn("Could not restore registration state", err);
                     goToStep(1);
@@ -1539,6 +1681,7 @@
                                 marker = L.marker(e.latlng, { icon: customIcon }).addTo(map);
                                 document.getElementById("latitude").value = e.latlng.lat.toFixed(6);
                                 document.getElementById("longitude").value = e.latlng.lng.toFixed(6);
+                                clearFieldError("location");
                             });
                         } else {
                             map.invalidateSize();
@@ -1701,17 +1844,19 @@
             }
 
             /* ─── ERROR UI ──────────────────────────── */
+            let formErrorTimer = null;
             function showError(msg) {
                 const box = document.getElementById("form-error-box");
                 const txt = document.getElementById("form-error-msg");
                 if (!box || !txt) return;
                 txt.textContent = msg;
-                box.style.display = "flex";
-                box.scrollIntoView({ behavior: "smooth", block: "nearest" });
+                box.classList.add("show");
+                clearTimeout(formErrorTimer);
+                formErrorTimer = setTimeout(hideError, 6000);
             }
             function hideError() {
                 const box = document.getElementById("form-error-box");
-                if (box) box.style.display = "none";
+                if (box) box.classList.remove("show");
             }
 
             /* ─── LOADING STATE ─────────────────────── */
@@ -1759,37 +1904,263 @@
             }
 
             /* ─── VALIDATION ────────────────────────── */
-            function validate(f) {
-                if (!f.firstName || !f.lastName) return "Please enter your first and last name.";
-                if (!f.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.email)) return "Please enter a valid email address.";
-                if (!f.phone) return "Please enter your phone number.";
-                if (f.password.length < 8) return "Password must be at least 8 characters.";
-                if (f.password !== f.confirmPassword) return "Passwords do not match.";
-                if (!f.terms) return "You must agree to the Terms of Service and Privacy Policy.";
+            const PHONE_RE = /^(\+?256|0)7\d{8}$/; // matches shared_auth.js — Ugandan numbers
+            const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
+            // ── Inline field error helpers (same pattern as shared_auth.js) ──
+            function setFieldError(inputId, message) {
+                const errEl = document.getElementById(inputId + "Error");
+                if (!errEl) return;
+                const input = document.getElementById(inputId);
+                input?.classList.add("input-error");
+                input?.setAttribute("aria-invalid", "true");
+                errEl.textContent = message;
+                errEl.style.display = "block";
+            }
+
+            function clearFieldError(inputId) {
+                const errEl = document.getElementById(inputId + "Error");
+                if (!errEl) return;
+                const input = document.getElementById(inputId);
+                input?.classList.remove("input-error");
+                input?.removeAttribute("aria-invalid");
+                errEl.textContent = "";
+                errEl.style.display = "none";
+            }
+
+            const ALL_FIELD_IDS = [
+                "firstName", "lastName", "emailInput", "phoneInput",
+                "passwordInput", "confirmPassword", "restaurantName",
+                "restaurantAddress", "location", "vehicleNumber",
+                "nationalId", "termsCheck",
+            ];
+            function clearAllFieldErrors() {
+                ALL_FIELD_IDS.forEach(clearFieldError);
+            }
+
+            // Clear a field's error the moment the user starts fixing it —
+            // same as the "input" listener in shared_auth.js.
+            [
+                "firstName", "lastName", "emailInput", "phoneInput",
+                "passwordInput", "confirmPassword", "restaurantName",
+                "restaurantAddress", "vehicleNumber", "nationalId",
+            ].forEach((id) => {
+                document.getElementById(id)?.addEventListener("input", () => clearFieldError(id));
+            });
+            document.getElementById("termsCheck")?.addEventListener("change", () => clearFieldError("termsCheck"));
+
+            // Returns true if valid; shows inline errors under each bad
+            // field (instead of one message) if not — same UX as the
+            // customer sign-up modal in shared_auth.js.
+            function validateForm(f) {
+                let ok = true;
+                clearAllFieldErrors();
+
+                if (!f.firstName) { setFieldError("firstName", "First name is required."); ok = false; }
+                if (!f.lastName)  { setFieldError("lastName", "Last name is required."); ok = false; }
+
+                if (!f.email) {
+                    setFieldError("emailInput", "Email address is required.");
+                    ok = false;
+                } else if (!EMAIL_RE.test(f.email)) {
+                    setFieldError("emailInput", "Enter a valid email address (e.g. you@example.com).");
+                    ok = false;
+                }
+
+                if (!f.phone) {
+                    setFieldError("phoneInput", "Phone number is required.");
+                    ok = false;
+                } else if (!PHONE_RE.test(f.phone.replace(/\s/g, ""))) {
+                    setFieldError("phoneInput", "Enter a valid Ugandan number (e.g. 0712345678 or +256712345678).");
+                    ok = false;
+                }
+
+                if (!f.password) {
+                    setFieldError("passwordInput", "Password is required.");
+                    ok = false;
+                } else if (f.password.length < 8) {
+                    setFieldError("passwordInput", "Password must be at least 8 characters.");
+                    ok = false;
+                }
+
+                if (!f.confirmPassword) {
+                    setFieldError("confirmPassword", "Please confirm your password.");
+                    ok = false;
+                } else if (f.confirmPassword !== f.password) {
+                    setFieldError("confirmPassword", "Passwords do not match.");
+                    ok = false;
+                }
 
                 if (currentRole === "restaurant") {
-                    if (!f.restaurantName) return "Please enter your restaurant name.";
-                    if (!f.restaurantAddress) return "Please enter your restaurant address.";
-                    if (!f.latitude || !f.longitude) return "Please click the map to set your restaurant location.";
+                    if (!f.restaurantName) { setFieldError("restaurantName", "Restaurant name is required."); ok = false; }
+                    if (!f.restaurantAddress) { setFieldError("restaurantAddress", "Address is required."); ok = false; }
+                    if (!f.latitude || !f.longitude) {
+                        setFieldError("location", "Click the map to set your restaurant location.");
+                        ok = false;
+                    }
                 }
 
                 if (currentRole === "rider") {
-                    if (!f.vehicleNumber) return "Please enter your vehicle registration number.";
-                    if (!f.nationalId) return "Please enter your national ID.";
+                    if (!f.vehicleNumber) { setFieldError("vehicleNumber", "Vehicle registration number is required."); ok = false; }
+                    if (!f.nationalId) { setFieldError("nationalId", "National ID is required."); ok = false; }
                 }
 
-                return null;
+                if (!f.terms) {
+                    setFieldError("termsCheck", "You must agree to the Terms of Service and Privacy Policy.");
+                    ok = false;
+                }
+
+                return ok;
             }
 
-            /* ─── FORM SUBMIT ───────────────────────── */
+            /* ─── FORM SUBMIT (gatekeeper) ───────────── */
+            // Click #1: validate the form, then require a verified email
+            // before anything touches the real registration endpoint.
             async function handleSignup(e) {
                 e.preventDefault();
                 hideError();
 
                 const f = getValues();
-                const err = validate(f);
-                if (err) { showError(err); return; }
+                if (!validateForm(f)) return;
 
+                pendingFormValues = f;
+
+                // Already verified this exact email in this session? Skip straight to submit.
+                if (verifiedEmail === f.email) {
+                    return submitRegistration(f);
+                }
+
+                await requestVerificationCode(f.email);
+            }
+
+            /* ─── EMAIL VERIFICATION ────────────────── */
+            // Raw API call, no UI side effects — used by both the initial
+            // send (click #1, before the modal is open) and resend
+            // (inside the modal). Keeping the fetch in one place means
+            // there's only one spot to fix if the endpoint ever changes.
+            async function sendCodeRequest(email) {
+                const res = await fetch("/api/auth/send-code", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    credentials: "include",
+                    body: JSON.stringify({ email }),
+                });
+                const data = await res.json().catch(() => ({}));
+                if (!res.ok) throw new Error(data.message || "Could not send verification code.");
+                return data;
+            }
+
+            // Click #1 — modal isn't open yet, so loading state + errors
+            // show on the main form (submitBtn / form-error-box).
+            async function requestVerificationCode(email) {
+                setLoading(true);
+                try {
+                    await sendCodeRequest(email);
+                    openVerifyModal(email);
+                } catch (err) {
+                    const msg = err.message || "Could not send verification code. Please try again.";
+                    // "Account already exists" etc is about the email field specifically —
+                    // show it right there instead of a generic top banner.
+                    if (/email/i.test(msg)) {
+                        setFieldError("emailInput", msg);
+                    } else {
+                        showError(msg);
+                    }
+                } finally {
+                    setLoading(false);
+                }
+            }
+
+            function openVerifyModal(email, { resumed = false } = {}) {
+                document.getElementById("verify-email-label").textContent = email;
+                // Don't wipe a code the user already typed if we're just
+                // restoring after a backgrounded-tab reload.
+                if (!resumed) document.getElementById("verifyCodeInput").value = "";
+                document.getElementById("verify-error-box").style.display = "none";
+                document.getElementById("verifyModal").classList.add("open");
+                document.getElementById("verifyCodeInput").focus();
+
+                document.getElementById("verify-resume-note").style.display = resumed ? "block" : "none";
+
+                awaitingVerification = true;
+                persistRegisterState();
+            }
+
+            function closeVerifyModal() {
+                document.getElementById("verifyModal").classList.remove("open");
+                awaitingVerification = false;
+                persistRegisterState();
+            }
+
+            function showVerifyError(msg) {
+                const box = document.getElementById("verify-error-box");
+                const txt = document.getElementById("verify-error-msg");
+                txt.textContent = msg;
+                box.style.display = "flex";
+            }
+
+            function hideVerifyError() {
+                document.getElementById("verify-error-box").style.display = "none";
+            }
+
+            async function confirmVerificationCode() {
+                const code = document.getElementById("verifyCodeInput").value.trim();
+
+                if (!/^\d{6}$/.test(code)) {
+                    showVerifyError("Enter the 6-digit code from your email.");
+                    return;
+                }
+
+                const btn = document.getElementById("verifyConfirmBtn");
+                btn.disabled = true;
+
+                try {
+                    const res = await fetch("/api/auth/verify-code", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        credentials: "include",
+                        body: JSON.stringify({ email: pendingFormValues.email, code }),
+                    });
+                    const data = await res.json().catch(() => ({}));
+
+                    if (!res.ok) throw new Error(data.message || "Invalid or expired code.");
+
+                    verifiedEmail = pendingFormValues.email;
+                    closeVerifyModal();
+                    await submitRegistration(pendingFormValues);
+                } catch (err) {
+                    showVerifyError(err.message || "Invalid or expired code.");
+                } finally {
+                    btn.disabled = false;
+                }
+            }
+
+            // Resend — the modal is already open and covers the whole page
+            // (z-index above the main form), so all feedback — loading
+            // state AND any error — has to live inside the modal itself,
+            // not on the submitBtn/form-error-box sitting underneath it.
+            async function resendVerificationCode() {
+                if (!pendingFormValues?.email) return;
+                const btn = document.getElementById("resendCodeBtn");
+                hideVerifyError();
+                btn.disabled = true;
+                btn.textContent = "Sending…";
+                try {
+                    await sendCodeRequest(pendingFormValues.email);
+                    document.getElementById("verifyCodeInput").value = "";
+                    document.getElementById("verifyCodeInput").focus();
+                    btn.textContent = "Code sent ✓";
+                    setTimeout(() => { btn.textContent = "Resend code"; }, 2500);
+                } catch (err) {
+                    showVerifyError(err.message || "Could not resend code. Please try again.");
+                    btn.textContent = "Resend code";
+                } finally {
+                    btn.disabled = false;
+                }
+            }
+
+            /* ─── ACTUAL REGISTRATION (click #2, post-verify) ── */
+            async function submitRegistration(f) {
                 const endpoint = currentRole === "restaurant"
                     ? "/api/auth/register/restaurant"
                     : "/api/auth/register/rider";
@@ -1849,9 +2220,12 @@
 
                 } catch (err) {
                     let msg = err.message || "Something went wrong. Please try again.";
-                    if (/duplicate|already registered|already exists/i.test(msg))
+                    if (/duplicate|already registered|already exists/i.test(msg)) {
                         msg = "An account with this email already exists.";
-                    showError(msg);
+                        setFieldError("emailInput", msg);
+                    } else {
+                        showError(msg);
+                    }
                 } finally {
                     setLoading(false);
                 }
@@ -1862,10 +2236,16 @@
                 window.location.href = "/restaurant-admin/index.html";
             }
 
-            /* ─── KEYBOARD: ESC closes modal ────────── */
+            /* ─── KEYBOARD: ESC closes modal, Enter submits code ── */
             document.addEventListener("keydown", (e) => {
                 if (e.key === "Escape" && document.getElementById("successModal").classList.contains("open")) {
                     closeSuccessModal();
+                }
+                if (e.key === "Escape" && document.getElementById("verifyModal").classList.contains("open")) {
+                    closeVerifyModal();
+                }
+                if (e.key === "Enter" && document.getElementById("verifyModal").classList.contains("open")) {
+                    confirmVerificationCode();
                 }
             });
 
@@ -1875,6 +2255,9 @@
             window.checkStrength = checkStrength;
             window.togglePassword = togglePassword;
             window.handleSignup = handleSignup;
+            window.confirmVerificationCode = confirmVerificationCode;
+            window.resendVerificationCode = resendVerificationCode;
+            window.closeVerifyModal = closeVerifyModal;
             window.goToDashboard = goToDashboard;
             window.showSuccessModal = showSuccessModal;
             window.closeSuccessModal = closeSuccessModal;

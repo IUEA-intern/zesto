@@ -12,6 +12,8 @@
  * ─────────────────────────────────────────────────────────────────────
  *
  * Routes:
+ *   POST  /api/auth/send-code           → emailVerificationController.sendCode
+ *   POST  /api/auth/verify-code         → emailVerificationController.verifyCode
  *   POST  /api/auth/register/customer   → controller.registerCustomer
  *   POST  /api/auth/login               → controller.login
  *   POST  /api/auth/logout              → controller.logout
@@ -22,6 +24,11 @@ const express = require("express");
 const router = express.Router();
 const controller = require("../controllers/authController");
 const onController = require("../controllers/onboardingController");
+const emailVerificationController = require("../controllers/emailVerificationController");
+
+// Role-agnostic — used by customer, restaurant, and rider registration alike.
+router.post("/send-code", emailVerificationController.sendCode);
+router.post("/verify-code", emailVerificationController.verifyCode);
 
 router.post("/register/customer", controller.registerCustomer);
 router.post("/login", controller.login);

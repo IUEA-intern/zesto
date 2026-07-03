@@ -3,6 +3,7 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { query } = require("../config/db");
+const { consumeEmailVerification } = require("./emailVerificationController");
 
 const COOKIE_NAME = "zesto_token";
 const JWT_SECRET = process.env.JWT_SECRET || "zesto_jwt_secret";
@@ -208,6 +209,14 @@ async function registerRestaurantAdmin(req, res) {
       return res.status(400).json({ success: false, message: validationError });
     }
 
+    const emailVerified = await consumeEmailVerification(payload.email);
+    if (!emailVerified) {
+      return res.status(400).json({
+        success: false,
+        message: "Please verify your email before creating an account.",
+      });
+    }
+
     const userId = await upsertUser({
       name: payload.name,
       email: payload.email,
@@ -245,6 +254,14 @@ async function registerRider(req, res) {
     const validationError = validateRiderPayload(payload);
     if (validationError) {
       return res.status(400).json({ success: false, message: validationError });
+    }
+
+    const emailVerified = await consumeEmailVerification(payload.email);
+    if (!emailVerified) {
+      return res.status(400).json({
+        success: false,
+        message: "Please verify your email before creating an account.",
+      });
     }
 
     const userId = await upsertUser({
