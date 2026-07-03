@@ -2,18 +2,18 @@
 
 /**
  * controllers/emailVerificationController.js
- * ─────────────────────────────────────────────────────────────────────
+ * â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
  * Role-agnostic email verification. Used before customer, restaurant,
- * and rider registration all alike — so this is the ONLY place the
+ * and rider registration all alike â€” so this is the ONLY place the
  * send/verify logic lives.
  *
- *   sendCode()               → POST /api/auth/send-code
- *   verifyCode()              → POST /api/auth/verify-code
- *   consumeEmailVerification()→ internal helper, called by
+ *   sendCode()               â†’ POST /api/auth/send-code
+ *   verifyCode()              â†’ POST /api/auth/verify-code
+ *   consumeEmailVerification()â†’ internal helper, called by
  *                                authController.registerCustomer and
  *                                onboardingController.register* right
  *                                before they insert a new user.
- * ─────────────────────────────────────────────────────────────────────
+ * â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
  */
 
 const { query } = require("../config/db");
@@ -131,7 +131,7 @@ async function verifyCode(req, res) {
 /**
  * Called internally by registerCustomer / registerRestaurantAdmin /
  * registerRider right before they insert a new user. Returns true only
- * if this email has a verified, unexpired code — and consumes it
+ * if this email has a verified, unexpired code â€” and consumes it
  * (deletes the row) so the same code can't be reused for a second
  * account.
  */
@@ -139,13 +139,20 @@ async function consumeEmailVerification(email) {
   const normalized = (email || "").trim().toLowerCase();
   if (!normalized) return false;
 
+  // NOTE: expiry is checked in JS (Date.now()) rather than "expires_at > NOW()"
+  // in SQL. NOW() is evaluated using the DB server's own session time zone,
+  // which can silently drift from Node's clock/timezone on a fresh server
+  // (this caused every code to look "expired" the instant it was verified,
+  // even though verifyCode()'s JS-side check said it was still valid).
   const rows = await query(
-    "SELECT id FROM email_verifications WHERE email = ? AND verified = 1 AND expires_at > NOW()",
+    "SELECT id, verified, expires_at FROM email_verifications WHERE email = ?",
     [normalized]
   );
-  if (!rows.length) return false;
+  const record = rows[0];
+  if (!record || !record.verified) return false;
+  if (new Date(record.expires_at).getTime() < Date.now()) return false;
 
-  await query("DELETE FROM email_verifications WHERE id = ?", [rows[0].id]);
+  await query("DELETE FROM email_verifications WHERE id = ?", [record.id]);
   return true;
 }
 
