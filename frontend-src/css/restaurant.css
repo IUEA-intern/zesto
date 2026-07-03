@@ -375,3 +375,31 @@ a{text-decoration:none;color:inherit;}
     border-radius: 8px;
     margin-bottom: 16px;
   }
+  /* Fix hamburger position on mobile */
+@media screen and (max-width:768px){
+
+    .nav-inner{
+        display:flex !important;
+        align-items:center;
+        justify-content:space-between;
+        width:100%;
+    }
+
+    .nav-logo{
+        margin-right:auto;
+    }
+
+    .nav-hamburger{
+        display:flex !important;
+        flex-direction:column;
+        margin-left:auto !important;
+    }
+
+    .nav-actions{
+        display:none;
+    }
+
+    .nav-loc{
+        display:none;
+    }
+}
