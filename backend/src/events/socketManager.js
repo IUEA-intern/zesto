@@ -1,7 +1,7 @@
 /**
  * server/events/socketManager.js
  * ──────────────────────────────────────────────────────────────
- * Zesto — Scalable Socket.IO Architecture
+ * Khalas — Scalable Socket.IO Architecture
  *
  * ROOM DESIGN
  * ───────────
@@ -9,6 +9,9 @@
  *   admin:dashboard        all admin/staff connections
  *   order:{orderId}        per-order tracking channel
  *   kitchen:live_updates   kitchen display system
+ *   restaurant:{id}        restaurant admin dashboard
+ *   riders:pool            all online riders (delivery pool)
+ *   rider:{riderId}        personal rider notifications
  *
  * EVENT CATALOGUE
  * ───────────────
@@ -30,13 +33,12 @@
  *   kitchen:new_order      order needs prep
  *   kitchen:order_ready    order ready for pickup
  *
- * DESIGN PRINCIPLES
- * ─────────────────
- *   • Room-based isolation — no global emit spam
- *   • Listener cleanup on disconnect
- *   • Redis-adapter-ready (attach adapter externally)
- *   • Idempotency: events carry version/timestamp
- *   • Payload envelope: { event, data, ts, v }
+ * RIDER EVENTS (server → riders:pool)
+ *   order:available        new order ready for pickup (broadcast to all riders)
+ *   order:claimed          order was accepted by a rider (remove from pool)
+ *
+ * RIDER PERSONAL EVENTS (server → rider:{id})
+ *   delivery:update        delivery status changed
  * ──────────────────────────────────────────────────────────────
  */
 
@@ -73,12 +75,10 @@ function initSocketManager(io) {
       socket.join(`user:${userId}`);
       socket.join(`user_${userId}`);
       socket.data.userId = userId;
-      console.log(`   â†³ Joined user rooms for ${userId}`);
+      console.log(`   ↳ Joined user rooms for ${userId}`);
     });
 
     socket.on('admin:join', (token) => {
-      // Token validated in HTTP layer before WS; trust role from session
-      // For extra safety, we only let sockets with .data.role set join
       socket.join('admin:dashboard');
       socket.join('kitchen:live_updates');
       console.log(`   ↳ Joined admin:dashboard`);
@@ -91,6 +91,23 @@ function initSocketManager(io) {
       socket.join(room);
       socket.data.restaurantId = restaurantId;
       console.log(`   ↳ Joined ${room}`);
+    });
+
+    /* ── JOIN: rider pool room (all online riders) ─────────── */
+    socket.on('rider:join', ({ riderId, userId }) => {
+      if (!riderId || isNaN(riderId)) return;
+      socket.join('riders:pool');
+      socket.join(`rider:${riderId}`);
+      socket.data.riderId = riderId;
+      socket.data.userId  = userId;
+      console.log(`   ↳ Rider ${riderId} joined pool`);
+    });
+
+    /* ── LEAVE: rider goes offline ───────────────────────────── */
+    socket.on('rider:leave', () => {
+      socket.leave('riders:pool');
+      if (socket.data.riderId) socket.leave(`rider:${socket.data.riderId}`);
+      console.log(`   ↳ Rider ${socket.data.riderId} left pool`);
     });
 
     /* ── JOIN: per-order tracking room ──────────────────────── */
@@ -108,7 +125,6 @@ function initSocketManager(io) {
     /* ── Cleanup on disconnect ───────────────────────────────── */
     socket.on('disconnect', (reason) => {
       console.log(`🔌 Socket disconnected  id=${socket.id}  reason=${reason}`);
-      // socket.rooms is auto-cleaned by socket.io — no manual leak
     });
 
     /* ── Ping/pong health ─────────────────────────────────────*/
@@ -157,8 +173,10 @@ function emitters(io) {
     adminOrderUpdate(orderData) {
       io.to('admin:dashboard').emit('order:update', envelope('order:update', orderData));
       // Also push to per-order room for customer tracking
-      io.to(`order:${orderData.orderId}`).emit('order:update',
-        envelope('order:update', orderData));
+      if (orderData.orderId) {
+        io.to(`order:${orderData.orderId}`).emit('order:update',
+          envelope('order:update', orderData));
+      }
     },
 
     /** Order status changed for a specific restaurant */
@@ -223,6 +241,31 @@ function emitters(io) {
     kitchenOrderReady(orderId, orderNumber) {
       io.to('kitchen:live_updates').emit('kitchen:order_ready',
         envelope('kitchen:order_ready', { orderId, orderNumber }));
+    },
+
+    /* ── Rider channel ────────────────────────────────────── */
+
+    /**
+     * Broadcast new available order to ALL online riders in the pool.
+     * Called when an order reaches ready_for_pickup status.
+     */
+    riderNewOrder(orderData) {
+      io.to('riders:pool').emit('order:available', envelope('order:available', orderData));
+    },
+
+    /**
+     * Notify all riders that an order was claimed — remove it from their pool UI.
+     * Called immediately after a rider accepts an order (atomic claim).
+     */
+    riderOrderClaimed(orderId, riderId) {
+      io.to('riders:pool').emit('order:claimed', envelope('order:claimed', { orderId, riderId }));
+    },
+
+    /**
+     * Notify a specific rider of a delivery status update.
+     */
+    riderDeliveryUpdate(riderId, deliveryData) {
+      io.to(`rider:${riderId}`).emit('delivery:update', envelope('delivery:update', deliveryData));
     },
   };
 }

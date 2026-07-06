@@ -28,7 +28,9 @@ app.use(helmet({
 }))
 
 app.use(cors({
-  origin: process.env.CORS_ORIGIN || ['http://localhost:3000', 'http://localhost:5000', 'http://localhost:5500'],
+  origin: process.env.CORS_ORIGIN
+    ? process.env.CORS_ORIGIN.split(',').map(s => s.trim())
+    : ['http://localhost:3000', 'http://localhost:5000', 'http://localhost:5500'],
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
@@ -57,8 +59,6 @@ app.use('/uploads', express.static(path.join(__dirname, '../uploads')))
 app.use(express.static(frontendPath))
 
 // ── Existing routes (unchanged) ───────────────────────────────
-// app.use('/api/register',    require('./routes/register'))
-// app.use('/api/signin',      require('./routes/signin'))
 app.use('/api/products',    require('./routes/products'))
 app.use('/api/restaurants', require('./routes/restaurants'))
 app.use('/api/cart',        require('./routes/cart'))
@@ -70,6 +70,9 @@ app.use('/api/admin',       require('./routes/admin'))          // legacy admin 
 // ── New marketplace routes ────────────────────────────────────
 app.use('/api/super-admin', require('./routes/superAdmin'))     // super_admin
 app.use('/api/restaurant',  require('./routes/restaurantAdmin')) // restaurant_admin
+
+// ── Rider mobile app routes ────────────────────────────────────
+app.use('/api/rider',       require('./routes/rider'))          // rider role
 
 app.use((req, res) => {
   if (req.method === 'GET' && req.accepts('html')) {

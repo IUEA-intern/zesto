@@ -6,13 +6,19 @@ const { testConnection } = require('./config/db')
 const { initSocketManager } = require('./events/socketManager')
 
 const PORT = process.env.PORT || 3000
+
 const server = http.createServer(app)
+
+// Allow all origins for Socket.IO so the React Native mobile app can connect
 const io = new Server(server, {
   cors: {
-    origin: process.env.CORS_ORIGIN || ['http://localhost:3000', 'http://localhost:5000', 'http://localhost:5500'],
+    origin: '*',
     methods: ['GET', 'POST'],
-    credentials: true,
+    credentials: false,
   },
+  // Increase ping timeout for mobile clients on slow networks
+  pingTimeout: 60000,
+  pingInterval: 25000,
 })
 
 app.set('io', io)
