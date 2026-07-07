@@ -4,6 +4,24 @@
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Join Zesto</title>
+        <link rel="icon" type="image/svg+xml"
+href='data:image/svg+xml,
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+    
+    <!-- Background -->
+    <circle cx="32" cy="32" r="30" fill="%23FF6200"/>
+
+    <!-- Lightning Z -->
+    <path d="M40 10
+             L22 30
+             H33
+             L24 54
+             L44 30
+             H33
+             Z"
+          fill="white"/>
+          
+</svg>'>
 
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -20,7 +38,7 @@
 
         <style>
             /* ─────────────────────────────────────────────
-   CSS VARIABLES  (normally lives in index.css)
+   CSS VARIABLES
 ───────────────────────────────────────────── */
             :root {
                 --or: #ff5500;
@@ -56,7 +74,6 @@
                 overflow-x: hidden;
             }
 
-            /* Minimal shared btn */
             .btn {
                 display: inline-flex;
                 align-items: center;
@@ -104,7 +121,6 @@
                 overflow: hidden;
             }
 
-            /* Dot grid */
             .gs-left::before {
                 content: "";
                 position: absolute;
@@ -118,7 +134,6 @@
                 pointer-events: none;
             }
 
-            /* Orange glow */
             .gs-left::after {
                 content: "";
                 position: absolute;
@@ -225,7 +240,6 @@
                 margin-bottom: 40px;
             }
 
-            /* Benefits */
             .gs-benefits {
                 display: flex;
                 flex-direction: column;
@@ -266,35 +280,6 @@
                 color: rgba(255, 255, 255, 0.4);
             }
 
-            /* Promo pill */
-            .gs-promo {
-                display: inline-flex;
-                align-items: center;
-                gap: 10px;
-                background: rgba(255, 85, 0, 0.15);
-                border: 1.5px dashed rgba(255, 85, 0, 0.4);
-                border-radius: var(--r12);
-                padding: 12px 18px;
-                width: fit-content;
-            }
-            .gs-promo-emoji {
-                font-size: 18px;
-            }
-            .gs-promo-label {
-                font-size: 10px;
-                color: rgba(255, 255, 255, 0.4);
-                font-weight: 500;
-                text-transform: uppercase;
-                letter-spacing: 0.08em;
-            }
-            .gs-promo-code {
-                font-size: 16px;
-                font-weight: 800;
-                color: var(--or);
-                letter-spacing: 2px;
-            }
-
-            /* Social proof */
             .gs-social-proof {
                 position: relative;
                 z-index: 2;
@@ -596,7 +581,6 @@
                 gap: 12px;
             }
 
-            /* Password eye toggle */
             .gs-input-icon {
                 position: relative;
             }
@@ -627,7 +611,6 @@
                 margin-top: 2px;
             }
 
-            /* Password strength bars */
             .password-strength {
                 display: flex;
                 gap: 4px;
@@ -650,7 +633,6 @@
                 background: #22c55e;
             }
 
-            /* Section divider */
             .section-divider {
                 display: flex;
                 align-items: center;
@@ -668,7 +650,6 @@
                 background: var(--lt2);
             }
 
-            /* Leaflet map */
             #restaurant-map {
                 height: 260px;
                 border-radius: var(--r12);
@@ -676,7 +657,6 @@
                 border: 1.5px solid var(--lt2);
             }
 
-            /* Checkbox */
             .gs-checkbox {
                 display: flex;
                 align-items: flex-start;
@@ -705,7 +685,6 @@
                 text-decoration: underline;
             }
 
-            /* Error box */
             .form-error {
                 background: #fef2f2;
                 border: 1.5px solid #fecaca;
@@ -716,6 +695,61 @@
                 display: none;
                 align-items: center;
                 gap: 8px;
+            }
+
+            /* Top-level submit banner behaves like a toast: fixed,
+               top-center, above the modal/form — not squeezed in above
+               the fields where it's easy to scroll past. */
+            #form-error-box {
+                position: fixed;
+                top: 24px;
+                left: 50%;
+                display: flex;
+                transform: translateX(-50%) translateY(-10px);
+                z-index: 10000;
+                max-width: 92vw;
+                width: max-content;
+                min-width: 280px;
+                box-shadow: 0 12px 32px rgba(0, 0, 0, 0.16);
+                opacity: 0;
+                pointer-events: none;
+                transition: opacity 0.2s ease, transform 0.2s ease;
+            }
+            #form-error-box.show {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+                pointer-events: auto;
+            }
+            @media (max-width: 600px) {
+                #form-error-box { top: 16px; width: calc(100vw - 32px); }
+            }
+
+            /* ── Inline per-field errors (same look as shared_auth.js) ── */
+            .field-error {
+                display: none;
+                margin-top: 6px;
+                font-size: 0.78rem;
+                font-weight: 600;
+                color: #ef4444;
+                line-height: 1.4;
+                animation: fieldErrorReveal 0.18s ease;
+            }
+            @keyframes fieldErrorReveal {
+                from { opacity: 0; transform: translateY(-4px); }
+                to   { opacity: 1; transform: translateY(0); }
+            }
+            .gs-input.input-error,
+            .gs-select.input-error,
+            .gs-textarea.input-error {
+                border-color: #ef4444 !important;
+                background: #fff5f5;
+                box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+            }
+            .gs-input.input-error:focus,
+            .gs-select.input-error:focus,
+            .gs-textarea.input-error:focus {
+                border-color: #ef4444 !important;
+                box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.16);
             }
 
             /* ─────────────────────────────────────────────
@@ -779,7 +813,6 @@
                 background: var(--lt);
             }
 
-            /* Back button */
             .back-btn {
                 display: inline-flex;
                 align-items: center;
@@ -803,7 +836,6 @@
                 height: 16px;
             }
 
-            /* Role chip */
             .selected-role-chip {
                 display: inline-flex;
                 align-items: center;
@@ -819,7 +851,7 @@
             }
 
             /* ─────────────────────────────────────────────
-   STEP 3 — SUCCESS
+   STEP 3 — SUCCESS (perk rows reused in modal)
 ───────────────────────────────────────────── */
             .step3-content {
                 display: flex;
@@ -847,7 +879,7 @@
             }
 
             .step3-title {
-                font-family: "Knewave", cursive;
+                font-family:Arial, Helvetica, sans-serif;
                 font-size: 28px;
                 color: var(--dk);
             }
@@ -880,6 +912,85 @@
                 font-size: 11px;
                 color: var(--mid);
                 margin-top: 2px;
+            }
+
+            /* ─────────────────────────────────────────────
+   SUCCESS MODAL
+───────────────────────────────────────────── */
+            .success-modal-overlay {
+                position: fixed;
+                inset: 0;
+                background: rgba(0, 0, 0, 0.55);
+                backdrop-filter: blur(5px);
+                -webkit-backdrop-filter: blur(5px);
+                z-index: 1000;
+                display: none;
+                align-items: center;
+                justify-content: center;
+                padding: 20px;
+            }
+            .success-modal-overlay.open {
+                display: flex;
+            }
+
+            .success-modal {
+                background: white;
+                border-radius: 24px;
+                padding: 48px 40px 40px;
+                max-width: 480px;
+                width: 100%;
+                position: relative;
+                box-shadow:
+                    0 4px 6px rgba(0, 0, 0, 0.05),
+                    0 24px 80px rgba(0, 0, 0, 0.22);
+                animation: modalIn 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+                max-height: 90vh;
+                overflow-y: auto;
+            }
+
+            @keyframes modalIn {
+                from {
+                    opacity: 0;
+                    transform: scale(0.9) translateY(12px);
+                }
+                to {
+                    opacity: 1;
+                    transform: scale(1) translateY(0);
+                }
+            }
+
+            .modal-close-btn {
+                position: absolute;
+                top: 16px;
+                right: 16px;
+                width: 34px;
+                height: 34px;
+                background: var(--lt);
+                border: 1.5px solid var(--lt2);
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                color: var(--mid);
+                transition: all 0.18s;
+                font-family: "Plus Jakarta Sans", sans-serif;
+                flex-shrink: 0;
+            }
+            .modal-close-btn:hover {
+                background: var(--lt2);
+                color: var(--dk);
+                border-color: var(--mid);
+            }
+            .modal-close-btn svg {
+                width: 14px;
+                height: 14px;
+            }
+
+            .modal-action-row {
+                display: flex;
+                gap: 10px;
+                width: 100%;
             }
 
             /* ─────────────────────────────────────────────
@@ -919,6 +1030,9 @@
                     justify-content: space-between;
                     margin-bottom: 32px;
                 }
+                .success-modal {
+                    padding: 40px 24px 28px;
+                }
             }
 
             @media (max-width: 480px) {
@@ -927,6 +1041,9 @@
                 }
                 .gs-input-row {
                     grid-template-columns: 1fr;
+                }
+                .modal-action-row {
+                    flex-direction: column;
                 }
             }
 
@@ -943,14 +1060,8 @@
             <div class="gs-left">
                 <div class="gs-left-nav">
                     <a href="index.html" class="gs-logo">
-                        <!-- <div class="logo-mark">
-                            <svg viewBox="0 0 24 24">
-                                <path d="M13 2L4 13h7l-1 9 10-12h-7l1-8z" />
-                            </svg>
-                        </div> -->
                         <span class="logo-text">Zes<span>to</span></span>
                     </a>
-                   
                 </div>
 
                 <div class="gs-left-content">
@@ -966,170 +1077,80 @@
                     <div class="gs-benefits">
                         <div class="gs-benefit">
                             <div class="gs-benefit-ico">
-                                <svg
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    stroke-width="1.6"
-                                >
-                                    <path
-                                        d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"
-                                    />
-                                    <circle cx="9" cy="7" r="4" />
-                                    <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-                                    <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+                                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                                    <circle cx="9" cy="7" r="4"/>
+                                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                                    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
                                 </svg>
                             </div>
                             <div class="gs-benefit-text">
-                                <div class="gs-benefit-title">
-                                    Reach thousands of customers
-                                </div>
-                                <div class="gs-benefit-sub">
-                                    Get discovered by hungry customers nearby
-                                </div>
+                                <div class="gs-benefit-title">Reach thousands of customers</div>
+                                <div class="gs-benefit-sub">Get discovered by hungry customers nearby</div>
                             </div>
                         </div>
                         <div class="gs-benefit">
                             <div class="gs-benefit-ico">
-                                <svg
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    stroke-width="1.6"
-                                >
-                                    <rect
-                                        x="2"
-                                        y="3"
-                                        width="20"
-                                        height="14"
-                                        rx="2"
-                                    />
-                                    <path d="M8 21h8M12 17v4" />
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+                                    <rect x="2" y="3" width="20" height="14" rx="2"/>
+                                    <path d="M8 21h8M12 17v4"/>
                                 </svg>
                             </div>
                             <div class="gs-benefit-text">
-                                <div class="gs-benefit-title">
-                                    Simple order dashboard
-                                </div>
-                                <div class="gs-benefit-sub">
-                                    Manage orders, menus and sales in one place
-                                </div>
+                                <div class="gs-benefit-title">Simple order dashboard</div>
+                                <div class="gs-benefit-sub">Manage orders, menus and sales in one place</div>
                             </div>
                         </div>
                         <div class="gs-benefit">
                             <div class="gs-benefit-ico">
-                                <svg
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    stroke-width="1.6"
-                                >
-                                    <circle cx="12" cy="12" r="10" />
-                                    <path d="M12 6v6l4 2" />
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+                                    <circle cx="12" cy="12" r="10"/>
+                                    <path d="M12 6v6l4 2"/>
                                 </svg>
                             </div>
                             <div class="gs-benefit-text">
-                                <div class="gs-benefit-title">
-                                    Earn on your schedule
-                                </div>
-                                <div class="gs-benefit-sub">
-                                    Flexible hours and fast payouts for riders
-                                </div>
+                                <div class="gs-benefit-title">Earn on your schedule</div>
+                                <div class="gs-benefit-sub">Flexible hours and fast payouts for riders</div>
                             </div>
                         </div>
                         <div class="gs-benefit">
                             <div class="gs-benefit-ico">
-                                <svg
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    stroke-width="1.6"
-                                >
-                                    <path
-                                        d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"
-                                    />
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+                                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
                                 </svg>
                             </div>
                             <div class="gs-benefit-text">
-                                <div class="gs-benefit-title">
-                                    Secure & reliable platform
-                                </div>
-                                <div class="gs-benefit-sub">
-                                    Your data and earnings are always protected
-                                </div>
+                                <div class="gs-benefit-title">Secure & reliable platform</div>
+                                <div class="gs-benefit-sub">Your data and earnings are always protected</div>
                             </div>
                         </div>
                     </div>
-
-                    <!-- <div class="gs-promo">
-                        <div class="gs-promo-emoji">🚀</div>
-                        <div class="gs-promo-text">
-                            <div class="gs-promo-label">
-                                Limited time — zero commission first month
-                            </div>
-                            <div class="gs-promo-code">LAUNCH0</div>
-                        </div>
-                    </div> -->
                 </div>
 
                 <div class="gs-social-proof">
                     <div class="gs-avatars">
-                        <div
-                            class="gs-avatar"
-                            style="background: #ffd4bc; color: #9a3412"
-                        >
-                            AK
-                        </div>
-                        <div
-                            class="gs-avatar"
-                            style="background: #dbeafe; color: #1d4ed8"
-                        >
-                            MD
-                        </div>
-                        <div
-                            class="gs-avatar"
-                            style="background: #d1fae5; color: #065f46"
-                        >
-                            FN
-                        </div>
-                        <div
-                            class="gs-avatar"
-                            style="background: #ede9fe; color: #5b21b6"
-                        >
-                            OT
-                        </div>
-                        <div
-                            class="gs-avatar"
-                            style="background: #fef3c7; color: #92400e"
-                        >
-                            +
-                        </div>
+                        <div class="gs-avatar" style="background: #ffd4bc; color: #9a3412">AK</div>
+                        <div class="gs-avatar" style="background: #dbeafe; color: #1d4ed8">MD</div>
+                        <div class="gs-avatar" style="background: #d1fae5; color: #065f46">FN</div>
+                        <div class="gs-avatar" style="background: #ede9fe; color: #5b21b6">OT</div>
+                        <div class="gs-avatar" style="background: #fef3c7; color: #92400e">+</div>
                     </div>
                     <div class="gs-proof-text">
-                        Trusted by <strong>1,200+ restaurants</strong><br />and
-                        riders across Uganda
+                        Trusted by <strong>1,200+ restaurants</strong><br />and riders across Uganda
                     </div>
                 </div>
             </div>
 
             <!-- ══════════ RIGHT PANEL ══════════ -->
             <div class="gs-right">
-                <!-- Mobile logo (hidden on desktop) -->
+                <!-- Mobile logo -->
                 <div class="gs-mobile-nav">
                     <a href="index.html" class="gs-logo" style="gap: 8px">
-                        <div
-                            class="logo-mark"
-                            style="width: 30px; height: 30px"
-                        >
-                            <svg viewBox="0 0 24 24">
-                                <path d="M13 2L4 13h7l-1 9 10-12h-7l1-8z" />
-                            </svg>
+                        <div class="logo-mark" style="width: 30px; height: 30px">
+                            <svg viewBox="0 0 24 24"><path d="M13 2L4 13h7l-1 9 10-12h-7l1-8z"/></svg>
                         </div>
-                        <span class="logo-text" style="font-size: 22px"
-                            >Zes<span>to</span></span
-                        >
+                        <span class="logo-text" style="font-size: 22px">Zes<span>to</span></span>
                     </a>
-                  
                 </div>
 
                 <!-- STEPPER -->
@@ -1154,138 +1175,63 @@
                 <div class="gs-step active" id="panel-1">
                     <div class="gs-panel-title">Who are you?</div>
                     <div class="gs-panel-sub">
-                        Choose your profile so we can set up the right
-                        experience for you.
+                        Choose your profile so we can set up the right experience for you.
                     </div>
 
                     <div class="role-grid">
-                        <div
-                            class="role-card"
-                            id="role-restaurant"
-                            onclick="selectRole('restaurant')"
-                        >
+                        <div class="role-card" id="role-restaurant" onclick="selectRole('restaurant')">
                             <div class="role-emoji">🏪</div>
                             <div class="role-info">
-                                <div class="role-title">
-                                    I'm a Restaurant / Shop
-                                </div>
+                                <div class="role-title">I'm a Restaurant / Shop</div>
                                 <div class="role-desc">
-                                    Register your business on Zesto and start
-                                    receiving orders from customers near you.
+                                    Register your business on Zesto and start receiving orders from customers near you.
                                 </div>
                             </div>
                             <div class="role-check">
-                                <svg
-                                    viewBox="0 0 12 12"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    stroke-width="2"
-                                >
-                                    <path
-                                        d="M2 6l3 3 5-5"
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                    />
+                                <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M2 6l3 3 5-5" stroke-linecap="round" stroke-linejoin="round"/>
                                 </svg>
                             </div>
                         </div>
 
-                        <div
-                            class="role-card"
-                            id="role-rider"
-                            onclick="selectRole('rider')"
-                        >
+                        <div class="role-card" id="role-rider" onclick="selectRole('rider')">
                             <div class="role-emoji">🛵</div>
                             <div class="role-info">
                                 <div class="role-title">I'm a Rider</div>
                                 <div class="role-desc">
-                                    Deliver orders with Zesto and earn money on
-                                    your own schedule.
+                                    Deliver orders with Zesto and earn money on your own schedule.
                                 </div>
                             </div>
                             <div class="role-check">
-                                <svg
-                                    viewBox="0 0 12 12"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    stroke-width="2"
-                                >
-                                    <path
-                                        d="M2 6l3 3 5-5"
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                    />
+                                <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M2 6l3 3 5-5" stroke-linecap="round" stroke-linejoin="round"/>
                                 </svg>
                             </div>
                         </div>
                     </div>
 
-                    <button
-                        class="gs-btn-primary"
-                        id="step1-next"
-                        onclick="goToStep(2)"
-                        disabled
-                    >
+                    <button class="gs-btn-primary" id="step1-next" onclick="goToStep(2)" disabled>
                         Continue
-                        <svg
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="2.5"
-                        >
-                            <path
-                                d="M5 12h14M14 7l5 5-5 5"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                            />
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <path d="M5 12h14M14 7l5 5-5 5" stroke-linecap="round" stroke-linejoin="round"/>
                         </svg>
                     </button>
-
-                    <!-- <div
-                        style="
-                            text-align: center;
-                            margin-top: 16px;
-                            font-size: 12px;
-                            color: var(--mid);
-                        "
-                    >
-                        Already have an account?
-                        <a
-                            href="signin.html"
-                            style="color: var(--or); font-weight: 700"
-                            >Sign in</a
-                        >
-                    </div> -->
                 </div>
 
                 <!-- ── STEP 2: Registration form ── -->
                 <div class="gs-step" id="panel-2">
                     <button class="back-btn" onclick="goToStep(1)">
-                        <svg
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="2.5"
-                        >
-                            <path
-                                d="M19 12H5M10 7l-5 5 5 5"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                            />
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <path d="M19 12H5M10 7l-5 5 5 5" stroke-linecap="round" stroke-linejoin="round"/>
                         </svg>
                         Back
                     </button>
 
-                    <div class="selected-role-chip" id="role-chip">
-                        🏪 Restaurant / Shop
-                    </div>
+                    <div class="selected-role-chip" id="role-chip">🏪 Restaurant / Shop</div>
 
-                    <div class="gs-panel-title" id="step2-title">
-                        Register your business
-                    </div>
+                    <div class="gs-panel-title" id="step2-title">Register your business</div>
                     <div class="gs-panel-sub" id="step2-sub">
-                        Get your restaurant listed on Zesto and start receiving
-                        orders.
+                        Get your restaurant listed on Zesto and start receiving orders.
                     </div>
 
                     <!-- Error -->
@@ -1294,72 +1240,38 @@
                         <span id="form-error-msg"></span>
                     </div>
 
-                    <form
-                        class="gs-form"
-                        id="joinForm"
-                        onsubmit="handleSignup(event)"
-                    >
-                        <!-- ── Common: Name ── -->
+                    <form class="gs-form" id="joinForm" onsubmit="handleSignup(event)">
+                        <!-- Name -->
                         <div class="gs-input-row">
                             <div class="gs-field">
-                                <label class="gs-label"
-                                    >First name <span>*</span></label
-                                >
-                                <input
-                                    class="gs-input"
-                                    id="firstName"
-                                    type="text"
-                                    placeholder="Mohamed"
-                                    required
-                                />
+                                <label class="gs-label">First name <span>*</span></label>
+                                <input class="gs-input" id="firstName" type="text" placeholder="Mohamed" required />
+                                <span class="field-error" id="firstNameError" role="alert"></span>
                             </div>
                             <div class="gs-field">
-                                <label class="gs-label"
-                                    >Last name <span>*</span></label
-                                >
-                                <input
-                                    class="gs-input"
-                                    id="lastName"
-                                    type="text"
-                                    placeholder="Diallo"
-                                    required
-                                />
+                                <label class="gs-label">Last name <span>*</span></label>
+                                <input class="gs-input" id="lastName" type="text" placeholder="Diallo" required />
+                                <span class="field-error" id="lastNameError" role="alert"></span>
                             </div>
                         </div>
 
-                        <!-- ── Common: Contact ── -->
+                        <!-- Contact -->
                         <div class="gs-input-row">
                             <div class="gs-field">
-                                <label class="gs-label"
-                                    >Email <span>*</span></label
-                                >
-                                <input
-                                    class="gs-input"
-                                    id="emailInput"
-                                    type="email"
-                                    placeholder="you@example.com"
-                                    required
-                                />
+                                <label class="gs-label">Email <span>*</span></label>
+                                <input class="gs-input" id="emailInput" type="email" placeholder="you@example.com" required />
+                                <span class="field-error" id="emailInputError" role="alert"></span>
                             </div>
                             <div class="gs-field">
-                                <label class="gs-label"
-                                    >Phone <span>*</span></label
-                                >
-                                <input
-                                    class="gs-input"
-                                    id="phoneInput"
-                                    type="tel"
-                                    placeholder="+256 700 000 000"
-                                    required
-                                />
+                                <label class="gs-label">Phone <span>*</span></label>
+                                <input class="gs-input" id="phoneInput" type="tel" placeholder="+256 700 000 000" required />
+                                <span class="field-error" id="phoneInputError" role="alert"></span>
                             </div>
                         </div>
 
-                        <!-- ── Common: Password ── -->
+                        <!-- Password -->
                         <div class="gs-field">
-                            <label class="gs-label"
-                                >Password <span>*</span></label
-                            >
+                            <label class="gs-label">Password <span>*</span></label>
                             <div class="gs-input-icon">
                                 <input
                                     class="gs-input"
@@ -1369,22 +1281,10 @@
                                     required
                                     oninput="checkStrength(this.value)"
                                 />
-                                <button
-                                    type="button"
-                                    class="gs-input-icon-btn"
-                                    onclick="togglePassword()"
-                                >
-                                    <svg
-                                        id="eye-icon"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        stroke-width="1.6"
-                                    >
-                                        <path
-                                            d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"
-                                        />
-                                        <circle cx="12" cy="12" r="3" />
+                                <button type="button" class="gs-input-icon-btn" onclick="togglePassword()">
+                                    <svg id="eye-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+                                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                        <circle cx="12" cy="12" r="3"/>
                                     </svg>
                                 </button>
                             </div>
@@ -1395,156 +1295,87 @@
                                 <div class="ps-bar" id="ps4"></div>
                             </div>
                             <div class="gs-hint" id="strength-label">
-                                Use at least 8 characters, with a number and
-                                symbol.
+                                Use at least 8 characters, with a number and symbol.
                             </div>
+                            <span class="field-error" id="passwordInputError" role="alert"></span>
                         </div>
 
-                        <!-- ── Common: Confirm password ── -->
+                        <!-- Confirm password -->
                         <div class="gs-field">
-                            <label class="gs-label"
-                                >Confirm Password <span>*</span></label
-                            >
-                            <input
-                                class="gs-input"
-                                id="confirmPassword"
-                                type="password"
-                                placeholder="Re-enter your password"
-                                required
-                            />
+                            <label class="gs-label">Confirm Password <span>*</span></label>
+                            <input class="gs-input" id="confirmPassword" type="password" placeholder="Re-enter your password" required />
+                            <span class="field-error" id="confirmPasswordError" role="alert"></span>
                         </div>
 
                         <!-- ══ RESTAURANT FIELDS ══ -->
-                        <div
-                            id="restaurantFields"
-                            style="
-                                display: none;
-                                flex-direction: column;
-                                gap: 16px;
-                            "
-                        >
-                            <div class="section-divider">
-                                Restaurant details
+                        <div id="restaurantFields" style="display: none; flex-direction: column; gap: 16px;">
+                            <div class="section-divider">Restaurant details</div>
+
+                            <div class="gs-field">
+                                <label class="gs-label">Restaurant Name <span>*</span></label>
+                                <input class="gs-input" id="restaurantName" type="text" placeholder="e.g. Burger Shack" />
+                                <span class="field-error" id="restaurantNameError" role="alert"></span>
                             </div>
 
                             <div class="gs-field">
-                                <label class="gs-label"
-                                    >Restaurant Name <span>*</span></label
-                                >
-                                <input
-                                    class="gs-input"
-                                    id="restaurantName"
-                                    type="text"
-                                    placeholder="e.g. Burger Shack"
-                                />
+                                <label class="gs-label">Address <span>*</span></label>
+                                <input class="gs-input" id="restaurantAddress" type="text" placeholder="e.g. Plot 12, Kampala Road" />
+                                <span class="field-error" id="restaurantAddressError" role="alert"></span>
                             </div>
 
                             <div class="gs-field">
-                                <label class="gs-label"
-                                    >Address <span>*</span></label
-                                >
-                                <input
-                                    class="gs-input"
-                                    id="restaurantAddress"
-                                    type="text"
-                                    placeholder="e.g. Plot 12, Kampala Road"
-                                />
-                            </div>
-
-                            <div class="gs-field">
-                                <label class="gs-label"
-                                    >Select Location on Map
-                                    <span>*</span></label
-                                >
+                                <label class="gs-label">Select Location on Map <span>*</span></label>
                                 <div id="restaurant-map"></div>
                                 <div class="gs-hint" style="margin-top: 6px">
-                                    Click anywhere on the map to pin your exact
-                                    location.
+                                    Click anywhere on the map to pin your exact location.
                                 </div>
+                                <span class="field-error" id="locationError" role="alert"></span>
                             </div>
 
                             <div class="gs-input-row">
                                 <div class="gs-field">
                                     <label class="gs-label">Latitude</label>
-                                    <input
-                                        class="gs-input"
-                                        id="latitude"
-                                        readonly
-                                        placeholder="Click map to set"
-                                    />
+                                    <input class="gs-input" id="latitude" readonly placeholder="Click map to set" />
                                 </div>
                                 <div class="gs-field">
                                     <label class="gs-label">Longitude</label>
-                                    <input
-                                        class="gs-input"
-                                        id="longitude"
-                                        readonly
-                                        placeholder="Click map to set"
-                                    />
+                                    <input class="gs-input" id="longitude" readonly placeholder="Click map to set" />
                                 </div>
                             </div>
 
                             <div class="gs-field">
                                 <label class="gs-label">Description</label>
-                                <textarea
-                                    class="gs-textarea"
-                                    id="description"
-                                    placeholder="Tell customers what makes your restaurant special…"
-                                ></textarea>
+                                <textarea class="gs-textarea" id="description" placeholder="Tell customers what makes your restaurant special…"></textarea>
                             </div>
                         </div>
 
                         <!-- ══ RIDER FIELDS ══ -->
-                        <div
-                            id="riderFields"
-                            style="
-                                display: none;
-                                flex-direction: column;
-                                gap: 16px;
-                            "
-                        >
+                        <div id="riderFields" style="display: none; flex-direction: column; gap: 16px;">
                             <div class="section-divider">Rider details</div>
 
                             <div class="gs-field">
-                                <label class="gs-label"
-                                    >Vehicle Type <span>*</span></label
-                                >
+                                <label class="gs-label">Vehicle Type <span>*</span></label>
                                 <select class="gs-select" id="vehicleType">
-                                    <option value="boda_boda">
-                                        🛵 Boda Boda (Motorcycle)
-                                    </option>
+                                    <option value="boda_boda">🛵 Boda Boda (Motorcycle)</option>
                                     <option value="bicycle">🚲 Bicycle</option>
                                     <option value="car">🚗 Car</option>
                                 </select>
                             </div>
 
                             <div class="gs-field">
-                                <label class="gs-label"
-                                    >Vehicle Registration Number
-                                    <span>*</span></label
-                                >
-                                <input
-                                    class="gs-input"
-                                    id="vehicleNumber"
-                                    type="text"
-                                    placeholder="e.g. UEE 123X"
-                                />
+                                <label class="gs-label">Vehicle Registration Number <span>*</span></label>
+                                <input class="gs-input" id="vehicleNumber" type="text" placeholder="e.g. UEE 123X" />
+                                <span class="field-error" id="vehicleNumberError" role="alert"></span>
                             </div>
 
                             <div class="gs-field">
-                                <label class="gs-label"
-                                    >National ID <span>*</span></label
-                                >
-                                <input
-                                    class="gs-input"
-                                    id="nationalId"
-                                    type="text"
-                                    placeholder="e.g. CM010203040506"
-                                />
+                                <label class="gs-label">National ID <span>*</span></label>
+                                <input class="gs-input" id="nationalId" type="text" placeholder="e.g. CM010203040506" />
+                                <span class="field-error" id="nationalIdError" role="alert"></span>
                             </div>
                         </div>
 
-                        <!-- ── Terms ── -->
+                        <!-- Terms -->
                         <label class="gs-checkbox">
                             <input type="checkbox" id="termsCheck" required />
                             <span class="gs-checkbox-label">
@@ -1554,111 +1385,142 @@
                                 <span style="color: var(--or)">*</span>
                             </span>
                         </label>
+                        <span class="field-error" id="termsCheckError" role="alert"></span>
 
-                        <!-- ── Submit ── -->
-                        <button
-                            type="submit"
-                            class="gs-btn-primary"
-                            id="submitBtn"
-                        >
+                        <!-- Submit -->
+                        <button type="submit" class="gs-btn-primary" id="submitBtn">
                             Submit Application
-                            <svg
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                stroke-width="2.5"
-                            >
-                                <path
-                                    d="M5 12h14M14 7l5 5-5 5"
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                />
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                <path d="M5 12h14M14 7l5 5-5 5" stroke-linecap="round" stroke-linejoin="round"/>
                             </svg>
                         </button>
                     </form>
 
-                    <div
-                        style="
-                            text-align: center;
-                            margin-top: 16px;
-                            font-size: 12px;
-                            color: var(--mid);
-                        "
-                    >
+                    <div style="text-align: center; margin-top: 16px; font-size: 12px; color: var(--mid);">
                         Already have an account?
-                        <a
-                            href="signin.html"
-                            style="color: var(--or); font-weight: 700"
-                            >Sign in instead</a
-                        >
+                        <a href="signin.html" style="color: var(--or); font-weight: 700">Sign in instead</a>
                     </div>
                 </div>
 
-                <!-- ── STEP 3: All set ── -->
-                <div class="gs-step" id="panel-3">
-                    <div class="step3-content">
-                        <div class="step3-icon">
-                            <svg
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                stroke-width="2.5"
-                            >
-                                <path
-                                    d="M5 13l4 4L19 7"
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                />
-                            </svg>
-                        </div>
+                <!-- ── STEP 3 panel (stepper reference only — content shown in modal) ── -->
+                <div class="gs-step" id="panel-3"></div>
+            </div>
+        </div>
 
-                        <div>
-                            <div class="step3-title" id="step3-welcome">
-                                Application Submitted! 🎉
-                            </div>
-                            <p
-                                class="gs-panel-sub"
-                                style="margin-bottom: 0"
-                                id="step3-sub"
-                            >
-                                Your account has been created and is pending
-                                approval. We'll notify you once it's active.
-                            </p>
-                        </div>
+        <!-- ══════════ SUCCESS MODAL ══════════ -->
+        <!-- ─── EMAIL VERIFICATION MODAL ─────────────────────── -->
+        <div class="success-modal-overlay" id="verifyModal">
+            <div class="success-modal" id="verifyModalInner" style="padding: 40px 36px 32px;">
 
-                        <!-- Role-specific next steps — filled by JS -->
-                        <div class="step3-perks" id="step3-perks"></div>
+                <button class="modal-close-btn" onclick="closeVerifyModal()" aria-label="Close">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                        <path d="M18 6L6 18M6 6l12 12" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
 
-                        <button
-                            class="gs-btn-primary"
-                            onclick="goToDashboard()"
-                        >
-                            Go to Restaurant Portal
-                            <svg
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                stroke-width="2.5"
-                            >
-                                <path
-                                    d="M5 12h14M14 7l5 5-5 5"
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                />
-                            </svg>
-                        </button>
-
-                        <div style="display: flex; gap: 10px; width: 100%">
-                            <a href="index.html" class="gs-btn-primary"
-                                >🏠 Back to home</a
-                            > </div>
-                            <div style="display: flex; gap: 10px; width: 100%">
-
-                            <a href="contact.html" class="gs-btn-secondary"
-                                >❓ Need help?</a>
-                                </div>
-                        </div>
+                <div class="step3-content">
+                    <div class="step3-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <path d="M3 8l7.89 5.26a2 2 0 0 0 2.22 0L21 8M5 19h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2z" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
                     </div>
+
+                    <div>
+                        <div class="step3-title">Check your email</div>
+                        <p class="gs-panel-sub" style="margin-bottom: 0;">
+                            We sent a 6-digit code to <strong id="verify-email-label"></strong>.
+                            It expires in 10 minutes.
+                        </p>
+                        <p id="verify-resume-note" class="gs-hint" style="display:none; margin-top: 8px;">
+                            if the code has expired, just tap "Resend code" below.
+                        </p>
+                    </div>
+
+                    <input
+                        type="text"
+                        id="verifyCodeInput"
+                        inputmode="numeric"
+                        autocomplete="one-time-code"
+                        maxlength="6"
+                        placeholder="000000"
+                        class="gs-input"
+                        style="text-align:center; font-size:24px; letter-spacing:8px; font-weight:700;"
+                    />
+
+                    <div id="verify-error-box" class="form-error" style="display:none;">
+                        <span id="verify-error-msg"></span>
+                    </div>
+
+                    <button class="gs-btn-primary" id="verifyConfirmBtn" onclick="confirmVerificationCode()">
+                        Verify &amp; Continue
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <path d="M5 12h14M14 7l5 5-5 5" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
+
+                    <p style="font-size: 12px; color: var(--mid); margin-top: -4px;">
+                        Didn't get it?
+                        <button
+                            onclick="resendVerificationCode()"
+                            id="resendCodeBtn"
+                            style="background:none;border:none;color:var(--or);font-weight:700;font-size:12px;cursor:pointer;font-family:inherit;padding:0;"
+                        >Resend code</button>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="success-modal-overlay" id="successModal" onclick="handleModalOverlayClick(event)">
+            <div class="success-modal" id="successModalInner">
+
+                <!-- Close button -->
+                <button class="modal-close-btn" onclick="closeSuccessModal()" aria-label="Close and register another">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                        <path d="M18 6L6 18M6 6l12 12" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+
+                <div class="step3-content">
+                    <!-- Success icon -->
+                    <div class="step3-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </div>
+
+                    <!-- Title & subtitle -->
+                    <div>
+                        <div class="step3-title" id="modal-welcome">Application Submitted! 🎉</div>
+                        <p class="gs-panel-sub" style="margin-bottom: 0" id="modal-sub">
+                            Your account has been created and is pending approval. We'll notify you once it's active.
+                        </p>
+                    </div>
+
+                    <!-- Perks list -->
+                    <div class="step3-perks" id="modal-perks"></div>
+
+                    <!-- Dashboard CTA -->
+                    <button class="gs-btn-primary" id="modal-dashboard-btn" onclick="goToDashboard()">
+                        Go to Restaurant Portal
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <path d="M5 12h14M14 7l5 5-5 5" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
+
+                    <!-- Secondary actions -->
+                    <div class="modal-action-row">
+                        <a href="index.html" class="gs-btn-secondary">🏠 Back to home</a>
+                        <a href="contact.html" class="gs-btn-secondary">❓ Need help?</a>
+                    </div>
+
+                    <!-- Register another hint -->
+                    <p style="font-size: 12px; color: var(--mid); margin-top: -4px;">
+                        Want to register another account?
+                        <button
+                            onclick="closeSuccessModal()"
+                            style="background:none;border:none;color:var(--or);font-weight:700;font-size:12px;cursor:pointer;font-family:inherit;padding:0;"
+                        >Close this and start over →</button>
+                    </p>
                 </div>
             </div>
         </div>
@@ -1669,10 +1531,14 @@
             /* ─── STATE ─────────────────────────────── */
             let currentRole = null;
             let currentStep = 1;
+            let verifiedEmail = null;   // email that has passed code verification
+            let pendingFormValues = null; // form values stashed while verify modal is open
+            let awaitingVerification = false; // true while the verify-code modal is open — survives a reload
             let map = null;
             let marker = null;
             const REGISTER_STATE_KEY = "zesto_register_state_v1";
 
+            /* ─── PERSIST / RESTORE ─────────────────── */
             function persistRegisterState() {
                 try {
                     const formState = {};
@@ -1686,10 +1552,9 @@
                             formState[el.id] = el.value;
                         }
                     });
-
                     localStorage.setItem(
                         REGISTER_STATE_KEY,
-                        JSON.stringify({ currentRole, currentStep, formState }),
+                        JSON.stringify({ currentRole, currentStep, formState, awaitingVerification }),
                     );
                 } catch (err) {
                     console.warn("Could not save registration state", err);
@@ -1723,11 +1588,18 @@
                         });
                     }
 
-                    if (Number.isInteger(saved.currentStep) && saved.currentStep >= 1) {
-                        currentStep = saved.currentStep;
-                        goToStep(currentStep);
-                    } else {
-                        goToStep(1);
+                    // Only restore steps 1 and 2 — never land on step 3
+                    const step = Number.isInteger(saved.currentStep) ? saved.currentStep : 1;
+                    goToStep(Math.min(step, 2));
+
+                    // If a verification was in progress when the tab got
+                    // reloaded/discarded (backgrounding on mobile, etc.),
+                    // reopen the modal instead of silently losing it — the
+                    // code they already received is still valid for a
+                    // while, so let them come back and type it in.
+                    if (saved.awaitingVerification && saved.formState?.emailInput) {
+                        pendingFormValues = getValues();
+                        openVerifyModal(pendingFormValues.email, { resumed: true });
                     }
                 } catch (err) {
                     console.warn("Could not restore registration state", err);
@@ -1736,25 +1608,15 @@
             }
 
             function bindRegisterPersistence() {
-                document.addEventListener("input", (event) => {
-                    const target = event.target;
-                    if (target && target.id) persistRegisterState();
-                });
-                document.addEventListener("change", (event) => {
-                    const target = event.target;
-                    if (target && target.id) persistRegisterState();
-                });
+                document.addEventListener("input", (e) => { if (e.target?.id) persistRegisterState(); });
+                document.addEventListener("change", (e) => { if (e.target?.id) persistRegisterState(); });
             }
 
             /* ─── ROLE SELECTION ────────────────────── */
             function selectRole(role) {
                 currentRole = role;
-                document
-                    .querySelectorAll(".role-card")
-                    .forEach((c) => c.classList.remove("selected"));
-                document
-                    .getElementById("role-" + role)
-                    .classList.add("selected");
+                document.querySelectorAll(".role-card").forEach((c) => c.classList.remove("selected"));
+                document.getElementById("role-" + role).classList.add("selected");
                 document.getElementById("step1-next").disabled = false;
                 persistRegisterState();
             }
@@ -1764,40 +1626,21 @@
                 currentStep = step;
                 persistRegisterState();
 
-                // Swap visible panel
-                document
-                    .querySelectorAll(".gs-step")
-                    .forEach((p) => p.classList.remove("active"));
-                document
-                    .getElementById("panel-" + step)
-                    .classList.add("active");
+                document.querySelectorAll(".gs-step").forEach((p) => p.classList.remove("active"));
+                document.getElementById("panel-" + step).classList.add("active");
 
-                // Update stepper circles
                 for (let i = 1; i <= 3; i++) {
                     const ind = document.getElementById("step-indicator-" + i);
-                    if (ind)
-                        ind.className =
-                            "step " +
-                            (i < step
-                                ? "done"
-                                : i === step
-                                  ? "active"
-                                  : "pending");
+                    if (ind) ind.className = "step " + (i < step ? "done" : i === step ? "active" : "pending");
                 }
-                // Update connector lines
                 for (let i = 1; i <= 2; i++) {
                     const line = document.getElementById("line-" + i);
-                    if (line)
-                        line.className =
-                            "step-line" + (i < step ? " done" : "");
+                    if (line) line.className = "step-line" + (i < step ? " done" : "");
                 }
 
                 if (step === 2 && currentRole) _setupStep2();
-                if (step === 3) _setupStep3();
 
-                document
-                    .querySelector(".gs-right")
-                    .scrollTo({ top: 0, behavior: "smooth" });
+                document.querySelector(".gs-right").scrollTo({ top: 0, behavior: "smooth" });
             }
 
             function _setupStep2() {
@@ -1816,15 +1659,12 @@
                     },
                 }[currentRole];
 
-                document.getElementById("role-chip").textContent =
-                    meta.emoji + " " + meta.label;
+                document.getElementById("role-chip").textContent = meta.emoji + " " + meta.label;
                 document.getElementById("step2-title").textContent = meta.title;
                 document.getElementById("step2-sub").textContent = meta.sub;
 
                 const restEl = document.getElementById("restaurantFields");
                 const riderEl = document.getElementById("riderFields");
-
-                // Show / hide sections and toggle required
                 const isRest = currentRole === "restaurant";
                 const isRider = currentRole === "rider";
 
@@ -1840,7 +1680,6 @@
                     if (el) el.required = isRider;
                 });
 
-                // Init Leaflet map for restaurant (deferred so section is visible)
                 if (isRest) {
                     setTimeout(() => {
                         if (!map) {
@@ -1853,21 +1692,14 @@
                                 shadowAnchor: [12, 41],
                             });
 
-                            map = L.map("restaurant-map").setView(
-                                [0.3476, 32.5825],
-                                13,
-                            );
-                            L.tileLayer(
-                                "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
-                                { maxZoom: 19 },
-                            ).addTo(map);
+                            map = L.map("restaurant-map").setView([0.3476, 32.5825], 13);
+                            L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19 }).addTo(map);
                             map.on("click", (e) => {
                                 if (marker) map.removeLayer(marker);
                                 marker = L.marker(e.latlng, { icon: customIcon }).addTo(map);
-                                document.getElementById("latitude").value =
-                                    e.latlng.lat.toFixed(6);
-                                document.getElementById("longitude").value =
-                                    e.latlng.lng.toFixed(6);
+                                document.getElementById("latitude").value = e.latlng.lat.toFixed(6);
+                                document.getElementById("longitude").value = e.latlng.lng.toFixed(6);
+                                clearFieldError("location");
                             });
                         } else {
                             map.invalidateSize();
@@ -1876,76 +1708,119 @@
                 }
             }
 
-            function _setupStep3() {
-                const perksEl = document.getElementById("step3-perks");
-                if (!perksEl) return;
+            /* ─── SUCCESS MODAL ─────────────────────── */
+            function showSuccessModal(firstName) {
+                const role = currentRole;
 
-                const perks =
-                    currentRole === "restaurant"
-                        ? [
-                              {
-                                  ico: "📊",
-                                  title: "Set up your menu",
-                                  sub: "Add dishes, categories and prices from your dashboard",
-                              },
-                              {
-                                  ico: "📦",
-                                  title: "Receive orders",
-                                  sub: "Orders will appear in real time once your account is approved",
-                              },
-                              {
-                                  ico: "💰",
-                                  title: "Track your earnings",
-                                  sub: "View revenue reports and payout history in one place",
-                              },
-                          ]
-                        : [
-                              {
-                                  ico: "📍",
-                                  title: "Set your availability",
-                                  sub: "Go online whenever you're ready to receive delivery requests",
-                              },
-                              {
-                                  ico: "🗺️",
-                                  title: "Pick up nearby orders",
-                                  sub: "Our app routes you efficiently to the nearest restaurant",
-                              },
-                              {
-                                  ico: "💸",
-                                  title: "Get paid fast",
-                                  sub: "Earnings released weekly directly to your mobile money account",
-                              },
-                          ];
+                // Set welcome title
+                document.getElementById("modal-welcome").textContent = `Welcome, ${firstName}! 🎉`;
 
-                perksEl.innerHTML = perks
-                    .map(
-                        (p) => `
-    <div class="perk-row">
-      <div class="perk-ico">${p.ico}</div>
-      <div>
-        <div class="perk-title">${p.title}</div>
-        <div class="perk-sub">${p.sub}</div>
-      </div>
-    </div>`,
-                    )
-                    .join("");
+                // Update dashboard button label
+                const dashBtn = document.getElementById("modal-dashboard-btn");
+                if (dashBtn) {
+                    const label = role === "restaurant" ? "Go to Restaurant Portal" : "Go to Rider Dashboard";
+                    dashBtn.innerHTML = `${label}
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:18px;height:18px;">
+                            <path d="M5 12h14M14 7l5 5-5 5" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>`;
+                }
+
+                // Populate perks
+                const perks = role === "restaurant"
+                    ? [
+                        { ico: "📊", title: "Set up your menu", sub: "Add dishes, categories and prices from your dashboard" },
+                        { ico: "📦", title: "Receive orders", sub: "Orders will appear in real time once your account is approved" },
+                        { ico: "💰", title: "Track your earnings", sub: "View revenue reports and payout history in one place" },
+                    ]
+                    : [
+                        { ico: "📍", title: "Set your availability", sub: "Go online whenever you're ready to receive delivery requests" },
+                        { ico: "🗺️", title: "Pick up nearby orders", sub: "Our app routes you efficiently to the nearest restaurant" },
+                        { ico: "💸", title: "Get paid fast", sub: "Earnings released weekly directly to your mobile money account" },
+                    ];
+
+                document.getElementById("modal-perks").innerHTML = perks.map((p) => `
+                    <div class="perk-row">
+                        <div class="perk-ico">${p.ico}</div>
+                        <div>
+                            <div class="perk-title">${p.title}</div>
+                            <div class="perk-sub">${p.sub}</div>
+                        </div>
+                    </div>
+                `).join("");
+
+                // Show modal
+                document.getElementById("successModal").classList.add("open");
+                document.body.style.overflow = "hidden";
+            }
+
+            function closeSuccessModal() {
+                document.getElementById("successModal").classList.remove("open");
+                document.body.style.overflow = "";
+                resetRegistration();
+            }
+
+            function handleModalOverlayClick(e) {
+                // Close only when clicking the dark backdrop, not the modal card itself
+                if (e.target === document.getElementById("successModal")) {
+                    closeSuccessModal();
+                }
+            }
+
+            /* ─── RESET ─────────────────────────────── */
+            function resetRegistration() {
+                // Clear state
+                currentRole = null;
+                currentStep = 1;
+                localStorage.removeItem(REGISTER_STATE_KEY);
+
+                // Reset form fields
+                const form = document.getElementById("joinForm");
+                if (form) form.reset();
+
+                // Deselect role cards & disable continue
+                document.querySelectorAll(".role-card").forEach((c) => c.classList.remove("selected"));
+                document.getElementById("step1-next").disabled = true;
+
+                // Reset password strength UI
+                ["ps1", "ps2", "ps3", "ps4"].forEach((id) => {
+                    const el = document.getElementById(id);
+                    if (el) el.className = "ps-bar";
+                });
+                const strengthLabel = document.getElementById("strength-label");
+                if (strengthLabel) {
+                    strengthLabel.textContent = "Use at least 8 characters, with a number and symbol.";
+                    strengthLabel.style.color = "";
+                }
+
+                // Restore password field to hidden
+                const pwInput = document.getElementById("passwordInput");
+                if (pwInput) pwInput.type = "password";
+                const eyeIcon = document.getElementById("eye-icon");
+                if (eyeIcon) eyeIcon.innerHTML = `
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                    <circle cx="12" cy="12" r="3"/>`;
+
+                // Destroy the map so it re-initialises fresh next time
+                if (marker && map) { map.removeLayer(marker); marker = null; }
+                if (map) { map.remove(); map = null; }
+
+                // Hide error if visible
+                hideError();
+
+                // Go back to step 1
+                goToStep(1);
             }
 
             /* ─── PASSWORD STRENGTH ─────────────────── */
             function checkStrength(val) {
-                const bars = ["ps1", "ps2", "ps3", "ps4"].map((id) =>
-                    document.getElementById(id),
-                );
+                const bars = ["ps1", "ps2", "ps3", "ps4"].map((id) => document.getElementById(id));
                 const label = document.getElementById("strength-label");
                 if (!bars[0]) return;
 
-                bars.forEach((b) => {
-                    b.className = "ps-bar";
-                });
+                bars.forEach((b) => { b.className = "ps-bar"; });
 
                 if (!val.length) {
-                    label.textContent =
-                        "Use at least 8 characters, with a number and symbol.";
+                    label.textContent = "Use at least 8 characters, with a number and symbol.";
                     label.style.color = "";
                     return;
                 }
@@ -1957,17 +1832,10 @@
                 if (/[^A-Za-z0-9]/.test(val)) score++;
 
                 const cls = ["", "weak", "medium", "medium", "strong"];
-                const labels = [
-                    "",
-                    "Weak — add numbers and symbols",
-                    "Medium — getting better!",
-                    "Good — add a symbol",
-                    "Strong password ✓",
-                ];
+                const labels = ["", "Weak — add numbers and symbols", "Medium — getting better!", "Good — add a symbol", "Strong password ✓"];
                 const colors = ["", "#EF4444", "#F59E0B", "#F59E0B", "#22C55E"];
 
-                for (let i = 0; i < score; i++)
-                    bars[i].classList.add(cls[score]);
+                for (let i = 0; i < score; i++) bars[i].classList.add(cls[score]);
                 label.textContent = labels[score];
                 label.style.color = colors[score];
             }
@@ -1981,30 +1849,32 @@
                 if (input.type === "password") {
                     input.type = "text";
                     icon.innerHTML = `
-      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94
-               M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19
-               m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
-      <line x1="1" y1="1" x2="23" y2="23"/>`;
+                        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94
+                                 M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19
+                                 m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
+                        <line x1="1" y1="1" x2="23" y2="23"/>`;
                 } else {
                     input.type = "password";
                     icon.innerHTML = `
-      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-      <circle cx="12" cy="12" r="3"/>`;
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                        <circle cx="12" cy="12" r="3"/>`;
                 }
             }
 
             /* ─── ERROR UI ──────────────────────────── */
+            let formErrorTimer = null;
             function showError(msg) {
                 const box = document.getElementById("form-error-box");
                 const txt = document.getElementById("form-error-msg");
                 if (!box || !txt) return;
                 txt.textContent = msg;
-                box.style.display = "flex";
-                box.scrollIntoView({ behavior: "smooth", block: "nearest" });
+                box.classList.add("show");
+                clearTimeout(formErrorTimer);
+                formErrorTimer = setTimeout(hideError, 6000);
             }
             function hideError() {
                 const box = document.getElementById("form-error-box");
-                if (box) box.style.display = "none";
+                if (box) box.classList.remove("show");
             }
 
             /* ─── LOADING STATE ─────────────────────── */
@@ -2014,132 +1884,332 @@
                 if (on) {
                     btn.disabled = true;
                     btn.innerHTML = `
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-           style="animation:spin .7s linear infinite;">
-        <path d="M21 12a9 9 0 1 1-6-8.485"/>
-      </svg>
-      Submitting…`;
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                             style="animation:spin .7s linear infinite;">
+                            <path d="M21 12a9 9 0 1 1-6-8.485"/>
+                        </svg>
+                        Submitting…`;
                 } else {
                     btn.disabled = false;
                     btn.innerHTML = `
-      Submit Application
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:18px;height:18px;">
-        <path d="M5 12h14M14 7l5 5-5 5" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>`;
+                        Submit Application
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:18px;height:18px;">
+                            <path d="M5 12h14M14 7l5 5-5 5" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>`;
                 }
             }
 
             /* ─── COLLECT VALUES ────────────────────── */
             function getValues() {
-                const v = (id) =>
-                    document.getElementById(id)?.value.trim() || "";
+                const v = (id) => document.getElementById(id)?.value.trim() || "";
                 return {
                     firstName: v("firstName"),
                     lastName: v("lastName"),
-                    email:
-                        document
-                            .getElementById("emailInput")
-                            ?.value.trim()
-                            .toLowerCase() || "",
+                    email: document.getElementById("emailInput")?.value.trim().toLowerCase() || "",
                     phone: v("phoneInput"),
-                    password:
-                        document.getElementById("passwordInput")?.value || "",
-                    confirmPassword:
-                        document.getElementById("confirmPassword")?.value || "",
-                    terms:
-                        document.getElementById("termsCheck")?.checked || false,
-                    // Restaurant
+                    password: document.getElementById("passwordInput")?.value || "",
+                    confirmPassword: document.getElementById("confirmPassword")?.value || "",
+                    terms: document.getElementById("termsCheck")?.checked || false,
                     restaurantName: v("restaurantName"),
                     restaurantAddress: v("restaurantAddress"),
                     latitude: v("latitude"),
                     longitude: v("longitude"),
                     description: v("description"),
-                    // Rider
-                    vehicleType:
-                        document.getElementById("vehicleType")?.value ||
-                        "boda_boda",
+                    vehicleType: document.getElementById("vehicleType")?.value || "boda_boda",
                     vehicleNumber: v("vehicleNumber"),
                     nationalId: v("nationalId"),
                 };
             }
 
             /* ─── VALIDATION ────────────────────────── */
-            function validate(f) {
-                if (!f.firstName || !f.lastName)
-                    return "Please enter your first and last name.";
-                if (!f.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.email))
-                    return "Please enter a valid email address.";
-                if (!f.phone) return "Please enter your phone number.";
-                if (f.password.length < 8)
-                    return "Password must be at least 8 characters.";
-                if (f.password !== f.confirmPassword)
-                    return "Passwords do not match.";
-                if (!f.terms)
-                    return "You must agree to the Terms of Service and Privacy Policy.";
+            const PHONE_RE = /^(\+?256|0)7\d{8}$/; // matches shared_auth.js — Ugandan numbers
+            const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
+            // ── Inline field error helpers (same pattern as shared_auth.js) ──
+            function setFieldError(inputId, message) {
+                const errEl = document.getElementById(inputId + "Error");
+                if (!errEl) return;
+                const input = document.getElementById(inputId);
+                input?.classList.add("input-error");
+                input?.setAttribute("aria-invalid", "true");
+                errEl.textContent = message;
+                errEl.style.display = "block";
+            }
+
+            function clearFieldError(inputId) {
+                const errEl = document.getElementById(inputId + "Error");
+                if (!errEl) return;
+                const input = document.getElementById(inputId);
+                input?.classList.remove("input-error");
+                input?.removeAttribute("aria-invalid");
+                errEl.textContent = "";
+                errEl.style.display = "none";
+            }
+
+            const ALL_FIELD_IDS = [
+                "firstName", "lastName", "emailInput", "phoneInput",
+                "passwordInput", "confirmPassword", "restaurantName",
+                "restaurantAddress", "location", "vehicleNumber",
+                "nationalId", "termsCheck",
+            ];
+            function clearAllFieldErrors() {
+                ALL_FIELD_IDS.forEach(clearFieldError);
+            }
+
+            // Clear a field's error the moment the user starts fixing it —
+            // same as the "input" listener in shared_auth.js.
+            [
+                "firstName", "lastName", "emailInput", "phoneInput",
+                "passwordInput", "confirmPassword", "restaurantName",
+                "restaurantAddress", "vehicleNumber", "nationalId",
+            ].forEach((id) => {
+                document.getElementById(id)?.addEventListener("input", () => clearFieldError(id));
+            });
+            document.getElementById("termsCheck")?.addEventListener("change", () => clearFieldError("termsCheck"));
+
+            // Returns true if valid; shows inline errors under each bad
+            // field (instead of one message) if not — same UX as the
+            // customer sign-up modal in shared_auth.js.
+            function validateForm(f) {
+                let ok = true;
+                clearAllFieldErrors();
+
+                if (!f.firstName) { setFieldError("firstName", "First name is required."); ok = false; }
+                if (!f.lastName)  { setFieldError("lastName", "Last name is required."); ok = false; }
+
+                if (!f.email) {
+                    setFieldError("emailInput", "Email address is required.");
+                    ok = false;
+                } else if (!EMAIL_RE.test(f.email)) {
+                    setFieldError("emailInput", "Enter a valid email address (e.g. you@example.com).");
+                    ok = false;
+                }
+
+                if (!f.phone) {
+                    setFieldError("phoneInput", "Phone number is required.");
+                    ok = false;
+                } else if (!PHONE_RE.test(f.phone.replace(/\s/g, ""))) {
+                    setFieldError("phoneInput", "Enter a valid Ugandan number (e.g. 0712345678 or +256712345678).");
+                    ok = false;
+                }
+
+                if (!f.password) {
+                    setFieldError("passwordInput", "Password is required.");
+                    ok = false;
+                } else if (f.password.length < 8) {
+                    setFieldError("passwordInput", "Password must be at least 8 characters.");
+                    ok = false;
+                }
+
+                if (!f.confirmPassword) {
+                    setFieldError("confirmPassword", "Please confirm your password.");
+                    ok = false;
+                } else if (f.confirmPassword !== f.password) {
+                    setFieldError("confirmPassword", "Passwords do not match.");
+                    ok = false;
+                }
 
                 if (currentRole === "restaurant") {
-                    if (!f.restaurantName)
-                        return "Please enter your restaurant name.";
-                    if (!f.restaurantAddress)
-                        return "Please enter your restaurant address.";
-                    if (!f.latitude || !f.longitude)
-                        return "Please click the map to set your restaurant location.";
+                    if (!f.restaurantName) { setFieldError("restaurantName", "Restaurant name is required."); ok = false; }
+                    if (!f.restaurantAddress) { setFieldError("restaurantAddress", "Address is required."); ok = false; }
+                    if (!f.latitude || !f.longitude) {
+                        setFieldError("location", "Click the map to set your restaurant location.");
+                        ok = false;
+                    }
                 }
 
                 if (currentRole === "rider") {
-                    if (!f.vehicleNumber)
-                        return "Please enter your vehicle registration number.";
-                    if (!f.nationalId) return "Please enter your national ID.";
+                    if (!f.vehicleNumber) { setFieldError("vehicleNumber", "Vehicle registration number is required."); ok = false; }
+                    if (!f.nationalId) { setFieldError("nationalId", "National ID is required."); ok = false; }
                 }
 
-                return null;
+                if (!f.terms) {
+                    setFieldError("termsCheck", "You must agree to the Terms of Service and Privacy Policy.");
+                    ok = false;
+                }
+
+                return ok;
             }
 
-            /* ─── FORM SUBMIT ───────────────────────── */
+            /* ─── FORM SUBMIT (gatekeeper) ───────────── */
+            // Click #1: validate the form, then require a verified email
+            // before anything touches the real registration endpoint.
             async function handleSignup(e) {
                 e.preventDefault();
                 hideError();
 
                 const f = getValues();
-                const err = validate(f);
-                if (err) {
-                    showError(err);
+                if (!validateForm(f)) return;
+
+                pendingFormValues = f;
+
+                // Already verified this exact email in this session? Skip straight to submit.
+                if (verifiedEmail === f.email) {
+                    return submitRegistration(f);
+                }
+
+                await requestVerificationCode(f.email);
+            }
+
+            /* ─── EMAIL VERIFICATION ────────────────── */
+            // Raw API call, no UI side effects — used by both the initial
+            // send (click #1, before the modal is open) and resend
+            // (inside the modal). Keeping the fetch in one place means
+            // there's only one spot to fix if the endpoint ever changes.
+            async function sendCodeRequest(email) {
+                const res = await fetch("/api/auth/send-code", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    credentials: "include",
+                    body: JSON.stringify({ email }),
+                });
+                const data = await res.json().catch(() => ({}));
+                if (!res.ok) throw new Error(data.message || "Could not send verification code.");
+                return data;
+            }
+
+            // Click #1 — modal isn't open yet, so loading state + errors
+            // show on the main form (submitBtn / form-error-box).
+            async function requestVerificationCode(email) {
+                setLoading(true);
+                try {
+                    await sendCodeRequest(email);
+                    openVerifyModal(email);
+                } catch (err) {
+                    const msg = err.message || "Could not send verification code. Please try again.";
+                    // "Account already exists" etc is about the email field specifically —
+                    // show it right there instead of a generic top banner.
+                    if (/email/i.test(msg)) {
+                        setFieldError("emailInput", msg);
+                    } else {
+                        showError(msg);
+                    }
+                } finally {
+                    setLoading(false);
+                }
+            }
+
+            function openVerifyModal(email, { resumed = false } = {}) {
+                document.getElementById("verify-email-label").textContent = email;
+                // Don't wipe a code the user already typed if we're just
+                // restoring after a backgrounded-tab reload.
+                if (!resumed) document.getElementById("verifyCodeInput").value = "";
+                document.getElementById("verify-error-box").style.display = "none";
+                document.getElementById("verifyModal").classList.add("open");
+                document.getElementById("verifyCodeInput").focus();
+
+                document.getElementById("verify-resume-note").style.display = resumed ? "block" : "none";
+
+                awaitingVerification = true;
+                persistRegisterState();
+            }
+
+            function closeVerifyModal() {
+                document.getElementById("verifyModal").classList.remove("open");
+                awaitingVerification = false;
+                persistRegisterState();
+            }
+
+            function showVerifyError(msg) {
+                const box = document.getElementById("verify-error-box");
+                const txt = document.getElementById("verify-error-msg");
+                txt.textContent = msg;
+                box.style.display = "flex";
+            }
+
+            function hideVerifyError() {
+                document.getElementById("verify-error-box").style.display = "none";
+            }
+
+            async function confirmVerificationCode() {
+                const code = document.getElementById("verifyCodeInput").value.trim();
+
+                if (!/^\d{6}$/.test(code)) {
+                    showVerifyError("Enter the 6-digit code from your email.");
                     return;
                 }
 
-                const endpoint =
-                    currentRole === "restaurant"
-                        ? "/api/auth/register/restaurant"
-                        : "/api/auth/register/rider";
+                const btn = document.getElementById("verifyConfirmBtn");
+                btn.disabled = true;
 
-                const payload =
-                    currentRole === "restaurant"
-                        ? {
-                              name: `${f.firstName} ${f.lastName}`.trim(),
-                              email: f.email,
-                              phone: f.phone,
-                              password: f.password,
-                              restaurant: {
-                                  name: f.restaurantName,
-                                  email: f.email,
-                                  phone: f.phone,
-                                  address: f.restaurantAddress,
-                                  latitude: parseFloat(f.latitude),
-                                  longitude: parseFloat(f.longitude),
-                                  description: f.description,
-                              },
-                          }
-                        : {
-                              name: `${f.firstName} ${f.lastName}`.trim(),
-                              email: f.email,
-                              phone: f.phone,
-                              password: f.password,
-                              rider: {
-                                  vehicleType: f.vehicleType,
-                                  vehicleNumber: f.vehicleNumber,
-                                  nationalId: f.nationalId,
-                              },
-                          };
+                try {
+                    const res = await fetch("/api/auth/verify-code", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        credentials: "include",
+                        body: JSON.stringify({ email: pendingFormValues.email, code }),
+                    });
+                    const data = await res.json().catch(() => ({}));
+
+                    if (!res.ok) throw new Error(data.message || "Invalid or expired code.");
+
+                    verifiedEmail = pendingFormValues.email;
+                    closeVerifyModal();
+                    await submitRegistration(pendingFormValues);
+                } catch (err) {
+                    showVerifyError(err.message || "Invalid or expired code.");
+                } finally {
+                    btn.disabled = false;
+                }
+            }
+
+            // Resend — the modal is already open and covers the whole page
+            // (z-index above the main form), so all feedback — loading
+            // state AND any error — has to live inside the modal itself,
+            // not on the submitBtn/form-error-box sitting underneath it.
+            async function resendVerificationCode() {
+                if (!pendingFormValues?.email) return;
+                const btn = document.getElementById("resendCodeBtn");
+                hideVerifyError();
+                btn.disabled = true;
+                btn.textContent = "Sending…";
+                try {
+                    await sendCodeRequest(pendingFormValues.email);
+                    document.getElementById("verifyCodeInput").value = "";
+                    document.getElementById("verifyCodeInput").focus();
+                    btn.textContent = "Code sent ✓";
+                    setTimeout(() => { btn.textContent = "Resend code"; }, 2500);
+                } catch (err) {
+                    showVerifyError(err.message || "Could not resend code. Please try again.");
+                    btn.textContent = "Resend code";
+                } finally {
+                    btn.disabled = false;
+                }
+            }
+
+            /* ─── ACTUAL REGISTRATION (click #2, post-verify) ── */
+            async function submitRegistration(f) {
+                const endpoint = currentRole === "restaurant"
+                    ? "/api/auth/register/restaurant"
+                    : "/api/auth/register/rider";
+
+                const payload = currentRole === "restaurant"
+                    ? {
+                        name: `${f.firstName} ${f.lastName}`.trim(),
+                        email: f.email,
+                        phone: f.phone,
+                        password: f.password,
+                        restaurant: {
+                            name: f.restaurantName,
+                            email: f.email,
+                            phone: f.phone,
+                            address: f.restaurantAddress,
+                            latitude: parseFloat(f.latitude),
+                            longitude: parseFloat(f.longitude),
+                            description: f.description,
+                        },
+                    }
+                    : {
+                        name: `${f.firstName} ${f.lastName}`.trim(),
+                        email: f.email,
+                        phone: f.phone,
+                        password: f.password,
+                        rider: {
+                            vehicleType: f.vehicleType,
+                            vehicleNumber: f.vehicleNumber,
+                            nationalId: f.nationalId,
+                        },
+                    };
 
                 setLoading(true);
                 try {
@@ -2151,37 +2221,29 @@
                     });
 
                     if (!res.ok) {
-                        const errData = await res
-                            .json()
-                            .catch(() => ({
-                                message:
-                                    "Registration failed. Please try again.",
-                            }));
-                        throw new Error(
-                            errData.message || "Registration failed.",
-                        );
+                        const errData = await res.json().catch(() => ({ message: "Registration failed. Please try again." }));
+                        throw new Error(errData.message || "Registration failed.");
                     }
 
                     const data = await res.json().catch(() => ({}));
+
+                    // Clear cache immediately on success
                     localStorage.removeItem(REGISTER_STATE_KEY);
-                    const displayName =
-                        data?.user?.name || `${f.firstName} ${f.lastName}`;
+
+                    const displayName = data?.user?.name || `${f.firstName} ${f.lastName}`;
                     const firstName = displayName.split(" ")[0];
 
-                    const titleEl = document.getElementById("step3-welcome");
-                    if (titleEl)
-                        titleEl.textContent = `Welcome, ${firstName}! 🎉`;
+                    // Show the modal instead of navigating to step 3
+                    showSuccessModal(firstName);
 
-                    goToStep(3);
                 } catch (err) {
-                    let msg =
-                        err.message ||
-                        "Something went wrong. Please try again.";
-                    if (
-                        /duplicate|already registered|already exists/i.test(msg)
-                    )
+                    let msg = err.message || "Something went wrong. Please try again.";
+                    if (/duplicate|already registered|already exists/i.test(msg)) {
                         msg = "An account with this email already exists.";
-                    showError(msg);
+                        setFieldError("emailInput", msg);
+                    } else {
+                        showError(msg);
+                    }
                 } finally {
                     setLoading(false);
                 }
@@ -2189,19 +2251,35 @@
 
             /* ─── DASHBOARD REDIRECT ────────────────── */
             function goToDashboard() {
-                window.location.href =
-                    currentRole === "restaurant"
-                        ? "/restaurant-admin/index.html"
-                        : "/restaurant-admin/index.html";
+                window.location.href = "/restaurant-admin/index.html";
             }
 
-            /* ─── GLOBAL EXPORTS (for onclick= attrs) ── */
+            /* ─── KEYBOARD: ESC closes modal, Enter submits code ── */
+            document.addEventListener("keydown", (e) => {
+                if (e.key === "Escape" && document.getElementById("successModal").classList.contains("open")) {
+                    closeSuccessModal();
+                }
+                if (e.key === "Escape" && document.getElementById("verifyModal").classList.contains("open")) {
+                    closeVerifyModal();
+                }
+                if (e.key === "Enter" && document.getElementById("verifyModal").classList.contains("open")) {
+                    confirmVerificationCode();
+                }
+            });
+
+            /* ─── GLOBAL EXPORTS ────────────────────── */
             window.selectRole = selectRole;
             window.goToStep = goToStep;
             window.checkStrength = checkStrength;
             window.togglePassword = togglePassword;
             window.handleSignup = handleSignup;
+            window.confirmVerificationCode = confirmVerificationCode;
+            window.resendVerificationCode = resendVerificationCode;
+            window.closeVerifyModal = closeVerifyModal;
             window.goToDashboard = goToDashboard;
+            window.showSuccessModal = showSuccessModal;
+            window.closeSuccessModal = closeSuccessModal;
+            window.handleModalOverlayClick = handleModalOverlayClick;
 
             bindRegisterPersistence();
             restoreRegisterState();

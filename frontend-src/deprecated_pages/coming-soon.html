@@ -248,39 +248,49 @@ a{text-decoration:none;color:inherit;}
     </div>
 
     <h1 class="cs-title">Coming<br><span>soon!</span></h1>
-    <p class="cs-sub">
-      The free trial signup is <strong>currently being built</strong>.<br>
-      Leave your email and we'll ping you the moment it goes live.
+    <p class="cs-sub" id="csPageLabel">
+      This page is <strong>still under construction</strong>.
     </p>
 
     <!-- Progress -->
     <div class="cs-progress">
       <div class="cs-prog-label">
         <span>Development progress</span>
-        <strong>68% complete</strong>
+        <strong>69% complete</strong>
       </div>
       <div class="cs-prog-track"><div class="cs-prog-fill"></div></div>
     </div>
 
-    <!-- Checklist -->
-    <div class="cs-chips">
-      <div class="cs-chip done">🎨 UI Design <span class="tick">✓</span></div>
-      <div class="cs-chip done">🚚 Delivery engine <span class="tick">✓</span></div>
-      <div class="cs-chip done">💰 Cashback system <span class="tick">✓</span></div>
-      <div class="cs-chip">🔐 Signup flow <span class="tick"></span></div>
-      <div class="cs-chip">📱 Payment integration <span class="tick"></span></div>
-      <div class="cs-chip">🧪 Final testing <span class="tick"></span></div>
-    </div>
-
-    <a href="zesto-pro.html" class="cs-back">
-      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M10 3L5 8l5 5"/></svg>
-      Back to Zesto Pro
+    <a href="index.html" id="csVisitAnyway" class="cs-back">
+      Visit anyway →
     </a>
   </div>
 </div>
 
+<script>
+  // Figure out which page sent us here, via ?from=PAGENAME.html
+  (function () {
+    const params = new URLSearchParams(window.location.search);
+    const target = params.get('from');
+    const link = document.getElementById('csVisitAnyway');
+
+    if (target) {
+      // Basic safety: only allow relative .html filenames, no external URLs
+      const safe = /^[a-zA-Z0-9_\-]+\.html$/.test(target);
+      if (safe) {
+        link.href = target;
+
+        const label = document.getElementById('csPageLabel');
+        const niceName = target.replace('.html', '').replace(/[-_]/g, ' ');
+        label.innerHTML = `<strong>${niceName}</strong> is still under construction.`;
+      }
+    }
+    // If no valid ?from= param, the link just falls back to index.html
+  })();
+</script>
+
 <!-- ── NAV ── -->
-<header class="nav">
+<!--<header class="nav">
   <div class="container">
     <nav class="nav-inner">
       <a href="index.html" class="nav-logo">
@@ -296,9 +306,9 @@ a{text-decoration:none;color:inherit;}
     </nav>
   </div>
 </header>
-
+-->
 <!-- ── MAIN PAGE (the original signup design, unchanged) ── -->
-<div class="page-wrap">
+<!--<div class="page-wrap">
   <div class="left-panel">
     <div class="coming-badge">
       <span class="dot"></span>
@@ -346,8 +356,8 @@ a{text-decoration:none;color:inherit;}
       <div class="sp-text"><strong>2,400+ members</strong> in Kampala<br>already saving with Pro</div>
     </div>
   </div>
-
-  <div class="right-panel">
+-->
+  <!--<div class="right-panel">
     <div class="form-heading">Create your Pro account</div>
     <p class="form-sub">Takes 60 seconds. No credit card required to start.</p>
     <div class="plan-picker">
@@ -406,10 +416,10 @@ a{text-decoration:none;color:inherit;}
       <div class="trust-chip"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 7l3.5 3.5 6.5-7"/></svg>Reminder at day 27</div>
     </div>
   </div>
-</div>
+</div>-->
 
 <!-- SUCCESS OVERLAY -->
-<div class="success-overlay" id="successOverlay">
+<!--<div class="success-overlay" id="successOverlay">
   <div class="success-inner">
     <div class="success-icon">🎉</div>
     <h2 class="success-title">You're in,<br><span id="successName">Alex</span>!</h2>
@@ -426,48 +436,48 @@ a{text-decoration:none;color:inherit;}
     <p class="success-note">Trial active until <span id="trialEndDate"></span></p>
   </div>
 </div>
-
-<script>
+-->
+<!--<script>
 // Plan picker
-function selectPlan(plan){
-  document.getElementById('planMonthly').classList.toggle('selected', plan==='monthly');
-  document.getElementById('planYearly').classList.toggle('selected', plan==='yearly');
-}
+// function selectPlan(plan){
+//   document.getElementById('planMonthly').classList.toggle('selected', plan==='monthly');
+//   document.getElementById('planYearly').classList.toggle('selected', plan==='yearly');
+// }
 
-// Countdown
-const trialEnd = new Date(Date.now() + 30*24*60*60*1000);
-function pad(n){return String(n).padStart(2,'0');}
-function tick(){
-  const diff = trialEnd - Date.now();
-  if(diff<=0) return;
-  document.getElementById('cdDays').textContent  = pad(Math.floor(diff/86400000));
-  document.getElementById('cdHours').textContent = pad(Math.floor((diff%86400000)/3600000));
-  document.getElementById('cdMins').textContent  = pad(Math.floor((diff%3600000)/60000));
-  document.getElementById('cdSecs').textContent  = pad(Math.floor((diff%60000)/1000));
-}
-tick(); setInterval(tick,1000);
-document.getElementById('trialEndDate').textContent = trialEnd.toLocaleDateString('en-UG',{year:'numeric',month:'long',day:'numeric'});
+// // Countdown
+// const trialEnd = new Date(Date.now() + 30*24*60*60*1000);
+// function pad(n){return String(n).padStart(2,'0');}
+// function tick(){
+//   const diff = trialEnd - Date.now();
+//   if(diff<=0) return;
+//   document.getElementById('cdDays').textContent  = pad(Math.floor(diff/86400000));
+//   document.getElementById('cdHours').textContent = pad(Math.floor((diff%86400000)/3600000));
+//   document.getElementById('cdMins').textContent  = pad(Math.floor((diff%3600000)/60000));
+//   document.getElementById('cdSecs').textContent  = pad(Math.floor((diff%60000)/1000));
+// }
+// tick(); setInterval(tick,1000);
+// document.getElementById('trialEndDate').textContent = trialEnd.toLocaleDateString('en-UG',{year:'numeric',month:'long',day:'numeric'});
 
-// Form submit → success screen
-function handleSubmit(){
-  const name = document.getElementById('firstName').value.trim();
-  document.getElementById('successName').textContent = name || 'there';
-  document.getElementById('successOverlay').classList.add('show');
-  document.body.style.overflow = 'hidden';
-}
+// // Form submit → success screen
+// function handleSubmit(){
+//   const name = document.getElementById('firstName').value.trim();
+//   document.getElementById('successName').textContent = name || 'there';
+//   document.getElementById('successOverlay').classList.add('show');
+//   document.body.style.overflow = 'hidden';
+// }
 
-// Coming soon notify
-function submitNotify(){
-  const email = document.getElementById('csEmail').value.trim();
-  if(!email || !email.includes('@')){
-    document.getElementById('csEmail').style.borderColor='#ef4444';
-    setTimeout(()=>document.getElementById('csEmail').style.borderColor='',1200);
-    return;
-  }
-  document.getElementById('csEmailDisplay').textContent = email;
-  document.getElementById('csNotifyRow').style.display='none';
-  document.getElementById('csNotifySuccess').style.display='block';
-}
-</script>
+// // Coming soon notify
+// function submitNotify(){
+//   const email = document.getElementById('csEmail').value.trim();
+//   if(!email || !email.includes('@')){
+//     document.getElementById('csEmail').style.borderColor='#ef4444';
+//     setTimeout(()=>document.getElementById('csEmail').style.borderColor='',1200);
+//     return;
+//   }
+//   document.getElementById('csEmailDisplay').textContent = email;
+//   document.getElementById('csNotifyRow').style.display='none';
+//   document.getElementById('csNotifySuccess').style.display='block';
+// }
+// </script>-->
 </body>
 </html>
