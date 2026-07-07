@@ -385,10 +385,269 @@ function getMe(req, res) {
   }
 }
 
+/**
+ * POST /api/auth/mobile-token
+ *
+ * Body: { email, password }
+ *
+ * Returns a raw JWT token string for mobile clients that cannot use
+ * httpOnly cookies. Validates credentials exactly like /login but
+ * responds with { success, token, user } instead of setting a cookie.
+ * The mobile app stores this token in SecureStore and sends it as
+ * Authorization: Bearer <token> on subsequent requests.
+ */
+async function mobileToken(req, res) {
+  try {
+    const { email, password } = req.body;
+
+    const validationError = validateLoginInput({ email, password });
+    if (validationError) {
+      return res.status(400).json({ success: false, message: validationError });
+    }
+
+    const normalizedEmail = email.trim().toLowerCase();
+
+    if (normalizedEmail === DEFAULT_ADMIN.email) {
+      await ensureDefaultAdmin();
+    }
+
+    const rows = await query(
+      'SELECT user_id, name, email, password, role, is_active FROM users WHERE email = ?',
+      [normalizedEmail]
+    );
+    const user = rows?.[0] ?? null;
+
+    const GENERIC_ERROR = 'Invalid email or password.';
+    if (!user) return res.status(401).json({ success: false, message: GENERIC_ERROR });
+    if (!user.is_active) {
+      return res.status(403).json({
+        success: false,
+        message: 'Your account has been deactivated. Please contact support.',
+      });
+    }
+
+    const match = await bcrypt.compare(password, user.password);
+    if (!match) return res.status(401).json({ success: false, message: GENERIC_ERROR });
+
+    // Update last_login non-blocking
+    query('UPDATE users SET last_login = NOW() WHERE user_id = ?', [user.user_id])
+      .catch(err => console.warn('[mobileToken] last_login update failed:', err.message));
+
+    const token = createToken(user);
+
+    console.info(`[mobileToken] ${normalizedEmail} issued mobile token (role=${user.role})`);
+
+    return res.json({
+      success: true,
+      token,
+      user: buildUserPayload(user),
+    });
+  } catch (err) {
+    console.error('[mobileToken] Unexpected error:', err);
+    return res.status(500).json({ success: false, message: 'Authentication failed. Please try again.' });
+  }
+}
+
+
+// ── In-memory OTP store (production: use Redis or DB table) ────────
+// Maps email → { otp, expiresAt, pendingData }
+const otpStore = new Map();
+
+function generateOtp() {
+  return String(Math.floor(100000 + Math.random() * 900000));
+}
+
+/**
+ * POST /api/auth/rider/send-otp
+ * Body: { email, name, phone, password, vehicleType, vehicleNumber, nationalId }
+ *
+ * Validates inputs, stores pending registration data, sends OTP email.
+ * Does NOT create the user yet — that happens after OTP verification.
+ */
+async function riderSendOtp(req, res) {
+  try {
+    const { email, name, phone, password, vehicleType, vehicleNumber, nationalId } = req.body;
+
+    // Basic validation
+    if (!name || !name.trim()) return res.status(400).json({ success: false, message: 'Full name is required.' });
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email.trim()))
+      return res.status(400).json({ success: false, message: 'A valid email address is required.' });
+    if (!phone || !phone.trim()) return res.status(400).json({ success: false, message: 'Phone number is required.' });
+    if (!password || password.length < 8)
+      return res.status(400).json({ success: false, message: 'Password must be at least 8 characters.' });
+    if (!vehicleNumber || !vehicleNumber.trim())
+      return res.status(400).json({ success: false, message: 'Vehicle number is required.' });
+    if (!nationalId || !nationalId.trim())
+      return res.status(400).json({ success: false, message: 'National ID is required.' });
+
+    const normalizedEmail = email.trim().toLowerCase();
+
+    // Check if email already registered
+    const existing = await query('SELECT user_id FROM users WHERE email = ?', [normalizedEmail]);
+    if (existing && existing.length > 0) {
+      return res.status(409).json({
+        success: false,
+        message: 'An account with this email already exists. Please sign in.',
+      });
+    }
+
+    const otp = generateOtp();
+    const expiresAt = Date.now() + 10 * 60 * 1000; // 10 minutes
+
+    // Store pending data
+    otpStore.set(normalizedEmail, {
+      otp,
+      expiresAt,
+      pendingData: {
+        name: name.trim(),
+        email: normalizedEmail,
+        phone: phone.trim(),
+        password,
+        vehicleType: vehicleType || 'boda_boda',
+        vehicleNumber: vehicleNumber.trim(),
+        nationalId: nationalId.trim(),
+      },
+    });
+
+    // Send OTP email
+    const isDev = process.env.NODE_ENV !== 'production';
+
+    try {
+      const { sendOtp } = require('../services/emailService');
+      await sendOtp(normalizedEmail, otp);
+    } catch (emailErr) {
+      if (isDev) {
+        console.log('==============================');
+        console.log('[DEV MODE] OTP CODE');
+        console.log('Email:', normalizedEmail);
+        console.log('OTP:', otp);
+        console.log('==============================');
+      } else {
+        console.error('[riderSendOtp] Email failed:', emailErr.message);
+      }
+    }
+
+    return res.json({
+      success: true,
+      message: `A 6-digit verification code has been sent to ${normalizedEmail}. Check your inbox (and spam folder).`,
+    });
+  } catch (err) {
+    console.error('[riderSendOtp] Error:', err);
+    return res.status(500).json({ success: false, message: 'Failed to send verification code. Please try again.' });
+  }
+}
+
+/**
+ * POST /api/auth/rider/verify-otp
+ * Body: { email, otp }
+ * Just validates the OTP without creating the account.
+ */
+async function riderVerifyOtp(req, res) {
+  try {
+    const { email, otp } = req.body;
+    if (!email || !otp) return res.status(400).json({ success: false, message: 'Email and code are required.' });
+
+    const normalizedEmail = email.trim().toLowerCase();
+    const stored = otpStore.get(normalizedEmail);
+
+    if (!stored) return res.status(400).json({ success: false, message: 'No verification request found. Please resend the code.' });
+    if (Date.now() > stored.expiresAt) {
+      otpStore.delete(normalizedEmail);
+      return res.status(400).json({ success: false, message: 'Verification code has expired. Please request a new one.' });
+    }
+    if (String(stored.otp) !== String(otp).trim()) {
+      return res.status(400).json({ success: false, message: 'Incorrect code. Please check and try again.' });
+    }
+
+    return res.json({ success: true, message: 'Code verified successfully.' });
+  } catch (err) {
+    console.error('[riderVerifyOtp] Error:', err);
+    return res.status(500).json({ success: false, message: 'Verification failed. Please try again.' });
+  }
+}
+
+/**
+ * POST /api/auth/rider/register
+ * Body: { email, otp }
+ * Completes registration after OTP verified — creates user + rider records.
+ * Returns a mobile token so the app is immediately logged in.
+ */
+async function riderRegister(req, res) {
+  try {
+    const { email, otp } = req.body;
+    if (!email || !otp) return res.status(400).json({ success: false, message: 'Email and code are required.' });
+
+    const normalizedEmail = email.trim().toLowerCase();
+    const stored = otpStore.get(normalizedEmail);
+
+    if (!stored) return res.status(400).json({ success: false, message: 'No pending registration found. Please start over.' });
+    if (Date.now() > stored.expiresAt) {
+      otpStore.delete(normalizedEmail);
+      return res.status(400).json({ success: false, message: 'Verification code expired. Please start over.' });
+    }
+    if (String(stored.otp) !== String(otp).trim()) {
+      return res.status(400).json({ success: false, message: 'Incorrect code.' });
+    }
+
+    const data = stored.pendingData;
+
+    // Double-check email not taken (race condition)
+    const existing = await query('SELECT user_id FROM users WHERE email = ?', [normalizedEmail]);
+    if (existing && existing.length > 0) {
+      otpStore.delete(normalizedEmail);
+      return res.status(409).json({ success: false, message: 'An account with this email already exists.' });
+    }
+
+    // Hash password
+    const hashedPassword = await bcrypt.hash(data.password, 10);
+
+    // Create user
+    const userResult = await query(
+      'INSERT INTO users (name, email, phone, password, role) VALUES (?, ?, ?, ?, ?)',
+      [data.name, normalizedEmail, data.phone, hashedPassword, 'rider']
+    );
+    const userId = Number(userResult.insertId);
+
+    // Create rider profile
+    await query(
+      'INSERT INTO riders (user_id, vehicle_type, vehicle_number, national_id, status) VALUES (?, ?, ?, ?, ?)',
+      [userId, data.vehicleType, data.vehicleNumber, data.nationalId, 'pending']
+    );
+
+    // Clean up OTP store
+    otpStore.delete(normalizedEmail);
+
+    // Send welcome email
+    try {
+      const { sendWelcome } = require('../services/emailService');
+      await sendWelcome(normalizedEmail, data.name);
+    } catch {}
+
+    // Issue mobile token
+    const userRows = await query('SELECT user_id, name, email, role FROM users WHERE user_id = ?', [userId]);
+    const user = userRows[0];
+    const token = createToken(user);
+
+    return res.status(201).json({
+      success: true,
+      message: 'Registration successful! Your account is pending approval.',
+      token,
+      user: buildUserPayload(user),
+    });
+  } catch (err) {
+    console.error('[riderRegister] Error:', err);
+    return res.status(500).json({ success: false, message: 'Registration failed. Please try again.' });
+  }
+}
+
 // ── Exports ────────────────────────────────────────────────────────
 module.exports = {
   registerCustomer,
   login,
   logout,
   getMe,
+  mobileToken,
+  riderSendOtp,
+  riderVerifyOtp,
+  riderRegister,
 };

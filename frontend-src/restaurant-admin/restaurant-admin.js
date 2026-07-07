@@ -177,8 +177,9 @@ function initSocket() {
 
   State.socket.on('reconnect', () => {
     console.log('🔄 Socket reconnected');
-    if (State.currentPage === 'orders') loadOrders();
+    // Reload whatever page is active on reconnect
     refreshKPIs();
+    refreshActivePage();
   });
 
   /* ── Order Events ──────────────────────────────────── */
@@ -196,10 +197,8 @@ function initSocket() {
     });
     refreshKPIs();
     bumpBadge();
-    if (State.currentPage === 'orders') {
-      // Reload orders if on orders page to show new order
-      loadOrders();
-    }
+    // Refresh whatever page is currently visible — not just orders
+    refreshActivePage();
   });
 
   /** Order status changed */
@@ -212,30 +211,25 @@ function initSocket() {
     // Update order row in current table without reloading
     const row = document.querySelector(`tr[data-order-id="${orderId}"]`);
     if (row) {
-      // Find status cell (usually 5th column) and update it
       const statusCell = row.querySelector('td:nth-child(5)');
       if (statusCell) {
         statusCell.innerHTML = Utils.statusPill(newStatus);
         console.log(`✅ Updated order ${orderId} to ${newStatus}`);
       }
-      // Update action buttons if on orders page
       updateOrderRowButtons(row, newStatus);
     }
     
-    // Refresh KPIs since pending count might have changed
-    if (State.currentPage === 'orders') {
-      refreshKPIs();
-    }
+    // Always refresh KPIs and current page data
+    refreshKPIs();
+    refreshActivePage();
   });
 
   /** Payment verified - order is ready to be displayed */
   State.socket.on('payment:verified', ({ data }) => {
     console.log('💳 Payment verified event:', data);
     refreshKPIs();
-    if (State.currentPage === 'orders') {
-      // Reload orders to show newly paid orders
-      loadOrders();
-    }
+    // Refresh whatever page is active — new paid order may affect dashboard, analytics, etc.
+    refreshActivePage();
   });
 }
 
@@ -259,6 +253,19 @@ function navigateTo(page) {
     settings:  loadSettings,
   };
   if (loaders[page]) loaders[page]();
+}
+
+/* ── Refresh Active Page ────────────────────────────────────── */
+function refreshActivePage() {
+  const loaders = {
+    dashboard: loadDashboard,
+    orders:    loadOrders,
+    products:  loadProducts,
+    analytics: loadAnalytics,
+    settings:  loadSettings,
+  };
+  const loader = loaders[State.currentPage];
+  if (loader) loader();
 }
 
 /* ── Live Feed ─────────────────────────────────────────────── */

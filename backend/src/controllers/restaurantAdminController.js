@@ -262,6 +262,24 @@ async function updateOrderStatus(req, res) {
             se.toastUser(orderedUserId, { type: 'info', message });
           }
         }
+
+        // When order is ready_for_pickup, broadcast to all online riders
+        if (status === 'ready_for_pickup' && typeof se.riderNewOrder === 'function') {
+          // Fetch order details for the riders pool notification
+          try {
+            const orderDetails = safeRows(await query(
+              `SELECT o.order_id, o.order_number, o.delivery_address, o.total, o.delivery_fee,
+                      r.name AS restaurant_name, r.address AS restaurant_address
+               FROM orders o JOIN restaurants r ON r.restaurant_id = o.restaurant_id
+               WHERE o.order_id = ?`, [orderId]
+            ));
+            if (orderDetails.length) {
+              se.riderNewOrder({ ...orderDetails[0], status });
+            }
+          } catch (fetchErr) {
+            console.error('[restaurantAdmin] Failed to fetch order for rider broadcast:', fetchErr.message);
+          }
+        }
       }
     } catch (socketErr) {
       // Log socket emission errors but do NOT fail the request
