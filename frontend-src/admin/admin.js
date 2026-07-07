@@ -225,7 +225,7 @@ function initSocket() {
       amt: Utils.currency(data.amount),
     });
     refreshKPIs();
-    if (State.currentPage === 'payments') loadPayments();
+    refreshActivePage();
   });
 
   /** Payment made — gateway received payment, awaiting server verification */
@@ -238,7 +238,7 @@ function initSocket() {
       amt: Utils.currency(data.amount),
     });
     refreshKPIs();
-    if (State.currentPage === 'payments') loadPayments();
+    refreshActivePage();
   });
 
   /** New paid order received (payment verified) */
@@ -285,6 +285,30 @@ function initSocket() {
   });
 
   State.socket.on('toast', ({ message }) => Toast.info(message));
+
+  /* ── Analytics / Stock / Rider Events ─────────────────── */
+
+  /** Real-time analytics metric tick */
+  State.socket.on('analytics:update', ({ data }) => {
+    if (State.currentPage === 'analytics') loadAnalytics();
+    refreshKPIs();
+  });
+
+  /** Stock level changed */
+  State.socket.on('product:stock_update', ({ data }) => {
+    if (State.currentPage === 'products' || State.currentPage === 'dashboard') {
+      refreshActivePage();
+    }
+  });
+
+  /** Rider availability changed — update riders list if viewing it */
+  State.socket.on('order:update', ({ data: outerData }) => {
+    // Also handle rider availability updates piggybacked on order:update
+    const data = outerData || {};
+    if (data.type === 'rider:availability' && State.currentPage === 'riders') {
+      loadRiders();
+    }
+  });
 }
 
 /* ── Navigation ────────────────────────────────────────────── */
