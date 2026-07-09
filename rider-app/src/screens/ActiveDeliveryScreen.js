@@ -37,6 +37,9 @@ export default function ActiveDeliveryScreen({ navigation, route }) {
   const [step,        setStep]        = useState(STEP_TO_RESTAURANT);
   const [loading,     setLoading]     = useState(!route.params?.delivery);
   const [pickupLoading, setPickupLoading] = useState(false);
+  const [pickupVisible, setPickupVisible] = useState(false);
+  const [pickupCode,    setPickupCode]    = useState('');
+  const [pickupCodeError, setPickupCodeError] = useState('');
   const [confirmVisible, setConfirmVisible] = useState(false);
   const [code,        setCode]        = useState('');
   const [codeError,   setCodeError]   = useState('');
@@ -153,20 +156,23 @@ export default function ActiveDeliveryScreen({ navigation, route }) {
   }
 
   // ── Pickup ────────────────────────────────────────────────────
-  async function handlePickedUp() {
-    Alert.alert('Confirm Pickup', "Have you collected the order from the restaurant?",
-      [{ text: 'Cancel', style: 'cancel' },
-       { text: 'Yes, Picked Up', onPress: async () => {
-          setPickupLoading(true);
-          try {
-            await RiderApi.markPickedUp(delivery.order_id);
-            setDelivery(p => ({ ...p, delivery_status: 'picked_up' }));
-            setStep(STEP_TO_CUSTOMER);
-            showToast('✅  Order picked up! Now deliver to the customer.', 'success');
-          } catch (err) { showToast(err.message || 'Failed to mark pickup', 'error'); }
-          finally { setPickupLoading(false); }
-        }}
-      ]);
+  // The restaurant reads a 6-digit pickup code aloud when handing over
+  // the order — entering it here is what actually confirms pickup. This
+  // prevents disputes/fraud between the restaurant and the rider (e.g. a
+  // rider claiming they never received the order, or being marked as
+  // having picked up something they never got).
+  async function handleConfirmPickup() {
+    setPickupCodeError('');
+    if (!isValidCode(pickupCode)) { setPickupCodeError('Enter the 6-digit code from the restaurant.'); return; }
+    setPickupLoading(true);
+    try {
+      await RiderApi.markPickedUp(delivery.order_id, pickupCode.trim());
+      setPickupVisible(false);
+      setDelivery(p => ({ ...p, delivery_status: 'picked_up' }));
+      setStep(STEP_TO_CUSTOMER);
+      showToast('✅  Order picked up! Now deliver to the customer.', 'success');
+    } catch (err) { setPickupCodeError(err.message || 'Incorrect code. Try again.'); }
+    finally { setPickupLoading(false); }
   }
 
   // ── Confirm delivery ──────────────────────────────────────────
@@ -330,8 +336,9 @@ export default function ActiveDeliveryScreen({ navigation, route }) {
                   onPress={navigateToRestaurant} size="md" />
               )}
               {step === STEP_AT_RESTAURANT && (
-                <Button title="I Have the Order — Confirm Pickup" icon="✅"
-                  onPress={handlePickedUp} loading={pickupLoading} size="md" variant="success" />
+                <Button title="Enter Pickup Code to Confirm" icon="🔑"
+                  onPress={() => { setPickupCode(''); setPickupCodeError(''); setPickupVisible(true); }}
+                  size="md" variant="success" />
               )}
               {step === STEP_TO_CUSTOMER && (
                 <View style={styles.doneBlock}>
@@ -402,6 +409,44 @@ export default function ActiveDeliveryScreen({ navigation, route }) {
           </View>
         </ScrollView>
       </Animated.View>
+
+      {/* ── Pickup Confirmation Modal ───────────────────────────── */}
+      <Modal visible={pickupVisible} transparent animationType="slide" onRequestClose={() => setPickupVisible(false)}>
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
+          <View style={styles.modalOverlay}>
+            <View style={styles.modal}>
+              <View style={styles.modalHandle} />
+              <Text style={styles.modalTitle}>Confirm Pickup</Text>
+              <Text style={styles.modalSub}>
+                Ask restaurant staff for the <Text style={{ fontWeight: '800', color: Colors.orange }}>6-digit pickup code</Text> and enter it below.
+              </Text>
+
+              <TextInput
+                style={[styles.codeInput, pickupCodeError && { borderColor: Colors.danger }]}
+                value={pickupCode}
+                onChangeText={t => { setPickupCode(t.replace(/\D/g,'').slice(0,6)); setPickupCodeError(''); }}
+                keyboardType="number-pad"
+                maxLength={6}
+                placeholder="000000"
+                placeholderTextColor={Colors.textMuted}
+                textAlign="center"
+                autoFocus
+              />
+
+              {!!pickupCodeError && <Text style={styles.codeError}>{pickupCodeError}</Text>}
+
+              <View style={styles.modalBtns}>
+                <Button title="Cancel" variant="outline" size="md" style={{ flex: 1 }}
+                  onPress={() => setPickupVisible(false)} />
+                <Button title="Confirm Pickup" size="md" style={{ flex: 1 }}
+                  disabled={pickupCode.length !== 6 || pickupLoading}
+                  loading={pickupLoading}
+                  onPress={handleConfirmPickup} />
+              </View>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
 
       {/* ── Delivery Confirmation Modal ─────────────────────────── */}
       <Modal visible={confirmVisible} transparent animationType="slide" onRequestClose={() => setConfirmVisible(false)}>

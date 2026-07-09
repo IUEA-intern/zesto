@@ -356,6 +356,21 @@ async function loadTopProducts() {
    ORDERS
    ──────────────────────────────────────────────────────────── */
 
+/**
+ * Small inline badge showing the restaurant<->rider pickup handoff code.
+ * Only shown to restaurant staff while an order is ready_for_pickup —
+ * read this code aloud to the rider; they must enter it in their app to
+ * confirm pickup. This is separate from the customer's delivery code and
+ * exists to prevent pickup fraud/disputes between the restaurant and rider.
+ */
+function pickupCodeBadge(code) {
+  return `<div style="margin-top:4px;font-size:.72rem;font-weight:700;color:#9a5b1f;
+              background:#fff7ed;border:1px solid #f97316;border-radius:6px;
+              padding:2px 8px;display:inline-block;letter-spacing:1px">
+            🔑 Pickup code: ${Utils.escape(String(code))}
+          </div>`;
+}
+
 /** Update action buttons for an order row based on its status */
 function updateOrderRowButtons(row, status) {
   const actionsCell = row.querySelector('td:last-child');
@@ -402,7 +417,7 @@ async function loadOrders() {
         <td>${Utils.escape(o.customer_name || '—')}</td>
         <td>${Utils.escape(o.customer_phone || '—')}</td>
         <td>${Utils.currency(o.total)}</td>
-        <td>${Utils.statusPill(o.status)}</td>
+        <td>${Utils.statusPill(o.status)}${o.status === 'ready_for_pickup' && o.pickup_confirmation_code ? pickupCodeBadge(o.pickup_confirmation_code) : ''}</td>
         <td>${Utils.shortDate(o.created_at)}</td>
         <td>
           <div style="display:flex;gap:5px;flex-wrap:wrap">
@@ -423,6 +438,12 @@ async function loadOrders() {
 }
 
 async function setOrderStatus(orderId, status) {
+  // Marking an order ready generates a one-time pickup code — surface it
+  // immediately instead of the generic toast, since restaurant staff need
+  // to actually read it to the rider.
+  if (status === 'ready_for_pickup') {
+    return markReadyForPickup(orderId);
+  }
   try {
     await Api.put(`/restaurant/orders/${orderId}/status`, { status });
     Toast.success(`Order updated to ${STATUS_LABELS[status] || status}`);
@@ -434,6 +455,57 @@ async function setOrderStatus(orderId, status) {
     console.error('[setOrderStatus] Error:', err);
     Toast.error(errorMsg);
   }
+}
+
+async function markReadyForPickup(orderId) {
+  try {
+    const res = await Api.put(`/restaurant/orders/${orderId}/status`, { status: 'ready_for_pickup' });
+    loadOrders();
+    refreshKPIs();
+    const code = res?.pickup_confirmation_code;
+    if (code) showPickupCodeModal(code);
+    else Toast.success('Order marked ready for pickup.');
+  } catch (err) {
+    const errorMsg = err.message || 'Failed to update order';
+    console.error('[markReadyForPickup] Error:', err);
+    Toast.error(errorMsg);
+  }
+}
+
+/** Full-screen callout for restaurant staff with the pickup handoff code. */
+function showPickupCodeModal(code) {
+  document.getElementById('pickupCodeOverlay')?.remove();
+  const overlay = document.createElement('div');
+  overlay.id = 'pickupCodeOverlay';
+  overlay.style.cssText = `
+    position: fixed; inset: 0; background: rgba(0,0,0,.55);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 9999; padding: 20px;
+  `;
+  overlay.innerHTML = `
+    <div style="background:#fff;border-radius:16px;max-width:380px;width:100%;
+                padding:28px 24px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.3)">
+      <div style="font-size:42px;margin-bottom:8px">🍽️</div>
+      <h2 style="margin:0 0 6px;font-size:1.2rem;font-weight:800">Order Ready!</h2>
+      <p style="margin:0 0 18px;color:#666;font-size:.9rem">
+        Read this code to the rider face-to-face when they arrive. They must enter it to confirm pickup.
+      </p>
+      <div style="background:#fff7ed;border:2px dashed #f97316;border-radius:12px;
+                  padding:16px;margin-bottom:18px">
+        <div style="font-size:.72rem;text-transform:uppercase;letter-spacing:1px;color:#9a5b1f;margin-bottom:4px">
+          Pickup Code
+        </div>
+        <div style="font-size:2.1rem;font-weight:800;letter-spacing:6px;color:#ea580c">${Utils.escape(String(code))}</div>
+      </div>
+      <button id="pickupCodeCloseBtn" style="width:100%;padding:12px;border:none;border-radius:10px;
+              background:#ea580c;color:#fff;font-weight:700;font-size:.95rem;cursor:pointer">
+        Got it!
+      </button>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+  document.getElementById('pickupCodeCloseBtn').addEventListener('click', () => overlay.remove());
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
 }
 
 // Delivery confirmation (entering the customer's 6-digit code) now happens
@@ -463,6 +535,15 @@ async function viewOrder(id) {
         <div class="detail-group"><label>Total</label><div class="detail-val">${Utils.currency(order.total)}</div></div>
         <div class="detail-group" style="grid-column:1/-1"><label>Delivery Address</label><div class="detail-val">${Utils.escape(order.delivery_address||'—')}</div></div>
       </div>
+      ${order.status === 'ready_for_pickup' && order.pickup_confirmation_code ? `
+        <div style="margin:14px 0;background:#fff7ed;border:2px dashed #f97316;border-radius:12px;padding:14px;text-align:center">
+          <div style="font-size:.72rem;text-transform:uppercase;letter-spacing:1px;color:#9a5b1f;margin-bottom:4px">
+            Pickup code — read this to the rider in person
+          </div>
+          <div style="font-size:1.8rem;font-weight:800;letter-spacing:6px;color:#ea580c">${Utils.escape(String(order.pickup_confirmation_code))}</div>
+          <div style="font-size:.78rem;color:#9a5b1f;margin-top:4px">Do not send this over chat/SMS — hand it over face-to-face only.</div>
+        </div>
+      ` : ''}
       ${items.length ? `
         <h4 style="margin:16px 0 8px;font-size:.84rem;text-transform:uppercase;letter-spacing:.5px;color:var(--text-sec)">Items</h4>
         <div class="order-items-list">

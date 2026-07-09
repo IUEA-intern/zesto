@@ -72,7 +72,7 @@ export const RiderApi = {
   getAvailableOrders: ()            => Api.get('/rider/available-orders'),
   acceptOrder:      (id)            => Api.post(`/rider/accept-order/${id}`, {}),
   getActiveDelivery: ()             => Api.get('/rider/active-delivery'),
-  markPickedUp:     (id)            => Api.post(`/rider/orders/${id}/pickup`, {}),
+  markPickedUp:     (id, code)      => Api.post(`/rider/orders/${id}/pickup`, { code }),
   confirmDelivery:  (id, code)      => Api.post(`/rider/orders/${id}/confirm-delivery`, { code }),
   getHistory:       (page = 1)      => Api.get(`/rider/history?page=${page}&limit=20`),
 };

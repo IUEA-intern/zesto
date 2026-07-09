@@ -15,6 +15,11 @@
 const { query } = require('../config/db');
 const { log }   = require('../config/audit');
 
+/** 6-digit code the restaurant reads aloud to the rider at handoff. */
+function generatePickupCode() {
+  return String(Math.floor(100000 + Math.random() * 900000));
+}
+
 function safeRows(rows) {
   if (!Array.isArray(rows)) return [];
   return rows.map(r => {
@@ -222,9 +227,24 @@ async function updateOrderStatus(req, res) {
     const oldStatus = rows[0].status;
     const orderedUserId = rows[0].user_id;
 
+    // Generate a fresh pickup handoff code whenever an order becomes
+    // ready_for_pickup. Only the restaurant sees this — it's read aloud
+    // to the rider in person, and the rider must enter it correctly to
+    // confirm pickup. This is separate from the customer-facing
+    // delivery_confirmation_code and exists purely to prevent
+    // restaurant<->rider pickup fraud/disputes.
+    const pickupCode = status === 'ready_for_pickup' ? generatePickupCode() : null;
+
     // Update order status (must succeed before socket emission)
     try {
-      await query('UPDATE orders SET status=?, updated_at=NOW() WHERE order_id=?', [status, orderId]);
+      if (pickupCode) {
+        await query(
+          'UPDATE orders SET status=?, pickup_confirmation_code=?, updated_at=NOW() WHERE order_id=?',
+          [status, pickupCode, orderId]
+        );
+      } else {
+        await query('UPDATE orders SET status=?, updated_at=NOW() WHERE order_id=?', [status, orderId]);
+      }
     } catch (dbErr) {
       console.error('[restaurantAdmin] Database update failed:', dbErr);
       // Provide more specific error message
@@ -243,9 +263,13 @@ async function updateOrderStatus(req, res) {
           se.adminOrderUpdate({ orderId, status });
         }
 
-        // Emit to restaurant-specific room
+        // Emit to restaurant-specific room (includes the pickup code, if any —
+        // this room is only joined by this restaurant's own admin staff)
         if (typeof se.restaurantOrderUpdate === 'function') {
-          se.restaurantOrderUpdate(restaurant.restaurant_id, { orderId, status });
+          se.restaurantOrderUpdate(restaurant.restaurant_id, {
+            orderId, status,
+            ...(pickupCode ? { pickup_confirmation_code: pickupCode } : {}),
+          });
         }
 
         // Emit user notification toast
@@ -293,7 +317,11 @@ async function updateOrderStatus(req, res) {
       oldValue: { status: oldStatus }, newValue: { status }, ip: req.ip,
     });
 
-    return res.json({ success: true, message: `Order updated to ${status}.` });
+    return res.json({
+      success: true,
+      message: `Order updated to ${status}.`,
+      ...(pickupCode ? { pickup_confirmation_code: pickupCode } : {}),
+    });
   } catch (err) {
     console.error('[restaurantAdmin] updateOrderStatus failed:', err);
     
