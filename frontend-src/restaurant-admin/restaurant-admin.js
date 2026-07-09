@@ -373,9 +373,10 @@ function updateOrderRowButtons(row, status) {
     buttons += `<button class="btn-sm edit" onclick="setOrderStatus(${row.dataset.orderId},'ready_for_pickup')">🍽️ Ready</button>`;
   } else if (status === 'ready_for_pickup') {
     buttons += `<button class="btn-sm edit" onclick="setOrderStatus(${row.dataset.orderId},'out_for_delivery')">🚀 Out for Delivery</button>`;
-  } else if (status === 'out_for_delivery') {
-    buttons += `<button class="btn-sm edit" onclick="promptConfirmDelivery(${row.dataset.orderId})">🔑 Confirm Delivery</button>`;
   }
+  // Note: "Confirm Delivery" is intentionally NOT shown here once an order is
+  // out_for_delivery — that confirmation now happens exclusively in the
+  // rider app (rider enters the customer's code on arrival).
   
   const buttonContainer = actionsCell.querySelector('div') || actionsCell;
   buttonContainer.innerHTML = buttons;
@@ -411,7 +412,6 @@ async function loadOrders() {
             ${o.status === 'processing'  ? `<button class="btn-sm edit" onclick="setOrderStatus(${o.order_id},'preparing')">👨‍🍳 Preparing</button>` : ''}
             ${o.status === 'preparing'   ? `<button class="btn-sm edit" onclick="setOrderStatus(${o.order_id},'ready_for_pickup')">🍽️ Ready</button>` : ''}
             ${o.status === 'ready_for_pickup' ? `<button class="btn-sm edit" onclick="setOrderStatus(${o.order_id},'out_for_delivery')">🚀 Out for Delivery</button>` : ''}
-            ${o.status === 'out_for_delivery' ? `<button class="btn-sm edit" onclick="promptConfirmDelivery(${o.order_id})">🔑 Confirm Delivery</button>` : ''}
           </div>
         </td>
       </tr>`).join('');
@@ -436,30 +436,11 @@ async function setOrderStatus(orderId, status) {
   }
 }
 
-/** Ask the rider for the customer's delivery confirmation code, then confirm */
-function promptConfirmDelivery(orderId) {
-  const code = window.prompt('Enter the 6-digit delivery confirmation code given by the customer:');
-  if (code === null) return; // cancelled
-  const trimmed = String(code).trim();
-  if (!/^\d{6}$/.test(trimmed)) {
-    Toast.error('Please enter a valid 6-digit code.');
-    return;
-  }
-  confirmDelivery(orderId, trimmed);
-}
-
-async function confirmDelivery(orderId, code) {
-  try {
-    await Api.post(`/restaurant/orders/${orderId}/confirm-delivery`, { code });
-    Toast.success('🎉 Delivery confirmed! Order marked as delivered.');
-    loadOrders();
-    refreshKPIs();
-  } catch (err) {
-    const errorMsg = err.message || 'Failed to confirm delivery';
-    console.error('[confirmDelivery] Error:', err);
-    Toast.error(errorMsg);
-  }
-}
+// Delivery confirmation (entering the customer's 6-digit code) now happens
+// exclusively in the rider app once the rider reaches the customer — see
+// rider-app/src/screens/ActiveDeliveryScreen.js. It has been removed from
+// the restaurant admin dashboard to avoid two places confirming the same
+// delivery.
 
 async function viewOrder(id) {
   const modal   = document.getElementById('orderDetailModal');
@@ -500,7 +481,7 @@ async function viewOrder(id) {
         ${order.status === 'processing' ? `<button class="btn-primary" onclick="setOrderStatus(${order.order_id},'preparing'); document.getElementById('orderDetailModal').classList.add('hidden')">👨‍🍳 Start Preparing</button>` : ''}
         ${order.status === 'preparing'  ? `<button class="btn-primary" onclick="setOrderStatus(${order.order_id},'ready_for_pickup'); document.getElementById('orderDetailModal').classList.add('hidden')">🍽️ Mark Ready</button>` : ''}
         ${order.status === 'ready_for_pickup' ? `<button class="btn-primary" onclick="setOrderStatus(${order.order_id},'out_for_delivery'); document.getElementById('orderDetailModal').classList.add('hidden')">🚀 Send Out for Delivery</button>` : ''}
-        ${order.status === 'out_for_delivery' ? `<button class="btn-primary" onclick="promptConfirmDelivery(${order.order_id}); document.getElementById('orderDetailModal').classList.add('hidden')">🔑 Confirm Delivery</button>` : ''}
+        ${order.status === 'out_for_delivery' ? `<div style="color:var(--text-sec);font-size:.85rem;padding:8px 0">🚴 Awaiting rider to confirm delivery with the customer's code in the rider app.</div>` : ''}
       </div>`;
   } catch (err) {
     content.innerHTML = `<p style="color:var(--danger)">${Utils.escape(err.message)}</p>`;

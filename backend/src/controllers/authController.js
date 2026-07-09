@@ -18,7 +18,6 @@
 const bcrypt      = require('bcryptjs');
 const jwt         = require('jsonwebtoken');
 const { query }   = require('../config/db');
-const { consumeEmailVerification } = require('./emailVerificationController');
 
 // ── Constants ──────────────────────────────────────────────────────
 const COOKIE_NAME   = 'zesto_token';
@@ -200,15 +199,6 @@ async function registerCustomer(req, res) {
       });
     }
 
-    // ── 2.5 Require verified email ─────────────────────────────────
-    const emailVerified = await consumeEmailVerification(normalizedEmail);
-    if (!emailVerified) {
-      return res.status(400).json({
-        success: false,
-        message: 'Please verify your email before creating an account.',
-      });
-    }
-
     // ── 3. Hash password ───────────────────────────────────────────
     const hashedPassword = await bcrypt.hash(password, BCRYPT_ROUNDS);
 
@@ -353,8 +343,34 @@ async function login(req, res) {
  * POST /api/auth/logout
  *
  * Clears the auth cookie. No auth required — idempotent.
+ * If the caller is an authenticated rider (via optionalAuth), also flips
+ * them offline so they stop showing as "available" on the super-admin
+ * dashboard and stop receiving new delivery offers after signing out.
  */
-function logout(req, res) {
+async function logout(req, res) {
+  try {
+    if (req.user?.role === 'rider') {
+      const result = await query(
+        'UPDATE riders SET is_available = 0 WHERE user_id = ?',
+        [req.user.user_id]
+      );
+      if (Number(result?.affectedRows || 0)) {
+        const se = req.app.get('socketEmitters');
+        if (se) {
+          const rows = await query('SELECT rider_id FROM riders WHERE user_id = ?', [req.user.user_id]);
+          const riderId = rows?.[0]?.rider_id;
+          if (riderId) {
+            se.adminOrderUpdate({ type: 'rider:availability', riderId, is_available: false });
+          }
+        }
+      }
+    }
+  } catch (err) {
+    // Never block logout on this — worst case the rider stays "available"
+    // until their next availability toggle or token expiry.
+    console.error('[logout] Failed to mark rider offline:', err);
+  }
+
   clearAuthCookie(res);
   return res.json({ success: true, message: 'You have been logged out.' });
 }

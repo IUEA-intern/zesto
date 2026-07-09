@@ -9,10 +9,14 @@ const express    = require('express');
 const router     = express.Router();
 const controller = require('../controllers/authController');
 const onController = require('../controllers/onboardingController');
+const { optionalAuth } = require('../middleware/auth');
 
 router.post('/register/customer', controller.registerCustomer);
 router.post('/login',             controller.login);
-router.post('/logout',            controller.logout);
+// optionalAuth attaches req.user (from cookie or Bearer token) if present,
+// so logout can flip a rider's is_available flag off without blocking
+// logout for callers that aren't authenticated (logout stays idempotent).
+router.post('/logout',            optionalAuth, controller.logout);
 router.get('/me',                 controller.getMe);
 router.post('/mobile-token',      controller.mobileToken);
 
