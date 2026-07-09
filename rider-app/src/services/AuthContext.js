@@ -87,16 +87,27 @@ export function AuthProvider({ children }) {
   }, []);
 
   const logout = useCallback(async () => {
-    // 1. Disconnect socket
+    // 1. Go offline first, while we still have a valid token — this is
+    //    what actually flips is_available so the rider stops showing up
+    //    as "available" / stops receiving new delivery offers.
+    //    (The /auth/logout call below also does this server-side as a
+    //    fallback, but doing it explicitly here gives an immediate,
+    //    reliable result and a matching socket update to admins.)
+    try {
+      if (riderProfile?.is_available) {
+        await RiderApi.setAvailability(false);
+      }
+    } catch {}
+    // 2. Disconnect socket
     disconnectSocket();
-    // 2. Clear persisted token/user
+    // 3. Clear persisted token/user
     await clearToken();
-    // 3. Tell backend to clear cookie (best-effort)
+    // 4. Tell backend to clear cookie (best-effort)
     try { await AuthApi.logout(); } catch {}
-    // 4. Reset ALL local state — this triggers the navigator to show Login
+    // 5. Reset ALL local state — this triggers the navigator to show Login
     setUser(null);
     setRiderProfile(null);
-  }, []);
+  }, [riderProfile]);
 
   const refreshProfile = useCallback(async () => {
     try {

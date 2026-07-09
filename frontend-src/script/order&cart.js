@@ -108,20 +108,101 @@ async function loadDeliveryFee() {
 }
 
 /* ============================================================
+   DELIVERY CONFIRMATION CODE — persistent banner
+   Keeps the code visible to the customer (as a small floating pill)
+   until the rider confirms delivery, even across page reloads or the
+   browser/app being closed and reopened. Backed by localStorage so it
+   survives a full close, and reconciled against the server on load in
+   case the delivery finished while the customer was away.
+   ============================================================ */
+const DeliveryCodeStore = {
+  KEY: 'zesto_active_delivery', // { orderId, orderNumber, code }
+
+  save(orderId, orderNumber, code) {
+    if (!code) return;
+    try {
+      localStorage.setItem(this.KEY, JSON.stringify({ orderId, orderNumber, code }));
+    } catch {}
+  },
+
+  get() {
+    try {
+      return JSON.parse(localStorage.getItem(this.KEY) || 'null');
+    } catch { return null; }
+  },
+
+  clear() {
+    try { localStorage.removeItem(this.KEY); } catch {}
+  },
+};
+
+const DeliveryCodeBanner = {
+  render(code, orderNumber) {
+    if (!code) return;
+    let pill = document.getElementById('deliveryCodeBanner');
+    if (!pill) {
+      pill = document.createElement('div');
+      pill.id = 'deliveryCodeBanner';
+      pill.style.cssText = `
+        position: fixed; right: 16px; bottom: 16px; z-index: 9998;
+        background: #ea580c; color: #fff; border-radius: 999px;
+        padding: 10px 18px; font-weight: 700; font-size: .85rem;
+        box-shadow: 0 8px 24px rgba(0,0,0,.25); cursor: pointer;
+        display: flex; align-items: center; gap: 8px;
+      `;
+      pill.addEventListener('click', () => DeliveryCodeModal.show(
+        DeliveryCodeStore.get()?.code, DeliveryCodeStore.get()?.orderNumber
+      ));
+      document.body.appendChild(pill);
+    }
+    pill.innerHTML = `📦 Delivery code: <span style="letter-spacing:2px">${Utils.escape(String(code))}</span>`;
+  },
+
+  remove() {
+    document.getElementById('deliveryCodeBanner')?.remove();
+  },
+
+  /** Called on every page load to restore the banner if a delivery is still active. */
+  async init() {
+    const active = DeliveryCodeStore.get();
+    if (!active?.code) return;
+
+    // Show immediately from cache so it's never missing on load.
+    this.render(active.code, active.orderNumber);
+
+    // Reconcile with the server in case delivery finished while away.
+    if (!active.orderId || !State.session) return;
+    try {
+      const res = await Api.get(`/orders/${active.orderId}`);
+      const order = res?.data;
+      if (!order || order.status === 'delivered' || !order.delivery_confirmation_code) {
+        DeliveryCodeStore.clear();
+        this.remove();
+      }
+    } catch {
+      // Network/auth hiccup — keep showing the cached code, don't clear it.
+    }
+  },
+};
+
+/* ============================================================
    DELIVERY CONFIRMATION CODE MODAL
    Shown to the customer right after payment is verified.
    The code must be given to the delivery rider on arrival.
    ============================================================ */
 const DeliveryCodeModal = {
-  show(code, orderNumber) {
+  show(code, orderNumber, orderId) {
     if (!code) return;
 
-    // Persist so the customer can find it again if they navigate away
+    // Persist so the customer can find it again if they navigate away,
+    // reload, or close and reopen the browser/app entirely.
     try {
       const stored = JSON.parse(localStorage.getItem('zesto_delivery_codes') || '{}');
       stored[orderNumber || 'latest'] = code;
       localStorage.setItem('zesto_delivery_codes', JSON.stringify(stored));
     } catch {}
+    DeliveryCodeStore.save(orderId, orderNumber, code);
+    DeliveryCodeBanner.render(code, orderNumber);
 
     let overlay = document.getElementById('deliveryCodeOverlay');
     if (overlay) overlay.remove();
@@ -1156,12 +1237,29 @@ const SocketManager = {
       this.socket.on('payment:status', ({ data }) => {
         if (!data) return;
         if (data.status === 'verified' && data.deliveryCode) {
-          DeliveryCodeModal.show(data.deliveryCode, data.orderId);
+          DeliveryCodeModal.show(data.deliveryCode, data.orderId, data.orderId);
         } else if (data.status === 'delivered') {
           Toast.success('🎉 Your order has been delivered! Enjoy your meal!');
         } else if (data.status === 'failed') {
           Toast.error('Payment failed. Please try again.');
         }
+      });
+
+      // Fired when the rider confirms delivery with the customer's code —
+      // the code is no longer needed, so clear the persistent banner.
+      // (The "delivered" toast itself comes through notification:toast.)
+      this.socket.on('order:created', ({ data }) => {
+        if (!data || data.status !== 'delivered') return;
+        const active = DeliveryCodeStore.get();
+        if (!active || !data.orderId || active.orderId == data.orderId) {
+          DeliveryCodeStore.clear();
+          DeliveryCodeBanner.remove();
+        }
+      });
+
+      this.socket.on('notification:toast', ({ data }) => {
+        if (!data?.message) return;
+        Toast.show(data.message, data.type || 'info');
       });
     } catch (err) {
       console.warn('[SocketManager]', err);
@@ -1201,7 +1299,7 @@ function handlePaymentReturn() {
       Api.get(`/orders/${orderId}`)
         .then((res) => {
           const code = res?.data?.delivery_confirmation_code;
-          if (code) DeliveryCodeModal.show(code, res.data.order_number || orderId);
+          if (code) DeliveryCodeModal.show(code, res.data.order_number || orderId, orderId);
         })
         .catch((err) => console.warn('[handlePaymentReturn] Failed to fetch delivery code:', err));
     }
@@ -1231,6 +1329,15 @@ async function bootPage() {
   AuthModal.init();
   SocketManager.init();
   initNavScroll();
+
+  // Restore the delivery-code banner if the customer has an active,
+  // not-yet-delivered order (persists across reloads / closed browser).
+  DeliveryCodeBanner.init();
+
+  // If we were just redirected back here from the payment gateway,
+  // surface the delivery confirmation code (this is the page Pesapal/
+  // Flutterwave redirects to: cart.html?payment=success&order_id=...).
+  handlePaymentReturn();
 
   const isCartPage  = !!document.getElementById('cartItemsList');
   const isOrderPage = !!document.getElementById('foodGrid');
