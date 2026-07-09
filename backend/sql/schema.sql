@@ -180,6 +180,7 @@ CREATE TABLE IF NOT EXISTS orders (
   delivery_lng      DECIMAL(10,7) NULL,
   notes             TEXT          NULL,
   assigned_staff_id          INT UNSIGNED  NULL,
+  pickup_confirmation_code   CHAR(6)       NULL COMMENT '6-digit code generated when order is marked ready_for_pickup; restaurant reads it aloud, rider enters it to confirm pickup (prevents pickup fraud/disputes)',
   delivery_confirmation_code CHAR(6)       NULL COMMENT '6-digit code generated on payment; rider enters to confirm delivery',
   created_at        TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at        TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -394,17 +395,14 @@ ALTER TABLE orders
     COMMENT '6-digit code generated on payment; rider enters to confirm delivery'
   AFTER assigned_staff_id;
 
-USE zesto_db_2;
-
-CREATE TABLE IF NOT EXISTS email_verifications (
-  id          INT UNSIGNED NOT NULL AUTO_INCREMENT,
-  email       VARCHAR(180) NOT NULL,
-  code        CHAR(6)      NOT NULL,
-  verified    TINYINT(1)   NOT NULL DEFAULT 0,
-  attempts    TINYINT UNSIGNED NOT NULL DEFAULT 0,
-  expires_at  TIMESTAMP    NOT NULL,
-  created_at  TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
-  PRIMARY KEY (id),
-  UNIQUE KEY uq_email_verifications_email (email)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+-- ============================================================
+-- MIGRATION: Add pickup_confirmation_code to orders
+-- Restaurant <-> rider handoff code (separate from the customer-facing
+-- delivery_confirmation_code) to prevent pickup fraud/disputes between
+-- the restaurant and the rider.
+-- Run this on existing databases that already have the orders table.
+-- ============================================================
+ALTER TABLE orders
+  ADD COLUMN IF NOT EXISTS pickup_confirmation_code CHAR(6) NULL
+    COMMENT '6-digit code generated when order is marked ready_for_pickup; restaurant reads it aloud, rider enters it to confirm pickup'
+  AFTER assigned_staff_id;

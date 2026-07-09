@@ -332,11 +332,20 @@ router.get('/active-delivery', async (req, res) => {
 router.post('/orders/:id/pickup', async (req, res) => {
   const orderId = parseInt(req.params.id);
   const userId  = req.user.user_id;
+  const { code } = req.body;
+
+  if (!code || !/^\d{6}$/.test(String(code).trim())) {
+    return res.status(400).json({
+      success: false,
+      message: 'A valid 6-digit pickup code from the restaurant is required.',
+    });
+  }
 
   try {
     // Verify this delivery belongs to this rider
     const rows = safeRows(await query(
-      `SELECT d.delivery_id, d.status, d.rider_id, o.restaurant_id
+      `SELECT d.delivery_id, d.status, d.rider_id, o.restaurant_id,
+              o.pickup_confirmation_code
        FROM deliveries d
        JOIN orders o ON o.order_id = d.order_id
        JOIN riders ri ON ri.rider_id = d.rider_id
@@ -353,10 +362,28 @@ router.post('/orders/:id/pickup', async (req, res) => {
 
     const delivery = rows[0];
 
+    // Verify the restaurant's pickup handoff code — prevents a rider from
+    // marking an order picked up without actually collecting it, and
+    // prevents disputes between the restaurant and rider over handoff.
+    if (!delivery.pickup_confirmation_code ||
+        String(delivery.pickup_confirmation_code).trim() !== String(code).trim()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Incorrect code. Please ask restaurant staff for the pickup code.',
+      });
+    }
+
     await query(
       `UPDATE deliveries SET status = 'picked_up', picked_up_at = NOW(), updated_at = NOW()
        WHERE delivery_id = ?`,
       [delivery.delivery_id]
+    );
+
+    // Single-use — clear it once redeemed (order.status is already
+    // 'out_for_delivery', set when the rider accepted the order)
+    await query(
+      `UPDATE orders SET pickup_confirmation_code = NULL, updated_at = NOW() WHERE order_id = ?`,
+      [orderId]
     );
 
     // Notify admin and restaurant
@@ -369,7 +396,7 @@ router.post('/orders/:id/pickup', async (req, res) => {
     await log({
       actorId: userId, actorRole: 'rider',
       action: 'DELIVERY_PICKED_UP', entityType: 'order', entityId: orderId,
-      ip: req.ip,
+      newValue: { status: 'picked_up', code_used: true }, ip: req.ip,
     });
 
     return res.json({ success: true, message: 'Order marked as picked up. Head to the customer.' });
