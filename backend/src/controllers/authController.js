@@ -656,6 +656,98 @@ async function riderRegister(req, res) {
   }
 }
 
+/**
+ * GET /api/auth/profile
+ *
+ * Returns the full profile (including phone, which the JWT/session
+ * payload doesn't carry) for the account settings form.
+ */
+async function getProfile(req, res) {
+  try {
+    const rows = await query('SELECT user_id, name, email, phone, role FROM users WHERE user_id = ?', [req.user.user_id]);
+    if (!rows.length) return res.status(404).json({ success: false, message: 'User not found.' });
+    return res.json({ success: true, user: rows[0] });
+  } catch (err) {
+    console.error('[getProfile] Error:', err);
+    return res.status(500).json({ success: false, message: 'Failed to load profile.' });
+  }
+}
+
+/**
+ * PATCH /api/auth/profile
+ *
+ * Body: { name, phone }
+ * Any authenticated user (customer, rider, restaurant admin, super admin)
+ * can update their own display name and phone number.
+ */
+async function updateProfile(req, res) {
+  try {
+    const userId = req.user.user_id;
+    const name  = (req.body?.name  || '').trim();
+    const phone = (req.body?.phone || '').trim();
+
+    if (!name) {
+      return res.status(400).json({ success: false, message: 'Name is required.' });
+    }
+    if (name.length > 120) {
+      return res.status(400).json({ success: false, message: 'Name is too long.' });
+    }
+    if (phone && !/^[0-9+()\-\s]{6,20}$/.test(phone)) {
+      return res.status(400).json({ success: false, message: 'Please enter a valid phone number.' });
+    }
+
+    await query('UPDATE users SET name = ?, phone = ? WHERE user_id = ?', [name, phone || null, userId]);
+
+    const rows = await query('SELECT user_id, name, email, phone, role FROM users WHERE user_id = ?', [userId]);
+    return res.json({
+      success: true,
+      message: 'Profile updated.',
+      user: { ...buildUserPayload(rows[0]), phone: rows[0].phone },
+    });
+  } catch (err) {
+    console.error('[updateProfile] Error:', err);
+    return res.status(500).json({ success: false, message: 'Failed to update profile.' });
+  }
+}
+
+/**
+ * POST /api/auth/change-password
+ *
+ * Body: { currentPassword, newPassword }
+ * Requires the correct current password before setting a new one.
+ */
+async function changePassword(req, res) {
+  try {
+    const userId = req.user.user_id;
+    const { currentPassword, newPassword } = req.body || {};
+
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ success: false, message: 'Current and new password are required.' });
+    }
+    if (String(newPassword).length < 8) {
+      return res.status(400).json({ success: false, message: 'New password must be at least 8 characters.' });
+    }
+
+    const rows = await query('SELECT password FROM users WHERE user_id = ?', [userId]);
+    if (!rows.length) {
+      return res.status(404).json({ success: false, message: 'User not found.' });
+    }
+
+    const match = await bcrypt.compare(currentPassword, rows[0].password);
+    if (!match) {
+      return res.status(401).json({ success: false, message: 'Current password is incorrect.' });
+    }
+
+    const hashed = await bcrypt.hash(newPassword, BCRYPT_ROUNDS);
+    await query('UPDATE users SET password = ? WHERE user_id = ?', [hashed, userId]);
+
+    return res.json({ success: true, message: 'Password updated successfully.' });
+  } catch (err) {
+    console.error('[changePassword] Error:', err);
+    return res.status(500).json({ success: false, message: 'Failed to change password.' });
+  }
+}
+
 // ── Exports ────────────────────────────────────────────────────────
 module.exports = {
   registerCustomer,
@@ -666,4 +758,7 @@ module.exports = {
   riderSendOtp,
   riderVerifyOtp,
   riderRegister,
+  updateProfile,
+  changePassword,
+  getProfile,
 };

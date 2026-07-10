@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Account — Zesto</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Knewave&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/order.css" />
+  <link rel="stylesheet" href="css/auth-modal.css" />
+  <link rel="stylesheet" href="css/account.css" />
+</head>
+<body>
+
+  <!-- ── Toast Container ──────────────────────────────────── -->
+  <div id="toastContainer" class="toast-container" aria-live="polite"></div>
+
+  <!-- ── Navbar ────────────────────────────────────────────── -->
+  <nav class="navbar" id="mainNav">
+    <div class="nav-inner">
+      <a href="index.html" class="nav-brand">
+        <span class="brand-logo">Zes<span class="brand-accent">to</span></span>
+      </a>
+
+      <div class="nav-actions">
+        <div id="userPill" class="user-pill hidden">
+          <span class="user-avatar">👤</span>
+          <span id="userName" class="user-name-text"></span>
+          <button id="logoutBtn" class="btn-logout" title="Logout">↩</button>
+        </div>
+
+        <button id="openAuthModal" class="btn-auth">Login / Sign Up</button>
+
+        <a href="order.html" class="btn-auth" style="background:transparent;color:var(--orange);border:1.5px solid var(--orange)">🍽️ Order Food</a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="account-main">
+    <div class="account-header">
+      <h1>My Account</h1>
+      <p>Track your orders and manage your account details.</p>
+    </div>
+
+    <div class="account-tabs">
+      <button class="account-tab active" data-tab="orders">📦 My Orders</button>
+      <button class="account-tab" data-tab="settings">⚙️ Account Settings</button>
+    </div>
+
+    <!-- ── MY ORDERS ─────────────────────────────────────── -->
+    <section class="account-panel active" id="panel-orders">
+      <div class="orders-subtabs">
+        <button class="orders-subtab active" data-sub="progress">🚴 In Progress</button>
+        <button class="orders-subtab" data-sub="history">🗂️ Order History</button>
+      </div>
+
+      <div id="ordersInProgress"></div>
+      <div id="ordersHistory" style="display:none"></div>
+    </section>
+
+    <!-- ── ACCOUNT SETTINGS ──────────────────────────────── -->
+    <section class="account-panel" id="panel-settings">
+      <div class="settings-card">
+        <h3>Profile</h3>
+        <p class="sub">Update your name and phone number.</p>
+        <div class="form-row">
+          <label for="settingsEmail">Email</label>
+          <input type="email" id="settingsEmail" disabled />
+        </div>
+        <div class="form-row">
+          <label for="settingsName">Full Name</label>
+          <input type="text" id="settingsName" placeholder="Your name" autocomplete="name" />
+        </div>
+        <div class="form-row">
+          <label for="settingsPhone">Phone Number</label>
+          <input type="tel" id="settingsPhone" placeholder="e.g. 0700 000 000" autocomplete="tel" />
+        </div>
+        <div class="form-actions">
+          <button class="account-save-btn" id="saveProfileBtn">Save Changes</button>
+        </div>
+      </div>
+
+      <div class="settings-card">
+        <h3>Change Password</h3>
+        <p class="sub">Enter your current password to set a new one.</p>
+        <div class="form-row">
+          <label for="currentPassword">Current Password</label>
+          <input type="password" id="currentPassword" autocomplete="current-password" />
+        </div>
+        <div class="form-row">
+          <label for="newPassword">New Password</label>
+          <input type="password" id="newPassword" autocomplete="new-password" placeholder="At least 8 characters" />
+        </div>
+        <div class="form-row">
+          <label for="confirmNewPassword">Confirm New Password</label>
+          <input type="password" id="confirmNewPassword" autocomplete="new-password" />
+        </div>
+        <div class="form-actions">
+          <button class="account-save-btn" id="savePasswordBtn">Update Password</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ── Scripts ───────────────────────────────────────────── -->
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="script/shared_auth.js"></script>
+  <script src="script/account.js"></script>
+</body>
+</html>

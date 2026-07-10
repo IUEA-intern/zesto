@@ -202,8 +202,15 @@ async function updateOrderStatus(req, res) {
       return res.status(400).json({ success: false, message: 'Invalid order ID.' });
     }
 
-    // Validate status value
-    const valid = ['processing', 'preparing', 'ready_for_pickup', 'out_for_delivery', 'cancelled'];
+    // Validate status value.
+    // NOTE: 'out_for_delivery' is intentionally excluded — that transition
+    // now only happens when a rider accepts the order in the rider app
+    // (see POST /api/rider/orders/:id/accept). Allowing the restaurant to
+    // set it directly would let an order be marked "out for delivery"
+    // with no rider ever assigned, and without the pickup handoff code
+    // ever being verified — exactly the fraud/dispute gap this was
+    // meant to close.
+    const valid = ['processing', 'preparing', 'ready_for_pickup', 'cancelled'];
     if (!status || !valid.includes(status)) {
       return res.status(400).json({ success: false, message: `Invalid status. Must be one of: ${valid.join(', ')}` });
     }
