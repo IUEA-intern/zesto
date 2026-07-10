@@ -286,12 +286,19 @@ async function verifyPayment(req, res) {
       userAgent:  req.headers['user-agent'],
     });
 
+    // Real, customer-facing order number — NOT the gateway's internal
+    // tx_ref (e.g. "ZST-flutterwave-ZST-...-1"), which was previously
+    // being shown as the order number in the admin live feed / rider
+    // notifications and looked like a garbled duplicate order.
+    const orderRows = await query('SELECT * FROM orders WHERE order_id=?', [order_id]);
+    const realOrderNumber = orderRows[0]?.order_number || `#${order_id}`;
+
     // ── Real-time notifications ──────────────────────────────
     if (socket) {
       // Notify user (include delivery code)
       socket.paymentStatus(userId, { orderId: order_id, status: 'verified', amount: orderAmount, deliveryCode });
       socket.toastUser(userId, { type: 'success', message: `Payment confirmed! Your delivery code is ${deliveryCode}. Give this to the rider when your order arrives.` });
-      socket.orderCreated(userId, { orderId: order_id, orderNumber: flwTx.tx_ref, deliveryCode });
+      socket.orderCreated(userId, { orderId: order_id, orderNumber: realOrderNumber, deliveryCode });
 
       // Notify admin dashboard
       socket.adminPaymentVerified({
@@ -305,7 +312,7 @@ async function verifyPayment(req, res) {
       // NEW ORDER appears in Super Admin feed
       socket.adminNewOrder({
         orderId:     order_id,
-        orderNumber: flwTx.tx_ref,
+        orderNumber: realOrderNumber,
         total:       orderAmount,
         itemCount:   'multiple',
       });
@@ -317,7 +324,7 @@ async function verifyPayment(req, res) {
       if (restaurantId && socket.restaurantNewOrder && socket.restaurantOrderUpdate) {
         socket.restaurantNewOrder(restaurantId, {
           orderId:     order_id,
-          orderNumber: flwTx.tx_ref,
+          orderNumber: realOrderNumber,
           total:       orderAmount,
           itemCount:   'multiple',
         });
@@ -325,7 +332,6 @@ async function verifyPayment(req, res) {
       }
 
       // Notify kitchen
-      const orderRows = await query('SELECT * FROM orders WHERE order_id=?', [order_id]);
       if (orderRows.length) {
         socket.kitchenNewOrder({
           orderId:     order_id,
@@ -648,8 +654,18 @@ async function finalizePesapalPayment(payment, pesapalData, req) {
     userAgent: req.headers['user-agent'],
   });
   if (socket) {
+    // Real, customer-facing order number — NOT payment.flw_tx_ref (the
+    // gateway's internal merchant reference, e.g. "ZST-pesapal-ZST-...-1"),
+    // which was previously shown as the order number in the admin live
+    // feed and looked like a garbled duplicate order.
+    const orderRows = await query('SELECT * FROM orders WHERE order_id = ?', [payment.order_id]);
+    const order = orderRows[0];
+    const realOrderNumber = order?.order_number || `#${payment.order_id}`;
+
     socket.paymentStatus(payment.user_id, { orderId: payment.order_id, status: 'verified', amount, deliveryCode });
     socket.toastUser(payment.user_id, { type: 'success', message: `Payment confirmed! Your delivery code is ${deliveryCode}. Give this to the rider when your order arrives.` });
+    socket.orderCreated(payment.user_id, { orderId: payment.order_id, orderNumber: realOrderNumber, deliveryCode });
+
     socket.adminPaymentVerified({
       paymentId: payment.payment_id,
       orderId: payment.order_id,
@@ -661,11 +677,35 @@ async function finalizePesapalPayment(payment, pesapalData, req) {
     // NEW ORDER appears in Super Admin feed
     socket.adminNewOrder({
       orderId: payment.order_id,
-      orderNumber: payment.flw_tx_ref || `#${payment.order_id}`,
+      orderNumber: realOrderNumber,
       total: amount,
       itemCount: 'multiple',
     });
     socket.adminOrderUpdate({ orderId: payment.order_id, status: 'processing' });
+
+    // Notify restaurant admin dashboard — this was missing entirely for
+    // Pesapal payments, so a restaurant's "Live Orders" panel never
+    // updated in real time; it only caught up on the next manual/polled
+    // refresh. Flutterwave's verifyPayment() already did this.
+    const restaurantId = order?.restaurant_id;
+    if (restaurantId && socket.restaurantNewOrder && socket.restaurantOrderUpdate) {
+      socket.restaurantNewOrder(restaurantId, {
+        orderId: payment.order_id,
+        orderNumber: realOrderNumber,
+        total: amount,
+        itemCount: 'multiple',
+      });
+      socket.restaurantOrderUpdate(restaurantId, { orderId: payment.order_id, status: 'processing' });
+    }
+
+    // Notify kitchen
+    if (order && socket.kitchenNewOrder) {
+      socket.kitchenNewOrder({
+        orderId: payment.order_id,
+        orderNumber: order.order_number,
+        total: order.total,
+      });
+    }
   }
 }
 

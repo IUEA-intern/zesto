@@ -323,6 +323,41 @@ function bumpBadge() {
 async function loadDashboard() {
   refreshKPIs();
   loadTopProducts();
+  loadLiveFeed();
+}
+
+/**
+ * The Live Orders panel used to be populated ONLY by live socket events
+ * (State.liveFeedItems started empty every page load/refresh and stayed
+ * empty until a brand-new order came in during that session) — so on
+ * load, or on the auto-refresh interval, it always showed "No recent
+ * orders" even when there clearly were some (e.g. Today's Orders: 1).
+ * Now it's re-hydrated from the actual recent orders on every dashboard
+ * load and every auto-refresh tick, so it reflects reality immediately;
+ * live socket events still push instant updates in between refreshes.
+ */
+const FEED_STATUS_ICON = {
+  pending: '📦', processing: '📦', preparing: '👨‍🍳',
+  ready_for_pickup: '🍽️', out_for_delivery: '🚴',
+  delivered: '✅', cancelled: '❌',
+};
+
+async function loadLiveFeed() {
+  try {
+    const res  = await Api.get('/restaurant/orders?limit=8');
+    const rows = res.data || [];
+    State.liveFeedItems = rows.map(o => ({
+      icon: FEED_STATUS_ICON[o.status] || '📦',
+      title: `Order ${o.order_number || '#' + o.order_id}`,
+      meta: `${o.customer_name || 'Customer'} — ${String(o.status || '').replace(/_/g, ' ')}`,
+      amt: Utils.currency(o.total),
+    }));
+    renderFeed();
+  } catch (err) {
+    // Non-fatal — leave whatever the feed currently shows (e.g. items
+    // already pushed live via socket) rather than blanking it on error.
+    console.error('[loadLiveFeed] Failed:', err);
+  }
 }
 
 async function refreshKPIs() {
@@ -404,7 +439,7 @@ function updateOrderRowButtons(row, status) {
   } else if (status === 'preparing') {
     buttons += `<button class="btn-sm edit" onclick="setOrderStatus(${row.dataset.orderId},'ready_for_pickup')">🍽️ Ready</button>`;
   } else if (status === 'ready_for_pickup') {
-    buttons += `<span style="font-size:.78rem;color:var(--text-muted)">🛵 Waiting for a rider to accept…</span>`;
+    buttons += `<span style="font-size:.78rem;color:var(--text-muted)">🛵 Waiting for pickup…</span>`;
   }
   // Note: transitioning to out_for_delivery, and "Confirm Delivery", both
   // happen exclusively in the rider app now — a rider must accept the
@@ -445,7 +480,7 @@ async function loadOrders() {
             ${o.status === 'pending'     ? `<button class="btn-sm danger" onclick="setOrderStatus(${o.order_id},'cancelled')">❌ Reject</button>` : ''}
             ${o.status === 'processing'  ? `<button class="btn-sm edit" onclick="setOrderStatus(${o.order_id},'preparing')">👨‍🍳 Preparing</button>` : ''}
             ${o.status === 'preparing'   ? `<button class="btn-sm edit" onclick="setOrderStatus(${o.order_id},'ready_for_pickup')">🍽️ Ready</button>` : ''}
-            ${o.status === 'ready_for_pickup' ? `<span style="font-size:.76rem;color:var(--text-muted);align-self:center">🛵 Waiting for rider…</span>` : ''}
+            ${o.status === 'ready_for_pickup' ? `<span style="font-size:.76rem;color:var(--text-muted);align-self:center">🛵 Awaiting pickup…</span>` : ''}
           </div>
         </td>
       </tr>`).join('');
@@ -580,7 +615,7 @@ async function viewOrder(id) {
         ${order.status === 'pending'    ? `<button class="btn-sm danger" style="padding:10px 20px" onclick="setOrderStatus(${order.order_id},'cancelled'); document.getElementById('orderDetailModal').classList.add('hidden')">❌ Reject</button>` : ''}
         ${order.status === 'processing' ? `<button class="btn-primary" onclick="setOrderStatus(${order.order_id},'preparing'); document.getElementById('orderDetailModal').classList.add('hidden')">👨‍🍳 Start Preparing</button>` : ''}
         ${order.status === 'preparing'  ? `<button class="btn-primary" onclick="setOrderStatus(${order.order_id},'ready_for_pickup'); document.getElementById('orderDetailModal').classList.add('hidden')">🍽️ Mark Ready</button>` : ''}
-        ${order.status === 'ready_for_pickup' ? `<div style="color:var(--text-sec);font-size:.85rem;padding:8px 0">🛵 Waiting for a rider to accept this order and collect it with the pickup code above.</div>` : ''}
+        ${order.status === 'ready_for_pickup' ? `<div style="color:var(--text-sec);font-size:.85rem;padding:8px 0">🛵 Awaiting pickup — a rider may already be on the way. Give them the code above once they arrive.</div>` : ''}
         ${order.status === 'out_for_delivery' ? `<div style="color:var(--text-sec);font-size:.85rem;padding:8px 0">🚴 Awaiting rider to confirm delivery with the customer's code in the rider app.</div>` : ''}
       </div>`;
   } catch (err) {

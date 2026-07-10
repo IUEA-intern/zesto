@@ -248,9 +248,16 @@ router.post('/accept-order/:id', async (req, res) => {
       [orderId, rider.rider_id, orderRows[0].restaurant_address || '', orderRows[0].delivery_address]
     );
 
-    // Update order status to out_for_delivery
+    // NOTE: order.status is intentionally NOT changed here. It stays
+    // 'ready_for_pickup' (and the restaurant's pickup code stays visible)
+    // until the rider actually shows up and enters the correct pickup
+    // code in POST /orders/:id/pickup — that's the only thing that should
+    // ever move the order to 'out_for_delivery'. Flipping it here, before
+    // the rider had even reached the restaurant, made the restaurant's
+    // pickup-code screen disappear too early and desynced the two apps'
+    // view of what state the order was actually in.
     await conn.query(
-      `UPDATE orders SET status = 'out_for_delivery', assigned_staff_id = ?, updated_at = NOW()
+      `UPDATE orders SET assigned_staff_id = ?, updated_at = NOW()
        WHERE order_id = ?`,
       [userId, orderId]
     );
@@ -265,20 +272,20 @@ router.post('/accept-order/:id', async (req, res) => {
       if (typeof se.riderOrderClaimed === 'function') {
         se.riderOrderClaimed(orderId, rider.rider_id);
       }
-      // Notify admin dashboard
+      // Notify admin dashboard (still ready_for_pickup — just now claimed)
       if (typeof se.adminOrderUpdate === 'function') {
-        se.adminOrderUpdate({ orderId, status: 'out_for_delivery' });
+        se.adminOrderUpdate({ orderId, status: 'ready_for_pickup', delivery_status: 'assigned' });
       }
       // Notify restaurant dashboard
       if (typeof se.restaurantOrderUpdate === 'function') {
-        se.restaurantOrderUpdate(orderRows[0].restaurant_id, { orderId, status: 'out_for_delivery' });
+        se.restaurantOrderUpdate(orderRows[0].restaurant_id, { orderId, status: 'ready_for_pickup', delivery_status: 'assigned' });
       }
     }
 
     await log({
       actorId: userId, actorRole: 'rider',
       action: 'DELIVERY_ACCEPTED', entityType: 'order', entityId: orderId,
-      newValue: { riderId: rider.rider_id, status: 'out_for_delivery' }, ip: req.ip,
+      newValue: { riderId: rider.rider_id, delivery_status: 'assigned' }, ip: req.ip,
     });
 
     return res.json({ success: true, message: 'Delivery accepted! Navigate to the restaurant.' });
@@ -384,10 +391,13 @@ router.post('/orders/:id/pickup', async (req, res) => {
       [delivery.delivery_id]
     );
 
-    // Single-use — clear it once redeemed (order.status is already
-    // 'out_for_delivery', set when the rider accepted the order)
+    // This is the ONLY place order.status becomes 'out_for_delivery' —
+    // it only happens once the correct pickup code has been verified,
+    // which is also what makes the restaurant's pickup-code screen go
+    // away (it's shown only while status === 'ready_for_pickup').
     await query(
-      `UPDATE orders SET pickup_confirmation_code = NULL, updated_at = NOW() WHERE order_id = ?`,
+      `UPDATE orders SET status = 'out_for_delivery', pickup_confirmation_code = NULL, updated_at = NOW()
+       WHERE order_id = ?`,
       [orderId]
     );
 
