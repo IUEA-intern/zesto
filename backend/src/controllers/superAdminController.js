@@ -22,44 +22,215 @@ function page(req) {
 
 async function getPlatformStats(req, res) {
   try {
-    const [restaurants, riders, customers, orders, revenue, failed] = await Promise.all([
+    const [
+      restaurants,
+      riders,
+      customers,
+      orders,
+      revenue,
+      failed,
+      deliveries,
+      delivered,
+      failedDeliveries
+    ] = await Promise.all([
       query('SELECT COUNT(*) AS cnt FROM restaurants'),
+
       query('SELECT COUNT(*) AS cnt FROM riders'),
+
       query("SELECT COUNT(*) AS cnt FROM users WHERE role='customer'"),
-      query("SELECT COUNT(DISTINCT o.order_id) AS cnt FROM orders o JOIN payments p ON p.order_id=o.order_id WHERE p.status='verified'").catch(() => [{ cnt: 0 }]),
-      query("SELECT COALESCE(SUM(amount),0) AS total FROM payments WHERE status='verified'").catch(() => [{ total: 0 }]),
-      query("SELECT COUNT(*) AS cnt FROM payments WHERE status IN ('failed','expired')").catch(() => [{ cnt: 0 }]),
+
+      query(`
+        SELECT COUNT(DISTINCT o.order_id) AS cnt 
+        FROM orders o 
+        JOIN payments p 
+          ON p.order_id=o.order_id 
+        WHERE p.status='verified'
+      `).catch(() => [{ cnt: 0 }]),
+
+      query(`
+        SELECT COALESCE(SUM(amount),0) AS total 
+        FROM payments 
+        WHERE status='verified'
+      `).catch(() => [{ total: 0 }]),
+
+      query(`
+        SELECT COUNT(*) AS cnt 
+        FROM payments 
+        WHERE status IN ('failed','expired')
+      `).catch(() => [{ cnt: 0 }]),
+
+
+      // DELIVERY STATS
+      query(`
+        SELECT COUNT(*) AS cnt 
+        FROM deliveries
+      `).catch(() => [{ cnt: 0 }]),
+
+
+      query(`
+        SELECT COUNT(*) AS cnt 
+        FROM deliveries
+        WHERE status='delivered'
+      `).catch(() => [{ cnt: 0 }]),
+
+
+      query(`
+        SELECT COUNT(*) AS cnt 
+        FROM deliveries
+        WHERE status='failed'
+      `).catch(() => [{ cnt: 0 }]),
     ]);
-    return res.json({ success: true, data: {
-      totalRestaurants: Number(safeRows(restaurants)[0]?.cnt || 0),
-      totalRiders: Number(safeRows(riders)[0]?.cnt || 0),
-      totalCustomers: Number(safeRows(customers)[0]?.cnt || 0),
-      totalOrders: Number(safeRows(orders)[0]?.cnt || 0),
-      totalRevenue: Number(safeRows(revenue)[0]?.total || 0),
-      failedPayments: Number(safeRows(failed)[0]?.cnt || 0),
-    } });
+
+
+    const totalDeliveries  = Number(
+      safeRows(deliveries)[0]?.cnt || 0
+    );
+
+    const totalDelivered = Number(
+      safeRows(delivered)[0]?.cnt || 0
+    );
+
+    const totalFailedDeliveries = Number(
+      safeRows(failedDeliveries)[0]?.cnt || 0
+    );
+
+
+    const successRate = totalDeliveries > 0
+      ? Number(((totalDelivered / totalDeliveries) * 100).toFixed(1))
+      : 0;
+
+
+    return res.json({
+      success: true,
+      data: {
+
+        totalRestaurants: Number(
+          safeRows(restaurants)[0]?.cnt || 0
+        ),
+
+        totalRiders: Number(
+          safeRows(riders)[0]?.cnt || 0
+        ),
+
+        totalCustomers: Number(
+          safeRows(customers)[0]?.cnt || 0
+        ),
+
+        totalOrders: Number(
+          safeRows(orders)[0]?.cnt || 0
+        ),
+
+        totalRevenue: Number(
+          safeRows(revenue)[0]?.total || 0
+        ),
+
+        failedPayments: Number(
+          safeRows(failed)[0]?.cnt || 0
+        ),
+
+
+        // NEW DELIVERY STATS
+        deliveryStats: {
+          totalDeliveries,
+          delivered: totalDelivered,
+          failed: totalFailedDeliveries,
+          successRate
+        }
+
+      }
+    });
+
   } catch (err) {
     console.error('[superAdmin] getPlatformStats', err);
-    return res.status(500).json({ success: false, message: 'Failed to fetch platform stats.' });
+
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to fetch platform stats.'
+    });
   }
 }
 
 async function getRestaurants(req, res) {
   try {
     const { limit, current, offset } = page(req);
+
+    const status = String(req.query.status || "").trim().toLowerCase();
+
+    const validStatuses = ["pending", "approved", "suspended"];
+
+    let where = "";
+    let params = [];
+
+    if (validStatuses.includes(status)) {
+      where = " WHERE r.status = ?";
+      params.push(status);
+    }
+
+    params.push(limit, offset);
+
     const rows = safeRows(await query(
-      `SELECT r.*, u.name AS owner_name, u.email AS owner_email,
-              (SELECT COUNT(DISTINCT o.order_id) FROM orders o JOIN payments p ON p.order_id=o.order_id WHERE o.restaurant_id=r.restaurant_id AND p.status='verified') AS total_orders,
-              (SELECT COALESCE(SUM(p.amount),0) FROM payments p JOIN orders o ON o.order_id=p.order_id WHERE o.restaurant_id=r.restaurant_id AND p.status='verified') AS total_revenue
-       FROM restaurants r JOIN users u ON u.user_id=r.owner_user_id
-       ORDER BY r.created_at DESC LIMIT ? OFFSET ?`,
-      [limit, offset]
+      `
+      SELECT
+        r.*,
+        u.name AS owner_name,
+        u.email AS owner_email,
+
+        (
+          SELECT COUNT(DISTINCT o.order_id)
+          FROM orders o
+          JOIN payments p
+            ON p.order_id=o.order_id
+          WHERE o.restaurant_id=r.restaurant_id
+            AND p.status='verified'
+        ) AS total_orders,
+
+        (
+          SELECT COALESCE(SUM(p.amount),0)
+          FROM payments p
+          JOIN orders o
+            ON o.order_id=p.order_id
+          WHERE o.restaurant_id=r.restaurant_id
+            AND p.status='verified'
+        ) AS total_revenue
+
+      FROM restaurants r
+      JOIN users u
+        ON u.user_id=r.owner_user_id
+
+      ${where}
+
+      ORDER BY r.created_at DESC
+      LIMIT ? OFFSET ?
+      `,
+      params
     ));
-    const total = safeRows(await query('SELECT COUNT(*) AS total FROM restaurants'));
-    return res.json({ success: true, data: rows, meta: { page: current, limit, total: Number(total[0]?.total || 0) } });
+
+    const total = safeRows(await query(
+      `
+      SELECT COUNT(*) AS total
+      FROM restaurants r
+      ${where}
+      `,
+      validStatuses.includes(status) ? [status] : []
+    ));
+
+    return res.json({
+      success: true,
+      data: rows,
+      meta: {
+        page: current,
+        limit,
+        total: Number(total[0]?.total || 0)
+      }
+    });
+
   } catch (err) {
-    console.error('[superAdmin] getRestaurants', err);
-    return res.status(500).json({ success: false, message: 'Failed to fetch restaurants.' });
+    console.error("[superAdmin] getRestaurants", err);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch restaurants."
+    });
   }
 }
 
@@ -97,11 +268,63 @@ async function suspendRestaurant(req, res) {
 async function getRiders(req, res) {
   try {
     const { limit, current, offset } = page(req);
-    const rows = safeRows(await query('SELECT r.*, u.name AS rider_name, u.email AS rider_email FROM riders r JOIN users u ON u.user_id=r.user_id ORDER BY r.created_at DESC LIMIT ? OFFSET ?', [limit, offset]));
-    const total = safeRows(await query('SELECT COUNT(*) AS total FROM riders'));
-    return res.json({ success: true, data: rows, meta: { page: current, limit, total: Number(total[0]?.total || 0) } });
+
+    const status = String(req.query.status || "").trim().toLowerCase();
+
+    const validStatuses = ["pending", "approved", "suspended"];
+
+    let where = "";
+    let params = [];
+
+    if (validStatuses.includes(status)) {
+      where = " WHERE r.status = ?";
+      params.push(status);
+    }
+
+    params.push(limit, offset);
+
+    const rows = safeRows(await query(
+      `
+      SELECT
+        r.*,
+        u.name AS rider_name,
+        u.email AS rider_email
+      FROM riders r
+      JOIN users u
+        ON u.user_id = r.user_id
+      ${where}
+      ORDER BY r.created_at DESC
+      LIMIT ? OFFSET ?
+      `,
+      params
+    ));
+
+    const total = safeRows(await query(
+      `
+      SELECT COUNT(*) AS total
+      FROM riders r
+      ${where}
+      `,
+      validStatuses.includes(status) ? [status] : []
+    ));
+
+    return res.json({
+      success: true,
+      data: rows,
+      meta: {
+        page: current,
+        limit,
+        total: Number(total[0]?.total || 0)
+      }
+    });
+
   } catch (err) {
-    return res.status(500).json({ success: false, message: 'Failed to fetch riders.' });
+    console.error("[superAdmin] getRiders", err);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch riders."
+    });
   }
 }
 
@@ -122,12 +345,84 @@ async function suspendRider(req, res) {
 async function getUsers(req, res) {
   try {
     const { limit, current, offset } = page(req);
-    const rows = safeRows(await query(`SELECT u.user_id, u.name, u.email, u.phone, u.role, u.is_active, u.created_at,
-      (SELECT COUNT(DISTINCT o.order_id) FROM orders o JOIN payments p ON p.order_id=o.order_id WHERE o.user_id=u.user_id AND p.status='verified') AS order_count
-      FROM users u ORDER BY u.created_at DESC LIMIT ? OFFSET ?`, [limit, offset]));
-    const total = safeRows(await query('SELECT COUNT(*) AS total FROM users'));
-    return res.json({ success: true, data: rows, meta: { page: current, limit, total: Number(total[0]?.total || 0) } });
-  } catch (err) { return res.status(500).json({ success: false, message: 'Failed to fetch users.' }); }
+
+    const role = String(req.query.role || "").trim().toLowerCase();
+
+    const validRoles = [
+      "customer",
+      "restaurant_admin",
+      "rider",
+      "admin",
+      "super_admin"
+    ];
+
+    let where = "";
+    let params = [];
+
+    if (validRoles.includes(role)) {
+      where = " WHERE u.role = ?";
+      params.push(role);
+    }
+
+    params.push(limit, offset);
+
+    const rows = safeRows(await query(
+      `
+      SELECT
+        u.user_id,
+        u.name,
+        u.email,
+        u.phone,
+        u.role,
+        u.is_active,
+        u.created_at,
+
+        (
+          SELECT COUNT(DISTINCT o.order_id)
+          FROM orders o
+          JOIN payments p
+            ON p.order_id=o.order_id
+          WHERE o.user_id=u.user_id
+            AND p.status='verified'
+        ) AS order_count
+
+      FROM users u
+
+      ${where}
+
+      ORDER BY u.created_at DESC
+      LIMIT ? OFFSET ?
+      `,
+      params
+    ));
+
+    const total = safeRows(await query(
+      `
+      SELECT COUNT(*) AS total
+      FROM users u
+      ${where}
+      `,
+      validRoles.includes(role) ? [role] : []
+    ));
+
+    return res.json({
+      success: true,
+      data: rows,
+      meta: {
+        page: current,
+        limit,
+        total: Number(total[0]?.total || 0)
+      }
+    });
+
+  } catch (err) {
+    console.error("[superAdmin] getUsers", err);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch users."
+    });
+  }
 }
 
 async function getOrders(req, res) {
