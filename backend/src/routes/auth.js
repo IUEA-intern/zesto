@@ -9,7 +9,7 @@ const express    = require('express');
 const router     = express.Router();
 const controller = require('../controllers/authController');
 const onController = require('../controllers/onboardingController');
-const { optionalAuth } = require('../middleware/auth');
+const { optionalAuth, requireAuth } = require('../middleware/auth');
 
 router.post('/register/customer', controller.registerCustomer);
 router.post('/login',             controller.login);
@@ -19,6 +19,11 @@ router.post('/login',             controller.login);
 router.post('/logout',            optionalAuth, controller.logout);
 router.get('/me',                 controller.getMe);
 router.post('/mobile-token',      controller.mobileToken);
+
+// ── Account settings — any authenticated user ────────────────────
+router.get('/profile',            requireAuth, controller.getProfile);
+router.patch('/profile',          requireAuth, controller.updateProfile);
+router.post('/change-password',   requireAuth, controller.changePassword);
 
 // ── Rider registration with OTP email verification ──────────────
 router.post('/rider/send-otp',    controller.riderSendOtp);

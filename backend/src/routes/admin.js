@@ -619,10 +619,7 @@ router.get('/audit-logs', async (req, res) => {
     let sql    = `SELECT l.*, u.name AS actor_name FROM audit_logs l
                   LEFT JOIN users u ON u.user_id = l.actor_id WHERE 1=1`;
     const params = [];
-    if (action) { 
-      sql += ' AND LOWER(l.action) LIKE LOWER(?)'; 
-      params.push(`%${action}%`);
-    }
+    if (action) { sql += ' AND l.action = ?'; params.push(action); }
     sql += ' ORDER BY l.created_at DESC LIMIT ? OFFSET ?';
     params.push(limit, (page - 1) * limit);
     const logs = safeRows(await query(sql, params));

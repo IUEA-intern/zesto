@@ -49,6 +49,7 @@ const State = {
   analyticsDays:      30,
   socket:             null,
   liveFeedItems:      [],
+  autoRefreshTimer:   null,
 };
 
 /* ── Utils ─────────────────────────────────────────────────── */
@@ -161,6 +162,22 @@ function showApp() {
   document.getElementById('appShell').classList.remove('hidden');
   initSocket();
   navigateTo('dashboard');
+  startAutoRefresh();
+}
+
+/**
+ * Belt-and-suspenders auto-refresh: several tabs already get pushed
+ * live updates via sockets, but poll the currently active tab on an
+ * interval too so every tab (Dashboard, Restaurants, Riders, Users,
+ * Orders, Payments, Analytics, Audit Logs, Platform Settings) stays
+ * current even if a socket event is missed or the connection drops.
+ */
+function startAutoRefresh() {
+  if (State.autoRefreshTimer) clearInterval(State.autoRefreshTimer);
+  State.autoRefreshTimer = setInterval(() => {
+    if (document.hidden) return; // don't burn calls on a background tab
+    refreshActivePage();
+  }, 20000); // 20s
 }
 
 function showAuthGate() {
@@ -751,10 +768,7 @@ let chartInstance = null;
 async function loadAnalytics() {
   try {
     const res  = await Api.get(`/super-admin/analytics?days=${State.analyticsDays}`);
-    const statsRes = await Api.get('/super-admin/stats');
-
     const data = res.data;
-    data.deliveryStats = statsRes.data.deliveryStats;
 
     // Orders per day chart
     renderChart(data.ordersPerDay || []);
@@ -790,7 +804,7 @@ async function loadAnalytics() {
     const dEl = document.getElementById('deliveryStats');
     dEl.innerHTML = `
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
-        <div><div style="font-size:.76rem;font-weight:700;color:var(--text-sec);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Total Deliveries</div><div style="font-size:1.4rem;font-weight:800">${ds.totalDeliveries ?? '—'}</div></div>
+        <div><div style="font-size:.76rem;font-weight:700;color:var(--text-sec);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Total Deliveries</div><div style="font-size:1.4rem;font-weight:800">${ds.total ?? '—'}</div></div>
         <div><div style="font-size:.76rem;font-weight:700;color:var(--text-sec);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Success Rate</div><div style="font-size:1.4rem;font-weight:800;color:var(--success)">${ds.successRate != null ? ds.successRate + '%' : '—'}</div></div>
         <div><div style="font-size:.76rem;font-weight:700;color:var(--text-sec);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Delivered</div><div style="font-size:1.4rem;font-weight:800;color:var(--success)">${ds.delivered ?? '—'}</div></div>
         <div><div style="font-size:.76rem;font-weight:700;color:var(--text-sec);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Failed</div><div style="font-size:1.4rem;font-weight:800;color:var(--danger)">${ds.failed ?? '—'}</div></div>
@@ -804,7 +818,7 @@ function renderChart(daily) {
   const canvas = document.getElementById('revenueChart');
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
-  const W = canvas.offsetWidth; const H = 180;
+  const W = canvas.offsetWidth; const H = 260;
   canvas.width = W; canvas.height = H;
   ctx.clearRect(0, 0, W, H);
   if (!daily.length) {
