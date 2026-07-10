@@ -751,7 +751,10 @@ let chartInstance = null;
 async function loadAnalytics() {
   try {
     const res  = await Api.get(`/super-admin/analytics?days=${State.analyticsDays}`);
+    const statsRes = await Api.get('/super-admin/stats');
+
     const data = res.data;
+    data.deliveryStats = statsRes.data.deliveryStats;
 
     // Orders per day chart
     renderChart(data.ordersPerDay || []);
@@ -787,7 +790,7 @@ async function loadAnalytics() {
     const dEl = document.getElementById('deliveryStats');
     dEl.innerHTML = `
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
-        <div><div style="font-size:.76rem;font-weight:700;color:var(--text-sec);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Total Deliveries</div><div style="font-size:1.4rem;font-weight:800">${ds.total ?? '—'}</div></div>
+        <div><div style="font-size:.76rem;font-weight:700;color:var(--text-sec);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Total Deliveries</div><div style="font-size:1.4rem;font-weight:800">${ds.totalDeliveries ?? '—'}</div></div>
         <div><div style="font-size:.76rem;font-weight:700;color:var(--text-sec);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Success Rate</div><div style="font-size:1.4rem;font-weight:800;color:var(--success)">${ds.successRate != null ? ds.successRate + '%' : '—'}</div></div>
         <div><div style="font-size:.76rem;font-weight:700;color:var(--text-sec);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Delivered</div><div style="font-size:1.4rem;font-weight:800;color:var(--success)">${ds.delivered ?? '—'}</div></div>
         <div><div style="font-size:.76rem;font-weight:700;color:var(--text-sec);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Failed</div><div style="font-size:1.4rem;font-weight:800;color:var(--danger)">${ds.failed ?? '—'}</div></div>
@@ -801,7 +804,7 @@ function renderChart(daily) {
   const canvas = document.getElementById('revenueChart');
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
-  const W = canvas.offsetWidth; const H = 260;
+  const W = canvas.offsetWidth; const H = 180;
   canvas.width = W; canvas.height = H;
   ctx.clearRect(0, 0, W, H);
   if (!daily.length) {
