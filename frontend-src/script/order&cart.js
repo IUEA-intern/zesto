@@ -108,80 +108,110 @@ async function loadDeliveryFee() {
 }
 
 /* ============================================================
-   DELIVERY CONFIRMATION CODE — persistent banner
-   Keeps the code visible to the customer (as a small floating pill)
-   until the rider confirms delivery, even across page reloads or the
-   browser/app being closed and reopened. Backed by localStorage so it
-   survives a full close, and reconciled against the server on load in
-   case the delivery finished while the customer was away.
+   DELIVERY CONFIRMATION CODE — persistent, multi-order-safe banner
+   Keeps each order's code visible to the customer (as a small floating
+   pill) until the rider confirms delivery for THAT order, even across
+   page reloads or the browser/app being closed and reopened. A customer
+   can have several orders in progress at once, so every code is keyed
+   by orderId — never a single shared/global slot — so the right code
+   always points at the right order.
    ============================================================ */
 const DeliveryCodeStore = {
-  KEY: 'zesto_active_delivery', // { orderId, orderNumber, code }
+  KEY: 'zesto_active_deliveries', // { [orderId]: { orderNumber, code } }
+
+  _readAll() {
+    try {
+      return JSON.parse(localStorage.getItem(this.KEY) || '{}') || {};
+    } catch { return {}; }
+  },
+
+  _writeAll(map) {
+    try { localStorage.setItem(this.KEY, JSON.stringify(map)); } catch {}
+  },
 
   save(orderId, orderNumber, code) {
-    if (!code) return;
-    try {
-      localStorage.setItem(this.KEY, JSON.stringify({ orderId, orderNumber, code }));
-    } catch {}
+    if (!code || !orderId) return;
+    const map = this._readAll();
+    map[orderId] = { orderNumber, code };
+    this._writeAll(map);
   },
 
-  get() {
-    try {
-      return JSON.parse(localStorage.getItem(this.KEY) || 'null');
-    } catch { return null; }
-  },
+  getAll() { return this._readAll(); },
 
-  clear() {
-    try { localStorage.removeItem(this.KEY); } catch {}
+  get(orderId) { return this._readAll()[orderId] || null; },
+
+  clear(orderId) {
+    const map = this._readAll();
+    delete map[orderId];
+    this._writeAll(map);
   },
 };
 
 const DeliveryCodeBanner = {
-  render(code, orderNumber) {
-    if (!code) return;
-    let pill = document.getElementById('deliveryCodeBanner');
+  pillId(orderId) { return `deliveryCodeBanner-${orderId}`; },
+
+  render(orderId, code, orderNumber) {
+    if (!code || !orderId) return;
+    let stack = document.getElementById('deliveryCodeBannerStack');
+    if (!stack) {
+      stack = document.createElement('div');
+      stack.id = 'deliveryCodeBannerStack';
+      stack.style.cssText = `
+        position: fixed; right: 16px; bottom: 16px; z-index: 9998;
+        display: flex; flex-direction: column-reverse; gap: 8px;
+        align-items: flex-end;
+      `;
+      document.body.appendChild(stack);
+    }
+    let pill = document.getElementById(this.pillId(orderId));
     if (!pill) {
       pill = document.createElement('div');
-      pill.id = 'deliveryCodeBanner';
+      pill.id = this.pillId(orderId);
       pill.style.cssText = `
-        position: fixed; right: 16px; bottom: 16px; z-index: 9998;
         background: #ea580c; color: #fff; border-radius: 999px;
         padding: 10px 18px; font-weight: 700; font-size: .85rem;
         box-shadow: 0 8px 24px rgba(0,0,0,.25); cursor: pointer;
         display: flex; align-items: center; gap: 8px;
       `;
-      pill.addEventListener('click', () => DeliveryCodeModal.show(
-        DeliveryCodeStore.get()?.code, DeliveryCodeStore.get()?.orderNumber
-      ));
-      document.body.appendChild(pill);
+      pill.addEventListener('click', () => {
+        const entry = DeliveryCodeStore.get(orderId);
+        if (entry) DeliveryCodeModal.show(entry.code, entry.orderNumber, orderId);
+      });
+      stack.appendChild(pill);
     }
-    pill.innerHTML = `📦 Delivery code: <span style="letter-spacing:2px">${Utils.escape(String(code))}</span>`;
+    const shortNum = orderNumber ? String(orderNumber).replace(/^ZST-?/i, '#') : `#${orderId}`;
+    pill.innerHTML = `📦 ${Utils.escape(shortNum)}: <span style="letter-spacing:2px">${Utils.escape(String(code))}</span>`;
   },
 
-  remove() {
-    document.getElementById('deliveryCodeBanner')?.remove();
+  remove(orderId) {
+    document.getElementById(this.pillId(orderId))?.remove();
+    const stack = document.getElementById('deliveryCodeBannerStack');
+    if (stack && !stack.children.length) stack.remove();
   },
 
-  /** Called on every page load to restore the banner if a delivery is still active. */
+  /** Called on every page load to restore banners for every still-active order. */
   async init() {
-    const active = DeliveryCodeStore.get();
-    if (!active?.code) return;
+    const all = DeliveryCodeStore.getAll();
+    const entries = Object.entries(all);
+    if (!entries.length) return;
 
-    // Show immediately from cache so it's never missing on load.
-    this.render(active.code, active.orderNumber);
+    // Show immediately from cache so nothing is ever missing on load.
+    entries.forEach(([orderId, { code, orderNumber }]) => this.render(orderId, code, orderNumber));
 
-    // Reconcile with the server in case delivery finished while away.
-    if (!active.orderId || !State.session) return;
-    try {
-      const res = await Api.get(`/orders/${active.orderId}`);
-      const order = res?.data;
-      if (!order || order.status === 'delivered' || !order.delivery_confirmation_code) {
-        DeliveryCodeStore.clear();
-        this.remove();
+    // Reconcile each with the server in case a delivery finished while away.
+    if (!State.session) return;
+    await Promise.all(entries.map(async ([orderId]) => {
+      try {
+        const res = await Api.get(`/orders/${orderId}`);
+        const order = res?.data;
+        if (!order || order.status === 'delivered' || order.status === 'cancelled' || !order.delivery_confirmation_code) {
+          DeliveryCodeStore.clear(orderId);
+          this.remove(orderId);
+        }
+      } catch {
+        // Network/auth hiccup — keep showing the cached code, don't clear it.
       }
-    } catch {
-      // Network/auth hiccup — keep showing the cached code, don't clear it.
-    }
+    }));
   },
 };
 
@@ -195,14 +225,10 @@ const DeliveryCodeModal = {
     if (!code) return;
 
     // Persist so the customer can find it again if they navigate away,
-    // reload, or close and reopen the browser/app entirely.
-    try {
-      const stored = JSON.parse(localStorage.getItem('zesto_delivery_codes') || '{}');
-      stored[orderNumber || 'latest'] = code;
-      localStorage.setItem('zesto_delivery_codes', JSON.stringify(stored));
-    } catch {}
+    // reload, or close and reopen the browser/app entirely. Keyed by
+    // orderId so it never gets confused with another simultaneous order.
     DeliveryCodeStore.save(orderId, orderNumber, code);
-    DeliveryCodeBanner.render(code, orderNumber);
+    DeliveryCodeBanner.render(orderId, code, orderNumber);
 
     let overlay = document.getElementById('deliveryCodeOverlay');
     if (overlay) overlay.remove();
@@ -1135,12 +1161,23 @@ const AuthModal = {
   init() {
     const openBtn       = document.getElementById('openAuthModal');
     const logoutBtn     = document.getElementById('logoutBtn');
+    const userPill      = document.getElementById('userPill');
 
     openBtn?.addEventListener('click', () => {
       window.SharedAuth?.showLogin();
     });
 
-    logoutBtn?.addEventListener('click', async () => {
+    // Clicking your name/avatar goes to My Account — logout stays a
+    // separate small button inside the pill (stopPropagation keeps the
+    // click from also triggering the navigation below).
+    if (userPill && !window.location.pathname.endsWith('account.html')) {
+      userPill.style.cursor = 'pointer';
+      userPill.title = 'My Account';
+      userPill.addEventListener('click', () => { window.location.href = 'account.html'; });
+    }
+
+    logoutBtn?.addEventListener('click', async (e) => {
+      e.stopPropagation();
       try {
         await window.SharedAuth?.logout();
         Cart.updateBadge();
@@ -1246,15 +1283,13 @@ const SocketManager = {
       });
 
       // Fired when the rider confirms delivery with the customer's code —
-      // the code is no longer needed, so clear the persistent banner.
+      // that specific order's code is no longer needed, so clear only
+      // its banner (other simultaneous orders' codes are untouched).
       // (The "delivered" toast itself comes through notification:toast.)
       this.socket.on('order:created', ({ data }) => {
-        if (!data || data.status !== 'delivered') return;
-        const active = DeliveryCodeStore.get();
-        if (!active || !data.orderId || active.orderId == data.orderId) {
-          DeliveryCodeStore.clear();
-          DeliveryCodeBanner.remove();
-        }
+        if (!data || data.status !== 'delivered' || !data.orderId) return;
+        DeliveryCodeStore.clear(data.orderId);
+        DeliveryCodeBanner.remove(data.orderId);
       });
 
       this.socket.on('notification:toast', ({ data }) => {

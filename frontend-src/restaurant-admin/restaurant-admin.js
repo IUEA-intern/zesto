@@ -36,6 +36,7 @@ const State = {
   socket:       null,
   liveFeedItems: [],
   restaurantId: null,
+  autoRefreshTimer: null,
 };
 
 /* ── Utils ─────────────────────────────────────────────────── */
@@ -149,6 +150,22 @@ function showApp() {
   document.getElementById('appShell').classList.remove('hidden');
   initSocket();
   navigateTo('dashboard');
+  startAutoRefresh();
+}
+
+/**
+ * Belt-and-suspenders auto-refresh: socket events already push live
+ * updates for orders, but poll the currently active tab on an interval
+ * too so every tab (Dashboard, Orders, Products, Analytics, Settings)
+ * stays current even if a socket event is missed or the connection
+ * drops/reconnects silently.
+ */
+function startAutoRefresh() {
+  if (State.autoRefreshTimer) clearInterval(State.autoRefreshTimer);
+  State.autoRefreshTimer = setInterval(() => {
+    if (document.hidden) return; // don't burn calls on a background tab
+    refreshActivePage();
+  }, 20000); // 20s
 }
 
 function showAuthGate() {
@@ -387,11 +404,13 @@ function updateOrderRowButtons(row, status) {
   } else if (status === 'preparing') {
     buttons += `<button class="btn-sm edit" onclick="setOrderStatus(${row.dataset.orderId},'ready_for_pickup')">🍽️ Ready</button>`;
   } else if (status === 'ready_for_pickup') {
-    buttons += `<button class="btn-sm edit" onclick="setOrderStatus(${row.dataset.orderId},'out_for_delivery')">🚀 Out for Delivery</button>`;
+    buttons += `<span style="font-size:.78rem;color:var(--text-muted)">🛵 Waiting for a rider to accept…</span>`;
   }
-  // Note: "Confirm Delivery" is intentionally NOT shown here once an order is
-  // out_for_delivery — that confirmation now happens exclusively in the
-  // rider app (rider enters the customer's code on arrival).
+  // Note: transitioning to out_for_delivery, and "Confirm Delivery", both
+  // happen exclusively in the rider app now — a rider must accept the
+  // order and enter the restaurant's pickup code in person. This closes
+  // the fraud/bypass gap where a restaurant could mark an order out for
+  // delivery with no rider ever having accepted or picked it up.
   
   const buttonContainer = actionsCell.querySelector('div') || actionsCell;
   buttonContainer.innerHTML = buttons;
@@ -426,7 +445,7 @@ async function loadOrders() {
             ${o.status === 'pending'     ? `<button class="btn-sm danger" onclick="setOrderStatus(${o.order_id},'cancelled')">❌ Reject</button>` : ''}
             ${o.status === 'processing'  ? `<button class="btn-sm edit" onclick="setOrderStatus(${o.order_id},'preparing')">👨‍🍳 Preparing</button>` : ''}
             ${o.status === 'preparing'   ? `<button class="btn-sm edit" onclick="setOrderStatus(${o.order_id},'ready_for_pickup')">🍽️ Ready</button>` : ''}
-            ${o.status === 'ready_for_pickup' ? `<button class="btn-sm edit" onclick="setOrderStatus(${o.order_id},'out_for_delivery')">🚀 Out for Delivery</button>` : ''}
+            ${o.status === 'ready_for_pickup' ? `<span style="font-size:.76rem;color:var(--text-muted);align-self:center">🛵 Waiting for rider…</span>` : ''}
           </div>
         </td>
       </tr>`).join('');
@@ -561,7 +580,7 @@ async function viewOrder(id) {
         ${order.status === 'pending'    ? `<button class="btn-sm danger" style="padding:10px 20px" onclick="setOrderStatus(${order.order_id},'cancelled'); document.getElementById('orderDetailModal').classList.add('hidden')">❌ Reject</button>` : ''}
         ${order.status === 'processing' ? `<button class="btn-primary" onclick="setOrderStatus(${order.order_id},'preparing'); document.getElementById('orderDetailModal').classList.add('hidden')">👨‍🍳 Start Preparing</button>` : ''}
         ${order.status === 'preparing'  ? `<button class="btn-primary" onclick="setOrderStatus(${order.order_id},'ready_for_pickup'); document.getElementById('orderDetailModal').classList.add('hidden')">🍽️ Mark Ready</button>` : ''}
-        ${order.status === 'ready_for_pickup' ? `<button class="btn-primary" onclick="setOrderStatus(${order.order_id},'out_for_delivery'); document.getElementById('orderDetailModal').classList.add('hidden')">🚀 Send Out for Delivery</button>` : ''}
+        ${order.status === 'ready_for_pickup' ? `<div style="color:var(--text-sec);font-size:.85rem;padding:8px 0">🛵 Waiting for a rider to accept this order and collect it with the pickup code above.</div>` : ''}
         ${order.status === 'out_for_delivery' ? `<div style="color:var(--text-sec);font-size:.85rem;padding:8px 0">🚴 Awaiting rider to confirm delivery with the customer's code in the rider app.</div>` : ''}
       </div>`;
   } catch (err) {

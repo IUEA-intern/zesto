@@ -455,6 +455,13 @@
             Toast.error('Logout failed. Please try again.');
           }
         });
+        // Clicking your name/avatar goes to My Account (logout above
+        // stops propagation so it doesn't also trigger this navigation).
+        if (!window.location.pathname.endsWith('account.html')) {
+          pill.style.cursor = 'pointer';
+          pill.title = 'My Account';
+          pill.addEventListener('click', () => { window.location.href = 'account.html'; });
+        }
         container.appendChild(pill);
       });
     } else {

@@ -182,22 +182,47 @@ router.get('/', async (req, res) => {
     `
     SELECT
     o.order_id,
+    o.order_number,
     o.status,
     o.subtotal,
     o.delivery_fee,
     o.total,
+    o.delivery_address,
+    o.delivery_confirmation_code,
     p.method AS payment_method,
     p.status AS payment_status,
-    o.created_at
+    o.created_at,
+    r.name AS restaurant_name,
+    r.logo_url AS restaurant_image
     FROM orders o
     LEFT JOIN payments p
     ON o.order_id = p.order_id
+    LEFT JOIN restaurants r
+    ON o.restaurant_id = r.restaurant_id
     WHERE o.user_id = ?
     ORDER BY o.created_at DESC
     `,
     [req.user.user_id]
     );
-    return res.json({ success: true, data: orders });
+
+    // Item counts fetched separately (grouped, not a per-row correlated
+    // subquery) and explicitly coerced to Number — COUNT(*) can come back
+    // as a BigInt from the driver, and a raw BigInt anywhere in the
+    // response makes res.json()/JSON.stringify() throw, which was
+    // silently turning this whole endpoint into a 500.
+    const orderIds = orders.map(o => o.order_id);
+    const itemCounts = {};
+    if (orderIds.length) {
+      const placeholders = orderIds.map(() => '?').join(',');
+      const countRows = await query(
+        `SELECT order_id, COUNT(*) AS cnt FROM order_items WHERE order_id IN (${placeholders}) GROUP BY order_id`,
+        orderIds
+      );
+      (countRows || []).forEach(r => { itemCounts[r.order_id] = Number(r.cnt) || 0; });
+    }
+
+    const data = orders.map(o => ({ ...o, item_count: itemCounts[o.order_id] || 0 }));
+    return res.json({ success: true, data });
   } catch (err) {
     console.error('[GET /api/orders]', err);
     return res.status(500).json({ success: false, message: 'Failed to fetch orders.' });

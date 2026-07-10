@@ -148,7 +148,12 @@ router.get('/available-orders', async (req, res) => {
       []
     ));
 
-    return res.json({ success: true, data: orders });
+    // Coerce item_count to a plain Number — COUNT(*) can come back as a
+    // BigInt from the driver, and a raw BigInt anywhere in the response
+    // makes res.json() throw.
+    const data = orders.map(o => ({ ...o, item_count: Number(o.item_count) || 0 }));
+
+    return res.json({ success: true, data });
   } catch (err) {
     console.error('[rider] GET /available-orders', err);
     return res.status(500).json({ success: false, message: 'Failed to fetch available orders.' });
@@ -490,7 +495,8 @@ router.get('/history', async (req, res) => {
       `SELECT d.delivery_id, d.order_id, d.status AS delivery_status,
               d.assigned_at, d.picked_up_at, d.delivered_at,
               o.order_number, o.total, o.delivery_fee, o.delivery_address,
-              r.name AS restaurant_name
+              r.name AS restaurant_name,
+              (SELECT COUNT(*) FROM order_items oi WHERE oi.order_id = o.order_id) AS item_count
        FROM deliveries d
        JOIN orders o ON o.order_id = d.order_id
        JOIN restaurants r ON r.restaurant_id = o.restaurant_id
@@ -508,9 +514,14 @@ router.get('/history', async (req, res) => {
       [userId]
     ));
 
+    // Coerce item_count to a plain Number — COUNT(*) can come back as a
+    // BigInt from the driver, and a raw BigInt anywhere in the response
+    // makes res.json() throw (silently turning this into a 500).
+    const data = rows.map(r => ({ ...r, item_count: Number(r.item_count) || 0 }));
+
     return res.json({
       success: true,
-      data: rows,
+      data,
       meta: { page, limit, total: Number(countRow[0]?.total || 0) },
     });
   } catch (err) {
