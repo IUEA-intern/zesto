@@ -131,7 +131,7 @@ button, input, select, textarea { font-family: inherit; }
 .btn-logout:hover { color: var(--orange); }
 
 .btn-auth {
-  background: var(--orange);
+  /* background: var(--orange); */
   color: #fff;
   border: none;
   border-radius: 99px;
@@ -140,9 +140,12 @@ button, input, select, textarea { font-family: inherit; }
   font-weight: 700;
   cursor: pointer;
   transition: var(--transition);
-  box-shadow: var(--shadow-orange);
+  /* box-shadow: var(--shadow-orange); */
 }
-.btn-auth:hover { background: var(--orange-dark); transform: translateY(-1px); }
+.btn-auth:hover {
+   background: var(--orange-dark); 
+   /* transform: translateY(-1px);  */
+}
 
 .cart-btn {
   position: relative;

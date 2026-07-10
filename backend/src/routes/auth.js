@@ -9,10 +9,13 @@ const express    = require('express');
 const router     = express.Router();
 const controller = require('../controllers/authController');
 const onController = require('../controllers/onboardingController');
+const emailVerificationController = require('../controllers/emailVerificationController');
 const { optionalAuth, requireAuth } = require('../middleware/auth');
 
 router.post('/register/customer', controller.registerCustomer);
 router.post('/login',             controller.login);
+router.post('/send-code',         emailVerificationController.sendCode);
+router.post('/verify-code',       emailVerificationController.verifyCode);
 // optionalAuth attaches req.user (from cookie or Bearer token) if present,
 // so logout can flip a rider's is_available flag off without blocking
 // logout for callers that aren't authenticated (logout stays idempotent).
