@@ -1,10 +1,7 @@
 /**
  * screens/ActiveDeliveryScreen.js — Zesto Rider
  * Map-first delivery screen with full navigation flow.
- * Draws a real, live driving route in-app (Google Directions API) with
- * distance/ETA and next-turn hints, so the rider doesn't need to leave
- * the app just to see where they're going. "Open in Maps" is still
- * offered as a fallback for full voice-guided turn-by-turn navigation.
+ * Uses react-native-maps + Linking to open Google Maps for turn-by-turn navigation.
  */
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
@@ -24,7 +21,6 @@ import { useAuth } from '../services/AuthContext';
 import { RiderApi } from '../services/api';
 import { on } from '../services/socket';
 import { useConnectionStatus } from '../hooks/useSocket';
-import { getDirections, distanceMeters } from '../services/directions';
 import { formatCurrency, isValidCode, formatDateTime } from '../utils';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
@@ -49,40 +45,22 @@ export default function ActiveDeliveryScreen({ navigation, route }) {
   const [codeError,   setCodeError]   = useState('');
   const [confirmLoading, setConfirmLoading] = useState(false);
   const [riderLocation, setRiderLocation]   = useState(null);
-  const [routeCoords, setRouteCoords]       = useState([]);
-  const [routeInfo,   setRouteInfo]         = useState(null); // { distanceText, durationText, nextInstruction }
-  const [routeLoading, setRouteLoading]     = useState(false);
-  const lastRouteOriginRef = useRef(null);
-  const lastRouteDestRef   = useRef(null);
   const [toast, setToast] = useState({ visible: false, message: '', type: 'info' });
   const mapRef = useRef(null);
   const bottomAnim = useRef(new Animated.Value(0)).current;
 
   const showToast = (message, type = 'info') => setToast({ visible: true, message, type });
 
-  // ── Track rider location live ────────────────────────────────
-  // Was a single one-shot fetch on mount — the map's "you are here" dot
-  // never moved after that. Now it's watched continuously (throttled)
-  // so the rider's position — and the in-app route below — stay current
-  // as they actually drive.
+  // ── Get rider location ─────────────────────────────────────────
   useEffect(() => {
-    let subscription;
     (async () => {
       try {
         const { status } = await Location.requestForegroundPermissionsAsync();
         if (status !== 'granted') return;
         const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High });
         setRiderLocation({ latitude: loc.coords.latitude, longitude: loc.coords.longitude });
-
-        subscription = await Location.watchPositionAsync(
-          { accuracy: Location.Accuracy.High, timeInterval: 8000, distanceInterval: 25 },
-          (update) => {
-            setRiderLocation({ latitude: update.coords.latitude, longitude: update.coords.longitude });
-          }
-        );
       } catch {}
     })();
-    return () => subscription?.remove();
   }, []);
 
   // ── Load delivery if not passed ────────────────────────────────
@@ -127,16 +105,8 @@ export default function ActiveDeliveryScreen({ navigation, route }) {
   }, [delivery, navigation]);
 
   // ── Fit map to markers ─────────────────────────────────────────
-  const fitDoneForStepRef = useRef(null);
-
   useEffect(() => {
     if (!mapRef.current || !delivery) return;
-    // Only auto-fit once per step, not on every live location tick —
-    // continuous re-fitting while the rider is actually driving fights
-    // any manual pan/zoom and feels like the map is fighting you. The
-    // 🎯 recenter button below covers "snap back to my position".
-    if (fitDoneForStepRef.current === step) return;
-
     const coords = [];
     if (riderLocation) coords.push(riderLocation);
     if (delivery.restaurant_lat && delivery.restaurant_lng)
@@ -144,52 +114,10 @@ export default function ActiveDeliveryScreen({ navigation, route }) {
     if (step === STEP_TO_CUSTOMER && delivery.delivery_lat && delivery.delivery_lng)
       coords.push({ latitude: Number(delivery.delivery_lat), longitude: Number(delivery.delivery_lng) });
     if (coords.length > 0) {
-      fitDoneForStepRef.current = step;
       setTimeout(() => {
         mapRef.current?.fitToCoordinates(coords, { edgePadding: { top: 60, right: 60, bottom: 60, left: 60 }, animated: true });
       }, 500);
     }
-  }, [delivery, riderLocation, step]);
-
-  // ── Fetch a real driving route for the current leg ─────────────
-  // Draws the actual road route (not just a straight dashed line)
-  // between the rider and wherever they're headed next, so the map
-  // itself is a real navigation view instead of just an overview.
-  useEffect(() => {
-    if (!delivery || !riderLocation) return;
-
-    const destination = step === STEP_TO_CUSTOMER
-      ? (delivery.delivery_lat && delivery.delivery_lng
-          ? { latitude: Number(delivery.delivery_lat), longitude: Number(delivery.delivery_lng) }
-          : null)
-      : (delivery.restaurant_lat && delivery.restaurant_lng
-          ? { latitude: Number(delivery.restaurant_lat), longitude: Number(delivery.restaurant_lng) }
-          : null);
-
-    if (!destination) return;
-
-    // Don't refetch on every tiny GPS jitter — only once the rider has
-    // actually moved a meaningful distance, or the destination changed
-    // (e.g. picked up and now heading to the customer instead).
-    const destChanged  = !lastRouteDestRef.current || distanceMeters(destination, lastRouteDestRef.current) > 10;
-    const originMoved  = distanceMeters(riderLocation, lastRouteOriginRef.current) > 40;
-    if (!destChanged && !originMoved) return;
-
-    if (destChanged) { setRouteCoords([]); setRouteInfo(null); }
-
-    let cancelled = false;
-    setRouteLoading(true);
-    getDirections(riderLocation, destination).then(result => {
-      if (cancelled) return;
-      setRouteLoading(false);
-      if (result) {
-        setRouteCoords(result.coordinates);
-        setRouteInfo(result);
-        lastRouteOriginRef.current = riderLocation;
-        lastRouteDestRef.current = destination;
-      }
-    });
-    return () => { cancelled = true; };
   }, [delivery, riderLocation, step]);
 
   // ── Navigation helpers ─────────────────────────────────────────
@@ -317,33 +245,24 @@ export default function ActiveDeliveryScreen({ navigation, route }) {
             </Marker>
           )}
 
-          {/* Real driving route (falls back to a straight dashed line
-              while it's loading or if the Directions API is unavailable) */}
-          {routeCoords.length > 1 ? (
+          {/* Route line */}
+          {restaurantCoord && customerCoord && step === STEP_TO_CUSTOMER && (
             <Polyline
-              coordinates={routeCoords}
+              coordinates={[restaurantCoord, customerCoord]}
               strokeColor={Colors.orange}
-              strokeWidth={5}
+              strokeWidth={3}
+              lineDashPattern={[8, 4]}
             />
-          ) : (
-            <>
-              {restaurantCoord && customerCoord && step === STEP_TO_CUSTOMER && (
-                <Polyline
-                  coordinates={[restaurantCoord, customerCoord]}
-                  strokeColor={Colors.orange}
-                  strokeWidth={3}
-                  lineDashPattern={[8, 4]}
-                />
-              )}
-              {riderLocation && restaurantCoord && step !== STEP_TO_CUSTOMER && (
-                <Polyline
-                  coordinates={[riderLocation, restaurantCoord]}
-                  strokeColor={Colors.orange}
-                  strokeWidth={3}
-                  lineDashPattern={[8, 4]}
-                />
-              )}
-            </>
+          )}
+
+          {/* Rider → restaurant line */}
+          {riderLocation && restaurantCoord && step !== STEP_TO_CUSTOMER && (
+            <Polyline
+              coordinates={[riderLocation, restaurantCoord]}
+              strokeColor={Colors.orange}
+              strokeWidth={3}
+              lineDashPattern={[8, 4]}
+            />
           )}
         </MapView>
 
@@ -355,53 +274,14 @@ export default function ActiveDeliveryScreen({ navigation, route }) {
           <StatusPill status={delivery.delivery_status || 'assigned'} />
         </View>
 
-        {/* In-app route info: live distance/ETA + next turn, right on
-            the map — this is the "don't leave the app" navigation view */}
-        {(routeInfo || routeLoading) && (
-          <View style={styles.routeBanner}>
-            {routeLoading && !routeInfo ? (
-              <Text style={styles.routeBannerMeta}>📡  Finding route…</Text>
-            ) : (
-              <>
-                <View style={styles.routeBannerTop}>
-                  <Text style={styles.routeBannerEta}>{routeInfo.durationText}</Text>
-                  <Text style={styles.routeBannerDot}>·</Text>
-                  <Text style={styles.routeBannerMeta}>{routeInfo.distanceText}</Text>
-                  <Text style={styles.routeBannerDest}>
-                    {step === STEP_TO_CUSTOMER ? '  to customer' : '  to restaurant'}
-                  </Text>
-                </View>
-                {routeInfo.nextInstruction && (
-                  <Text style={styles.routeBannerInstruction} numberOfLines={1}>
-                    🧭  {routeInfo.nextInstruction}
-                  </Text>
-                )}
-              </>
-            )}
-          </View>
-        )}
-
-        {/* Recenter button */}
-        {riderLocation && (
-          <TouchableOpacity
-            style={styles.recenterBtn}
-            onPress={() => mapRef.current?.animateToRegion({ ...riderLocation, latitudeDelta: 0.01, longitudeDelta: 0.01 }, 400)}
-            activeOpacity={0.85}
-          >
-            <Text style={styles.recenterBtnIcon}>🎯</Text>
-          </TouchableOpacity>
-        )}
-
-        {/* Open in Google/Apple Maps — for full voice-guided turn-by-turn.
-            The map above already shows the live route + ETA in-app; this
-            is the fallback for when the rider wants spoken directions. */}
+        {/* Navigate button (floating) */}
         <TouchableOpacity
           style={styles.navBtn}
           onPress={step < STEP_TO_CUSTOMER ? navigateToRestaurant : navigateToCustomer}
           activeOpacity={0.85}
         >
           <Text style={styles.navBtnIcon}>🗺️</Text>
-          <Text style={styles.navBtnText}>Open in Maps</Text>
+          <Text style={styles.navBtnText}>Navigate</Text>
         </TouchableOpacity>
       </View>
 
@@ -439,7 +319,7 @@ export default function ActiveDeliveryScreen({ navigation, route }) {
               {items.length > 0 && (
                 <>
                   <Divider />
-                  <Text style={styles.itemsHeading}>Order Items ({items.length})</Text>
+                  <Text style={styles.itemsHeading}>Order Items</Text>
                   {items.map((item, i) => (
                     <View key={i} style={styles.itemRow}>
                       <Text style={styles.itemName}>{item.qty}×  {item.name}</Text>
@@ -630,23 +510,6 @@ const styles = StyleSheet.create({
   },
   navBtnIcon:  { fontSize: 18 },
   navBtnText:  { color: '#fff', fontWeight: Typography.extrabold, fontSize: Typography.sm },
-  routeBanner: {
-    position: 'absolute', top: 56, left: Spacing.md, right: Spacing.md,
-    backgroundColor: 'rgba(26,26,46,0.92)', borderRadius: Radius.md,
-    paddingHorizontal: Spacing.base, paddingVertical: Spacing.sm, ...Shadows.md,
-  },
-  routeBannerTop:  { flexDirection: 'row', alignItems: 'baseline' },
-  routeBannerEta:  { color: '#fff', fontSize: Typography.base, fontWeight: Typography.extrabold },
-  routeBannerDot:  { color: Colors.textMuted, marginHorizontal: 5, fontSize: Typography.base },
-  routeBannerMeta: { color: '#fff', fontSize: Typography.sm, fontWeight: Typography.semibold },
-  routeBannerDest: { color: Colors.textMuted, fontSize: Typography.sm },
-  routeBannerInstruction: { color: '#fff', fontSize: Typography.xs, marginTop: 2, opacity: 0.9 },
-  recenterBtn: {
-    position: 'absolute', bottom: 76, right: Spacing.md,
-    backgroundColor: '#fff', borderRadius: Radius.full,
-    width: 42, height: 42, alignItems: 'center', justifyContent: 'center', ...Shadows.md,
-  },
-  recenterBtnIcon: { fontSize: 18 },
   markerRestaurant: {
     width: 44, height: 44, borderRadius: 22,
     backgroundColor: Colors.orange, alignItems: 'center', justifyContent: 'center',

@@ -57,7 +57,6 @@ export default function HistoryScreen() {
       <View style={styles.metaRow}>
         <MetaItem label="EARNED" value={formatCurrency(item.delivery_fee)} highlight />
         <MetaItem label="ORDER" value={formatCurrency(item.total)} />
-        <MetaItem label="ITEMS" value={`${item.item_count ?? '?'}`} />
         <MetaItem label="DATE" value={
           item.delivered_at ? formatDateTime(item.delivered_at) : formatDateTime(item.assigned_at)
         } />
