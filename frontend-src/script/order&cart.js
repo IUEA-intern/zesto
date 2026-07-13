@@ -400,17 +400,23 @@ const Auth = {
   },
 
   updateUI() {
-    const userPill   = document.getElementById('userPill');
-    const userNameEl = document.getElementById('userName');
-    const authBtn    = document.getElementById('openAuthModal');
+    const userPill = document.getElementById('userPill');
+    const authBtn  = document.getElementById('openAuthModal');
 
-    if (State.session) {
-      if (userPill)   { userPill.classList.remove('hidden'); }
-      if (userNameEl) { userNameEl.textContent = State.session.name; }
-      if (authBtn)    { authBtn.style.display = 'none'; }
+    if (State.session && userPill) {
+      window.ZestoUserMenu?.attach(userPill, State.session, {
+        onLogout: async () => {
+          try {
+            await window.SharedAuth?.logout();
+            Cart.updateBadge();
+            Toast.info('Logged out successfully.');
+          } catch { Toast.error('Logout failed.'); }
+        },
+      });
+      if (authBtn) { authBtn.style.display = 'none'; }
     } else {
-      if (userPill)   { userPill.classList.add('hidden'); }
-      if (authBtn)    { authBtn.style.display = ''; }
+      if (userPill) { userPill.classList.add('hidden'); userPill.innerHTML = ''; }
+      if (authBtn)  { authBtn.style.display = ''; }
     }
   },
 
@@ -1159,31 +1165,16 @@ const Checkout = {
    ============================================================ */
 const AuthModal = {
   init() {
-    const openBtn       = document.getElementById('openAuthModal');
-    const logoutBtn     = document.getElementById('logoutBtn');
-    const userPill      = document.getElementById('userPill');
+    const openBtn = document.getElementById('openAuthModal');
 
     openBtn?.addEventListener('click', () => {
       window.SharedAuth?.showLogin();
     });
 
-    // Clicking your name/avatar goes to My Account — logout stays a
-    // separate small button inside the pill (stopPropagation keeps the
-    // click from also triggering the navigation below).
-    if (userPill && !window.location.pathname.endsWith('account.html')) {
-      userPill.style.cursor = 'pointer';
-      userPill.title = 'My Account';
-      userPill.addEventListener('click', () => { window.location.href = 'account.html'; });
-    }
-
-    logoutBtn?.addEventListener('click', async (e) => {
-      e.stopPropagation();
-      try {
-        await window.SharedAuth?.logout();
-        Cart.updateBadge();
-        Toast.info('Logged out successfully.');
-      } catch { Toast.error('Logout failed.'); }
-    });
+    // The account pill itself (avatar, name, dropdown with My Orders /
+    // Account Settings / Sign Out) is rendered by Auth.updateUI() via
+    // ZestoUserMenu.attach() below, once we know whether there's a
+    // session — see updateUI().
 
     // Custom event listeners to keep order&cart state in sync with SharedAuth
     document.addEventListener('auth-login', async (e) => {

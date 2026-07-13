@@ -26,7 +26,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Knewave&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/cart.css" />
-  <link rel="stylesheet" href="css/auth_modal.css" />
+  <link rel="stylesheet" href="css/auth-modal.css" />
+  <link rel="stylesheet" href="css/user-menu.css" />
 </head>
 <body>
 
@@ -133,11 +134,7 @@
         <a href="order.html" class="nav-link">← Back to Menu</a>
       </div>
       <div class="nav-actions">
-        <div id="userPill" class="user-pill hidden">
-          <span class="user-avatar">👤</span>
-          <span id="userName" class="user-name-text"></span>
-          <button id="logoutBtn" class="btn-logout" title="Logout">↩</button>
-        </div>
+        <div id="userPill" class="user-pill hidden"></div>
         <a href="cart.html" class="cart-btn active-cart" id="cartNavBtn" aria-label="View cart">
           <span class="cart-icon">🛒</span>
           <span class="cart-badge" id="cartBadge">0</span>
@@ -231,5 +228,6 @@
   <script src="/socket.io/socket.io.js"></script>
   <script src="script/order&cart.js"></script>
   <script src="script/shared_auth.js"></script>
+  <script src="script/user-menu.js"></script>
 </body>
 </html>

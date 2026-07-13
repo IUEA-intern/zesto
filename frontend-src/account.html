@@ -10,6 +10,7 @@
   <link rel="stylesheet" href="css/order.css" />
   <link rel="stylesheet" href="css/auth-modal.css" />
   <link rel="stylesheet" href="css/account.css" />
+  <link rel="stylesheet" href="css/user-menu.css" />
 </head>
 <body>
 
@@ -19,16 +20,12 @@
   <!-- ── Navbar ────────────────────────────────────────────── -->
   <nav class="navbar" id="mainNav">
     <div class="nav-inner">
-      <a href="index.html" class="nav-brand">
+      <a href="iandex.html" class="nav-brand">
         <span class="brand-logo">Zes<span class="brand-accent">to</span></span>
       </a>
 
       <div class="nav-actions">
-        <div id="userPill" class="user-pill hidden">
-          <span class="user-avatar">👤</span>
-          <span id="userName" class="user-name-text"></span>
-          <button id="logoutBtn" class="btn-logout" title="Logout">↩</button>
-        </div>
+        <div id="userPill" class="user-pill hidden"></div>
 
         <button id="openAuthModal" class="btn-auth">Login / Sign Up</button>
 
@@ -106,6 +103,7 @@
   <!-- ── Scripts ───────────────────────────────────────────── -->
   <script src="/socket.io/socket.io.js"></script>
   <script src="script/shared_auth.js"></script>
+  <script src="script/user-menu.js"></script>
   <script src="script/account.js"></script>
 </body>
 </html>

@@ -106,29 +106,7 @@ button, input, select, textarea { font-family: inherit; }
   margin-left: auto;
 }
 
-/* User pill */
-.user-pill {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: var(--orange-pale);
-  border: 1px solid rgba(255,107,44,.2);
-  border-radius: 99px;
-  padding: 5px 12px 5px 8px;
-}
-.user-pill.hidden { display: none; }
-.user-avatar { font-size: 1rem; }
-.user-name-text { font-size: .82rem; font-weight: 700; color: var(--orange-dark); max-width: 100px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.btn-logout {
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-size: .85rem;
-  color: var(--text-muted);
-  padding: 2px 4px;
-  transition: var(--transition);
-}
-.btn-logout:hover { color: var(--orange); }
+/* User pill — see css/user-menu.css for the avatar/dropdown component */
 
 .btn-auth {
   background: var(--orange);
