@@ -26,9 +26,21 @@ export default function HomeScreen({ navigation }) {
   const { orders, setOrders } = useOrderPool(isAvailable);
   const [toggling,   setToggling]   = useState(false);
   const [acceptingId, setAcceptingId] = useState(null);
+  const [acceptedId,  setAcceptedId]  = useState(null);
   const [refreshing,  setRefreshing]  = useState(false);
   const [toast, setToast] = useState({ visible: false, message: '', type: 'info' });
   const pulseAnim = useRef(new Animated.Value(1)).current;
+  const cardAnims = useRef({}); // order_id -> Animated.Value, created once per card
+
+  // Drop cached animations for orders that are no longer in the pool
+  // (claimed by someone else, cancelled, etc.) so this doesn't grow
+  // unbounded over a long shift.
+  useEffect(() => {
+    const liveIds = new Set(orders.map(o => o.order_id));
+    Object.keys(cardAnims.current).forEach(id => {
+      if (!liveIds.has(Number(id))) delete cardAnims.current[id];
+    });
+  }, [orders]);
 
   const showToast = (message, type = 'info') => {
     setToast({ visible: true, message, type });
@@ -97,20 +109,49 @@ export default function HomeScreen({ navigation }) {
   }
 
   // Accept delivery
+  //
+  // Previously this showed a spinner, then reset the button back to its
+  // normal idle state as soon as the API call resolved, THEN waited a
+  // blind 600ms before fetching the active delivery and navigating.
+  // That dead gap — spinner stops, button looks normal again, then the
+  // screen suddenly jumps — is what read as a "glitch". Now the button
+  // moves straight from "Accepting…" to a distinct green "Accepted ✓"
+  // state with no gap in between, the delivery fetch happens
+  // immediately (in parallel with that visual beat, not after it), and
+  // we only navigate once both are ready.
   async function handleAccept(order) {
     setAcceptingId(order.order_id);
     try {
       await RiderApi.acceptOrder(order.order_id);
-      showToast('✅  Order accepted! Navigate to the restaurant.', 'success');
-      setTimeout(async () => {
-        const res = await RiderApi.getActiveDelivery();
-        if (res?.success && res.data) navigation.navigate('ActiveDelivery', { delivery: res.data });
-      }, 600);
+
+      // Switch straight from "Accepting…" to "Accepted ✓" — no idle
+      // frame in between.
+      setAcceptingId(null);
+      setAcceptedId(order.order_id);
+
+      const [res] = await Promise.all([
+        RiderApi.getActiveDelivery(),
+        // A short deliberate pause so the success state is actually
+        // perceivable, run in parallel with the fetch rather than
+        // stacked after it.
+        new Promise(resolve => setTimeout(resolve, 450)),
+      ]);
+
+      if (res?.success && res.data) {
+        navigation.navigate('ActiveDelivery', { delivery: res.data });
+        setAcceptedId(null);
+      } else {
+        // Delivery vanished/failed to load — don't strand the rider on
+        // a screen that still thinks it's "accepted" with nowhere to go.
+        showToast('Accepted, but could not open the delivery. Pull to refresh.', 'error');
+        setAcceptedId(null);
+        loadPool();
+      }
     } catch (err) {
       showToast(err.message || 'Could not accept — it may have been taken.', 'error');
-      loadPool();
-    } finally {
       setAcceptingId(null);
+      setAcceptedId(null);
+      loadPool();
     }
   }
 
@@ -123,12 +164,26 @@ export default function HomeScreen({ navigation }) {
   // ── Order card ───────────────────────────────────────────────
   const renderOrder = ({ item, index }) => {
     const isAccepting = acceptingId === item.order_id;
-    const fadeAnim = new Animated.Value(0);
-    Animated.timing(fadeAnim, { toValue: 1, duration: 300, delay: index * 60, useNativeDriver: true }).start();
+    const isAccepted  = acceptedId === item.order_id;
+    // While one card is mid-accept/just-accepted, the rest dim and stop
+    // accepting taps — makes it clear which order is being claimed
+    // instead of the whole list just sitting there identically.
+    const isDimmed = !!(acceptingId || acceptedId) && !isAccepting && !isAccepted;
+
+    // Cards used to get a brand-new Animated.Value every render, so the
+    // fade-in restarted from invisible on every poll/socket refresh —
+    // the whole list would flicker. Now each order's animation is
+    // created once and reused for the life of that card.
+    if (!cardAnims.current[item.order_id]) {
+      const av = new Animated.Value(0);
+      cardAnims.current[item.order_id] = av;
+      Animated.timing(av, { toValue: 1, duration: 300, delay: index * 60, useNativeDriver: true }).start();
+    }
+    const fadeAnim = cardAnims.current[item.order_id];
 
     return (
       <Animated.View style={{ opacity: fadeAnim }}>
-        <Card style={styles.orderCard} shadow="md">
+        <Card style={[styles.orderCard, isDimmed && styles.orderCardDimmed, isAccepted && styles.orderCardAccepted]} shadow="md">
           {/* Top row */}
           <View style={styles.orderTop}>
             <View style={styles.orderTopLeft}>
@@ -190,10 +245,11 @@ export default function HomeScreen({ navigation }) {
 
           {/* Accept button */}
           <Button
-            title={isAccepting ? 'Accepting…' : 'Accept Delivery'}
-            onPress={() => handleAccept(item)}
+            title={isAccepted ? 'Accepted ✓' : (isAccepting ? 'Accepting…' : 'Accept Delivery')}
+            onPress={() => { if (!isAccepted) handleAccept(item); }}
             loading={isAccepting}
-            disabled={!!acceptingId}
+            disabled={isDimmed}
+            variant={isAccepted ? 'success' : 'primary'}
             size="md"
             style={{ marginTop: Spacing.md }}
           />
@@ -318,6 +374,8 @@ const styles = StyleSheet.create({
   availSub: { fontSize: Typography.xs, color: 'rgba(255,255,255,0.65)', marginTop: 2 },
   list: { padding: Spacing.base, paddingBottom: Spacing.xxxl },
   orderCard: { borderRadius: Radius.md, padding: 0, overflow: 'hidden' },
+  orderCardDimmed: { opacity: 0.45 },
+  orderCardAccepted: { borderWidth: 2, borderColor: Colors.success },
   orderTop: {
     flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between',
     padding: Spacing.base, borderBottomWidth: 1, borderBottomColor: Colors.border,

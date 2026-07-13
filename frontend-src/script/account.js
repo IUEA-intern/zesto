@@ -162,6 +162,13 @@ function initTabs() {
       document.getElementById('ordersHistory').style.display    = State.activeSub === 'history'  ? '' : 'none';
     });
   });
+
+  // Deep-link support — the account dropdown menu (on every page) links
+  // here as account.html?tab=orders / ?tab=settings.
+  const requestedTab = new URLSearchParams(window.location.search).get('tab');
+  if (requestedTab) {
+    document.querySelector(`.account-tab[data-tab="${requestedTab}"]`)?.click();
+  }
 }
 
 /* ── Account settings ─────────────────────────────────────── */
@@ -235,16 +242,16 @@ function initSocket() {
    as order&cart.js, since shared_auth.js skips pages that already
    have one) ─────────────────────────────────────────────────── */
 function updateNavUI() {
-  const userPill   = document.getElementById('userPill');
-  const userNameEl = document.getElementById('userName');
-  const authBtn    = document.getElementById('openAuthModal');
+  const userPill = document.getElementById('userPill');
+  const authBtn  = document.getElementById('openAuthModal');
 
-  if (State.session) {
-    userPill?.classList.remove('hidden');
-    if (userNameEl) userNameEl.textContent = State.session.name;
+  if (State.session && userPill) {
+    window.ZestoUserMenu?.attach(userPill, State.session, {
+      onLogout: () => window.SharedAuth.logout(),
+    });
     if (authBtn) authBtn.style.display = 'none';
   } else {
-    userPill?.classList.add('hidden');
+    if (userPill) { userPill.classList.add('hidden'); userPill.innerHTML = ''; }
     if (authBtn) authBtn.style.display = '';
   }
 }
@@ -253,7 +260,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   Toast.init();
   initTabs();
   document.getElementById('openAuthModal')?.addEventListener('click', () => window.SharedAuth.showLogin());
-  document.getElementById('logoutBtn')?.addEventListener('click', () => window.SharedAuth.logout());
   document.getElementById('saveProfileBtn').addEventListener('click', saveProfile);
   document.getElementById('savePasswordBtn').addEventListener('click', savePassword);
 
