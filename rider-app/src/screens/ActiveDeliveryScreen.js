@@ -448,7 +448,7 @@ export default function ActiveDeliveryScreen({ navigation, route }) {
               {items.length > 0 && (
                 <>
                   <Divider />
-                  <Text style={styles.itemsHeading}>Order Items ({items.length})</Text>
+                  <Text style={styles.itemsHeading}>Order Items</Text>
                   {items.map((item, i) => (
                     <View key={i} style={styles.itemRow}>
                       <Text style={styles.itemName}>{item.qty}×  {item.name}</Text>
