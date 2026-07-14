@@ -387,6 +387,22 @@ href='data:image/svg+xml,
         <section id="page-settings" class="page">
             <div style="max-width:760px; margin: 0 auto;">
 
+            <!-- My Account -->
+            <div class="dash-card" style="margin-bottom:20px;">
+                <div class="dash-card-header"><h3>👤 My Account</h3></div>
+                <div style="padding:20px;">
+                <p style="margin:0 0 16px;color:var(--text-muted);font-size:.85rem;">
+                    These are your own super admin login credentials — separate from the platform-wide settings below.
+                </p>
+                <div class="form-row">
+                    <div class="form-group"><label>Current Password</label><input type="password" id="acct_current_password" autocomplete="current-password"/></div>
+                    <div class="form-group"><label>New Password</label><input type="password" id="acct_new_password" autocomplete="new-password" placeholder="At least 8 characters"/></div>
+                </div>
+                <div class="form-group" style="max-width:280px;"><label>Confirm New Password</label><input type="password" id="acct_confirm_password" autocomplete="new-password"/></div>
+                <button class="btn-primary" id="changePasswordBtn" style="min-width:160px;">🔑 Update Password</button>
+                </div>
+            </div>
+
             <!-- General -->
             <div class="dash-card" style="margin-bottom:20px;">
                 <div class="dash-card-header"><h3>🏢 General</h3></div>
