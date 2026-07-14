@@ -3,3 +3,4 @@ backend/node_modules
 .vscode
 backend/uploads/restaurant
 backend/.env
+.expo/

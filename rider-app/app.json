@@ -46,7 +46,8 @@
           "locationAlwaysAndWhenInUsePermission": "Allow Zesto Rider to use your location for navigation.",
           "locationWhenInUsePermission": "Allow Zesto Rider to use your location for navigation."
         }
-      ]
+      ],
+      "expo-font"
     ]
   }
 }
