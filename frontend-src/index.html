@@ -41,9 +41,8 @@ href='data:image/svg+xml,
     </div>
     <button class="mobile-close" onclick="document.getElementById('mobileMenu').classList.remove('open')">✕</button>
   </div>
-  <div class="mobile-actions" ></div>
-    <a href="login.html" class="btn btn-ghost" style="justify-content:center;padding:14px; margin-bottom: 5px;">Sign in</a>
-    <a href="signin.html" class="btn btn-primary" style="justify-content:center;padding:14px;border-radius:var(--r12);">signup</a>
+  <div class="mobile-actions" >
+    <button id="openAuthModal" class="btn-auth" style="justify-content:center;padding:14px; width:100%;" onclick="window.SharedAuth?.showLogin?.()">Login / Sign Up</button>
   </div>
 </div>
 
@@ -65,12 +64,8 @@ href='data:image/svg+xml,
         <svg viewBox="0 0 10 6" fill="none" stroke="currentColor" stroke-width="1.5" style="width:10px;height:10px;"><path d="M1 1l4 4 4-4"/></svg> -->
       </div>
       <div class="nav-actions">
-        <a href="login.html" class="btn btn-ghost">Sign in</a>
-        <a href="signin.html" class="btn btn-primary">Get started</a>
+        <button id="openAuthModal" class="btn-auth" onclick="window.SharedAuth?.showLogin?.()">Login / Sign Up</button>
       </div>
-      <button class="nav-hamburger" onclick="document.getElementById('mobileMenu').classList.add('open')" aria-label="Open menu">
-        <span></span><span></span><span></span>
-      </button>
     </nav>
   </div>
 </header>
