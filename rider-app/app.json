@@ -15,7 +15,7 @@
       "supportsTablet": false,
       "bundleIdentifier": "ug.zesto.rider",
       "config": {
-        "googleMapsApiKey": "AIzaSyBo7qIs5kD2A4qmNreCJDn-nH9ckiMEj-Q"
+        "googleMapsApiKey": "YOUR_GOOGLE_MAPS_IOS_KEY"
       }
     },
     "android": {
@@ -31,7 +31,7 @@
       ],
       "config": {
         "googleMaps": {
-          "apiKey": "AIzaSyBo7qIs5kD2A4qmNreCJDn-nH9ckiMEj-Q"
+          "apiKey": "YOUR_GOOGLE_MAPS_ANDROID_KEY"
         }
       }
     },

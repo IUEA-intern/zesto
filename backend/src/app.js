@@ -66,6 +66,7 @@ app.use('/api/auth',        require('./routes/auth'))
 app.use('/api/orders',      require('./routes/orders'))
 app.use('/api/payments',    require('./routes/payments'))
 app.use('/api/admin',       require('./routes/admin'))          // legacy admin kept intact
+app.use('/api/settings',    require('./routes/settings'))       // public, no auth required
 
 // ── New marketplace routes ────────────────────────────────────
 app.use('/api/super-admin', require('./routes/superAdmin'))     // super_admin
