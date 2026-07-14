@@ -3,3 +3,5 @@ backend/node_modules
 .vscode
 backend/uploads/restaurant
 backend/.env
+rider-app/node_modules
+customer-app/node_modules
