@@ -108,20 +108,127 @@ async function loadDeliveryFee() {
 }
 
 /* ============================================================
+   DELIVERY CONFIRMATION CODE — persistent, multi-order-safe banner
+   Keeps each order's code visible to the customer (as a small floating
+   pill) until the rider confirms delivery for THAT order, even across
+   page reloads or the browser/app being closed and reopened. A customer
+   can have several orders in progress at once, so every code is keyed
+   by orderId — never a single shared/global slot — so the right code
+   always points at the right order.
+   ============================================================ */
+const DeliveryCodeStore = {
+  KEY: 'zesto_active_deliveries', // { [orderId]: { orderNumber, code } }
+
+  _readAll() {
+    try {
+      return JSON.parse(localStorage.getItem(this.KEY) || '{}') || {};
+    } catch { return {}; }
+  },
+
+  _writeAll(map) {
+    try { localStorage.setItem(this.KEY, JSON.stringify(map)); } catch {}
+  },
+
+  save(orderId, orderNumber, code) {
+    if (!code || !orderId) return;
+    const map = this._readAll();
+    map[orderId] = { orderNumber, code };
+    this._writeAll(map);
+  },
+
+  getAll() { return this._readAll(); },
+
+  get(orderId) { return this._readAll()[orderId] || null; },
+
+  clear(orderId) {
+    const map = this._readAll();
+    delete map[orderId];
+    this._writeAll(map);
+  },
+};
+
+const DeliveryCodeBanner = {
+  pillId(orderId) { return `deliveryCodeBanner-${orderId}`; },
+
+  render(orderId, code, orderNumber) {
+    if (!code || !orderId) return;
+    let stack = document.getElementById('deliveryCodeBannerStack');
+    if (!stack) {
+      stack = document.createElement('div');
+      stack.id = 'deliveryCodeBannerStack';
+      stack.style.cssText = `
+        position: fixed; right: 16px; bottom: 16px; z-index: 9998;
+        display: flex; flex-direction: column-reverse; gap: 8px;
+        align-items: flex-end;
+      `;
+      document.body.appendChild(stack);
+    }
+    let pill = document.getElementById(this.pillId(orderId));
+    if (!pill) {
+      pill = document.createElement('div');
+      pill.id = this.pillId(orderId);
+      pill.style.cssText = `
+        background: #ea580c; color: #fff; border-radius: 999px;
+        padding: 10px 18px; font-weight: 700; font-size: .85rem;
+        box-shadow: 0 8px 24px rgba(0,0,0,.25); cursor: pointer;
+        display: flex; align-items: center; gap: 8px;
+      `;
+      pill.addEventListener('click', () => {
+        const entry = DeliveryCodeStore.get(orderId);
+        if (entry) DeliveryCodeModal.show(entry.code, entry.orderNumber, orderId);
+      });
+      stack.appendChild(pill);
+    }
+    const shortNum = orderNumber ? String(orderNumber).replace(/^ZST-?/i, '#') : `#${orderId}`;
+    pill.innerHTML = `📦 ${Utils.escape(shortNum)}: <span style="letter-spacing:2px">${Utils.escape(String(code))}</span>`;
+  },
+
+  remove(orderId) {
+    document.getElementById(this.pillId(orderId))?.remove();
+    const stack = document.getElementById('deliveryCodeBannerStack');
+    if (stack && !stack.children.length) stack.remove();
+  },
+
+  /** Called on every page load to restore banners for every still-active order. */
+  async init() {
+    const all = DeliveryCodeStore.getAll();
+    const entries = Object.entries(all);
+    if (!entries.length) return;
+
+    // Show immediately from cache so nothing is ever missing on load.
+    entries.forEach(([orderId, { code, orderNumber }]) => this.render(orderId, code, orderNumber));
+
+    // Reconcile each with the server in case a delivery finished while away.
+    if (!State.session) return;
+    await Promise.all(entries.map(async ([orderId]) => {
+      try {
+        const res = await Api.get(`/orders/${orderId}`);
+        const order = res?.data;
+        if (!order || order.status === 'delivered' || order.status === 'cancelled' || !order.delivery_confirmation_code) {
+          DeliveryCodeStore.clear(orderId);
+          this.remove(orderId);
+        }
+      } catch {
+        // Network/auth hiccup — keep showing the cached code, don't clear it.
+      }
+    }));
+  },
+};
+
+/* ============================================================
    DELIVERY CONFIRMATION CODE MODAL
    Shown to the customer right after payment is verified.
    The code must be given to the delivery rider on arrival.
    ============================================================ */
 const DeliveryCodeModal = {
-  show(code, orderNumber) {
+  show(code, orderNumber, orderId) {
     if (!code) return;
 
-    // Persist so the customer can find it again if they navigate away
-    try {
-      const stored = JSON.parse(localStorage.getItem('zesto_delivery_codes') || '{}');
-      stored[orderNumber || 'latest'] = code;
-      localStorage.setItem('zesto_delivery_codes', JSON.stringify(stored));
-    } catch {}
+    // Persist so the customer can find it again if they navigate away,
+    // reload, or close and reopen the browser/app entirely. Keyed by
+    // orderId so it never gets confused with another simultaneous order.
+    DeliveryCodeStore.save(orderId, orderNumber, code);
+    DeliveryCodeBanner.render(orderId, code, orderNumber);
 
     let overlay = document.getElementById('deliveryCodeOverlay');
     if (overlay) overlay.remove();
@@ -293,17 +400,23 @@ const Auth = {
   },
 
   updateUI() {
-    const userPill   = document.getElementById('userPill');
-    const userNameEl = document.getElementById('userName');
-    const authBtn    = document.getElementById('openAuthModal');
+    const userPill = document.getElementById('userPill');
+    const authBtn  = document.getElementById('openAuthModal');
 
-    if (State.session) {
-      if (userPill)   { userPill.classList.remove('hidden'); }
-      if (userNameEl) { userNameEl.textContent = State.session.name; }
-      if (authBtn)    { authBtn.style.display = 'none'; }
+    if (State.session && userPill) {
+      window.ZestoUserMenu?.attach(userPill, State.session, {
+        onLogout: async () => {
+          try {
+            await window.SharedAuth?.logout();
+            Cart.updateBadge();
+            Toast.info('Logged out successfully.');
+          } catch { Toast.error('Logout failed.'); }
+        },
+      });
+      if (authBtn) { authBtn.style.display = 'none'; }
     } else {
-      if (userPill)   { userPill.classList.add('hidden'); }
-      if (authBtn)    { authBtn.style.display = ''; }
+      if (userPill) { userPill.classList.add('hidden'); userPill.innerHTML = ''; }
+      if (authBtn)  { authBtn.style.display = ''; }
     }
   },
 
@@ -1052,20 +1165,16 @@ const Checkout = {
    ============================================================ */
 const AuthModal = {
   init() {
-    const openBtn       = document.getElementById('openAuthModal');
-    const logoutBtn     = document.getElementById('logoutBtn');
+    const openBtn = document.getElementById('openAuthModal');
 
     openBtn?.addEventListener('click', () => {
       window.SharedAuth?.showLogin();
     });
 
-    logoutBtn?.addEventListener('click', async () => {
-      try {
-        await window.SharedAuth?.logout();
-        Cart.updateBadge();
-        Toast.info('Logged out successfully.');
-      } catch { Toast.error('Logout failed.'); }
-    });
+    // The account pill itself (avatar, name, dropdown with My Orders /
+    // Account Settings / Sign Out) is rendered by Auth.updateUI() via
+    // ZestoUserMenu.attach() below, once we know whether there's a
+    // session — see updateUI().
 
     // Custom event listeners to keep order&cart state in sync with SharedAuth
     document.addEventListener('auth-login', async (e) => {
@@ -1156,12 +1265,27 @@ const SocketManager = {
       this.socket.on('payment:status', ({ data }) => {
         if (!data) return;
         if (data.status === 'verified' && data.deliveryCode) {
-          DeliveryCodeModal.show(data.deliveryCode, data.orderId);
+          DeliveryCodeModal.show(data.deliveryCode, data.orderId, data.orderId);
         } else if (data.status === 'delivered') {
           Toast.success('🎉 Your order has been delivered! Enjoy your meal!');
         } else if (data.status === 'failed') {
           Toast.error('Payment failed. Please try again.');
         }
+      });
+
+      // Fired when the rider confirms delivery with the customer's code —
+      // that specific order's code is no longer needed, so clear only
+      // its banner (other simultaneous orders' codes are untouched).
+      // (The "delivered" toast itself comes through notification:toast.)
+      this.socket.on('order:created', ({ data }) => {
+        if (!data || data.status !== 'delivered' || !data.orderId) return;
+        DeliveryCodeStore.clear(data.orderId);
+        DeliveryCodeBanner.remove(data.orderId);
+      });
+
+      this.socket.on('notification:toast', ({ data }) => {
+        if (!data?.message) return;
+        Toast.show(data.message, data.type || 'info');
       });
     } catch (err) {
       console.warn('[SocketManager]', err);
@@ -1201,7 +1325,7 @@ function handlePaymentReturn() {
       Api.get(`/orders/${orderId}`)
         .then((res) => {
           const code = res?.data?.delivery_confirmation_code;
-          if (code) DeliveryCodeModal.show(code, res.data.order_number || orderId);
+          if (code) DeliveryCodeModal.show(code, res.data.order_number || orderId, orderId);
         })
         .catch((err) => console.warn('[handlePaymentReturn] Failed to fetch delivery code:', err));
     }
@@ -1231,6 +1355,15 @@ async function bootPage() {
   AuthModal.init();
   SocketManager.init();
   initNavScroll();
+
+  // Restore the delivery-code banner if the customer has an active,
+  // not-yet-delivered order (persists across reloads / closed browser).
+  DeliveryCodeBanner.init();
+
+  // If we were just redirected back here from the payment gateway,
+  // surface the delivery confirmation code (this is the page Pesapal/
+  // Flutterwave redirects to: cart.html?payment=success&order_id=...).
+  handlePaymentReturn();
 
   const isCartPage  = !!document.getElementById('cartItemsList');
   const isOrderPage = !!document.getElementById('foodGrid');

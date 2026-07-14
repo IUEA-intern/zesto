@@ -343,6 +343,21 @@ router.put('/orders/:id/status', async (req, res) => {
         if (status === 'out_for_delivery') {
           se.kitchenOrderReady(orderId, orderRow[0].order_number);
         }
+        // When order is ready_for_pickup, broadcast to all online riders
+        if (status === 'ready_for_pickup' && typeof se.riderNewOrder === 'function') {
+          try {
+            const { query: dbQuery } = require('../config/db');
+            const orderDetails = await dbQuery(
+              `SELECT o.order_id, o.order_number, o.delivery_address, o.total, o.delivery_fee,
+                      r.name AS restaurant_name, r.address AS restaurant_address
+               FROM orders o JOIN restaurants r ON r.restaurant_id = o.restaurant_id
+               WHERE o.order_id = ?`, [orderId]
+            );
+            if (orderDetails && orderDetails.length) {
+              se.riderNewOrder({ ...orderDetails[0], status });
+            }
+          } catch (e) { console.error('[admin] riderNewOrder fetch failed', e.message); }
+        }
       }
     }
 

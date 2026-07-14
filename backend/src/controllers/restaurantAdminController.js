@@ -15,6 +15,11 @@
 const { query } = require('../config/db');
 const { log }   = require('../config/audit');
 
+/** 6-digit code the restaurant reads aloud to the rider at handoff. */
+function generatePickupCode() {
+  return String(Math.floor(100000 + Math.random() * 900000));
+}
+
 function safeRows(rows) {
   if (!Array.isArray(rows)) return [];
   return rows.map(r => {
@@ -197,8 +202,15 @@ async function updateOrderStatus(req, res) {
       return res.status(400).json({ success: false, message: 'Invalid order ID.' });
     }
 
-    // Validate status value
-    const valid = ['processing', 'preparing', 'ready_for_pickup', 'out_for_delivery', 'cancelled'];
+    // Validate status value.
+    // NOTE: 'out_for_delivery' is intentionally excluded — that transition
+    // now only happens when a rider accepts the order in the rider app
+    // (see POST /api/rider/orders/:id/accept). Allowing the restaurant to
+    // set it directly would let an order be marked "out for delivery"
+    // with no rider ever assigned, and without the pickup handoff code
+    // ever being verified — exactly the fraud/dispute gap this was
+    // meant to close.
+    const valid = ['processing', 'preparing', 'ready_for_pickup', 'cancelled'];
     if (!status || !valid.includes(status)) {
       return res.status(400).json({ success: false, message: `Invalid status. Must be one of: ${valid.join(', ')}` });
     }
@@ -222,9 +234,24 @@ async function updateOrderStatus(req, res) {
     const oldStatus = rows[0].status;
     const orderedUserId = rows[0].user_id;
 
+    // Generate a fresh pickup handoff code whenever an order becomes
+    // ready_for_pickup. Only the restaurant sees this — it's read aloud
+    // to the rider in person, and the rider must enter it correctly to
+    // confirm pickup. This is separate from the customer-facing
+    // delivery_confirmation_code and exists purely to prevent
+    // restaurant<->rider pickup fraud/disputes.
+    const pickupCode = status === 'ready_for_pickup' ? generatePickupCode() : null;
+
     // Update order status (must succeed before socket emission)
     try {
-      await query('UPDATE orders SET status=?, updated_at=NOW() WHERE order_id=?', [status, orderId]);
+      if (pickupCode) {
+        await query(
+          'UPDATE orders SET status=?, pickup_confirmation_code=?, updated_at=NOW() WHERE order_id=?',
+          [status, pickupCode, orderId]
+        );
+      } else {
+        await query('UPDATE orders SET status=?, updated_at=NOW() WHERE order_id=?', [status, orderId]);
+      }
     } catch (dbErr) {
       console.error('[restaurantAdmin] Database update failed:', dbErr);
       // Provide more specific error message
@@ -243,9 +270,13 @@ async function updateOrderStatus(req, res) {
           se.adminOrderUpdate({ orderId, status });
         }
 
-        // Emit to restaurant-specific room
+        // Emit to restaurant-specific room (includes the pickup code, if any —
+        // this room is only joined by this restaurant's own admin staff)
         if (typeof se.restaurantOrderUpdate === 'function') {
-          se.restaurantOrderUpdate(restaurant.restaurant_id, { orderId, status });
+          se.restaurantOrderUpdate(restaurant.restaurant_id, {
+            orderId, status,
+            ...(pickupCode ? { pickup_confirmation_code: pickupCode } : {}),
+          });
         }
 
         // Emit user notification toast
@@ -262,6 +293,24 @@ async function updateOrderStatus(req, res) {
             se.toastUser(orderedUserId, { type: 'info', message });
           }
         }
+
+        // When order is ready_for_pickup, broadcast to all online riders
+        if (status === 'ready_for_pickup' && typeof se.riderNewOrder === 'function') {
+          // Fetch order details for the riders pool notification
+          try {
+            const orderDetails = safeRows(await query(
+              `SELECT o.order_id, o.order_number, o.delivery_address, o.total, o.delivery_fee,
+                      r.name AS restaurant_name, r.address AS restaurant_address
+               FROM orders o JOIN restaurants r ON r.restaurant_id = o.restaurant_id
+               WHERE o.order_id = ?`, [orderId]
+            ));
+            if (orderDetails.length) {
+              se.riderNewOrder({ ...orderDetails[0], status });
+            }
+          } catch (fetchErr) {
+            console.error('[restaurantAdmin] Failed to fetch order for rider broadcast:', fetchErr.message);
+          }
+        }
       }
     } catch (socketErr) {
       // Log socket emission errors but do NOT fail the request
@@ -275,7 +324,11 @@ async function updateOrderStatus(req, res) {
       oldValue: { status: oldStatus }, newValue: { status }, ip: req.ip,
     });
 
-    return res.json({ success: true, message: `Order updated to ${status}.` });
+    return res.json({
+      success: true,
+      message: `Order updated to ${status}.`,
+      ...(pickupCode ? { pickup_confirmation_code: pickupCode } : {}),
+    });
   } catch (err) {
     console.error('[restaurantAdmin] updateOrderStatus failed:', err);
     

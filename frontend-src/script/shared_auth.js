@@ -438,24 +438,20 @@
       signupBtns.forEach(btn => (btn.style.display = 'none'));
 
       document.querySelectorAll('.nav-actions, .nav-actions-auth, .mobile-actions').forEach(container => {
-        if (container.querySelector('#userPill')) return; // order page handles its own
+        if (container.querySelector('#userPill')) return; // order/account pages handle their own
         const pill = document.createElement('div');
-        pill.className = 'user-pill user-pill-shared';
-        pill.innerHTML = `
-          <span class="user-avatar" aria-hidden="true">👤</span>
-          <span class="user-name-text">${escapeHTML(session.name)}</span>
-          <button class="btn-logout btn-logout-shared" title="Log out" aria-label="Log out">↩</button>
-        `;
-        pill.querySelector('.btn-logout-shared').addEventListener('click', async (e) => {
-          e.stopPropagation();
-          try {
-            await window.SharedAuth.logout();
-            Toast.info('Logged out successfully.');
-          } catch {
-            Toast.error('Logout failed. Please try again.');
-          }
-        });
+        pill.className = 'user-pill-shared';
         container.appendChild(pill);
+        window.ZestoUserMenu?.attach(pill, session, {
+          onLogout: async () => {
+            try {
+              await window.SharedAuth.logout();
+              Toast.info('Logged out successfully.');
+            } catch {
+              Toast.error('Logout failed. Please try again.');
+            }
+          },
+        });
       });
     } else {
       signinBtns.forEach(btn => (btn.style.display = ''));

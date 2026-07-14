@@ -26,6 +26,7 @@ href='data:image/svg+xml,
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Knewave&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/order.css" />
+  <link rel="stylesheet" href="css/user-menu.css" />
 </head>
 <body>
 
@@ -48,11 +49,7 @@ href='data:image/svg+xml,
 
       <div class="nav-actions">
         <!-- User pill (hidden until logged in) -->
-        <div id="userPill" class="user-pill hidden">
-          <span class="user-avatar">👤</span>
-          <span id="userName" class="user-name-text"></span>
-          <button id="logoutBtn" class="btn-logout" title="Logout">↩</button>
-        </div>
+        <div id="userPill" class="user-pill hidden"></div>
 
         <!-- Login button (shown when logged out) -->
         <button id="openAuthModal" class="btn-auth">Login / Sign Up</button>
@@ -156,6 +153,7 @@ href='data:image/svg+xml,
   <!-- ── Scripts ───────────────────────────────────────────── -->
   <script src="/socket.io/socket.io.js"></script>
   <script src="script/shared_auth.js"></script>
+  <script src="script/user-menu.js"></script>
   <script src="script/order&cart.js"></script>
 </body>
 </html>

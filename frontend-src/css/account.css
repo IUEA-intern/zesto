@@ -1,0 +1,286 @@
+/* ============================================================
+   ACCOUNT PAGE — My Orders + Account Settings
+   Reuses the CSS variables/tokens defined in order.css (loaded first).
+   ============================================================ */
+
+.account-main {
+  max-width: 920px;
+  margin: 0 auto;
+  padding: 32px 20px 80px;
+  margin-top: var(--nav-height);
+}
+
+.account-header {
+  margin-bottom: 24px;
+}
+.account-header h1 {
+  font-size: 1.7rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin: 0 0 4px;
+}
+.account-header p {
+  color: var(--text-secondary);
+  font-size: .92rem;
+  margin: 0;
+}
+
+/* ── Tabs ─────────────────────────────────────────────────── */
+.account-tabs {
+  display: flex;
+  gap: 8px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 24px;
+}
+.account-tab {
+  border: none;
+  background: none;
+  padding: 12px 18px;
+  font-family: var(--font-main);
+  font-size: .92rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  transition: var(--transition);
+}
+.account-tab.active {
+  color: var(--orange);
+  border-bottom-color: var(--orange);
+}
+.account-panel { display: none; }
+.account-panel.active { display: block; }
+
+/* ── Orders sub-tabs ──────────────────────────────────────── */
+.orders-subtabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+.orders-subtab {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  padding: 8px 16px;
+  border-radius: 999px;
+  font-size: .82rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: var(--transition);
+}
+.orders-subtab.active {
+  background: var(--orange);
+  border-color: var(--orange);
+  color: #fff;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 48px 20px;
+  color: var(--text-muted);
+}
+.empty-state .emoji { font-size: 2.4rem; margin-bottom: 8px; display: block; }
+
+/* ── Order card ───────────────────────────────────────────── */
+.order-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 18px 20px;
+  margin-bottom: 16px;
+  box-shadow: var(--shadow-sm);
+}
+.order-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.order-card-num {
+  font-weight: 800;
+  font-size: 1.02rem;
+  color: var(--text-primary);
+}
+.order-card-restaurant {
+  font-size: .84rem;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+.order-card-meta {
+  font-size: .78rem;
+  color: var(--text-muted);
+  margin-top: 6px;
+}
+.order-status-pill {
+  padding: 5px 12px;
+  border-radius: 999px;
+  font-size: .74rem;
+  font-weight: 800;
+  white-space: nowrap;
+  text-transform: capitalize;
+}
+.order-total {
+  font-weight: 800;
+  color: var(--text-primary);
+  font-size: 1.05rem;
+  text-align: right;
+}
+
+/* ── Progress stepper ─────────────────────────────────────── */
+.order-progress {
+  display: flex;
+  align-items: center;
+  margin: 18px 0 6px;
+}
+.order-progress .step {
+  flex: 1;
+  text-align: center;
+  position: relative;
+}
+.order-progress .step .dot {
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  background: var(--border);
+  color: transparent;
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 6px;
+  font-size: .68rem;
+  font-weight: 800;
+  transition: var(--transition);
+}
+.order-progress .step .label {
+  font-size: .68rem;
+  color: var(--text-muted);
+  font-weight: 700;
+}
+.order-progress .step.done .dot { background: var(--orange); color: #fff; }
+.order-progress .step.done .dot::after { content: '✓'; }
+.order-progress .step.current .dot { background: var(--orange-dark); color: #fff; box-shadow: 0 0 0 4px var(--orange-pale); }
+.order-progress .step.done .label,
+.order-progress .step.current .label { color: var(--text-primary); }
+.order-progress .line {
+  position: absolute;
+  top: 11px; left: -50%; width: 100%;
+  height: 2px;
+  background: var(--border);
+  z-index: -1;
+}
+.order-progress .step:first-child .line { display: none; }
+.order-progress .step.done .line,
+.order-progress .step.current .line { background: var(--orange); }
+.order-progress .step.cancelled .dot { background: #ef4444; color: #fff; }
+.order-progress .step.cancelled .dot::after { content: '✕'; }
+
+/* ── Per-order delivery code ──────────────────────────────── */
+.order-code-box {
+  margin-top: 14px;
+  background: var(--orange-pale);
+  border: 2px dashed var(--orange);
+  border-radius: var(--radius-md);
+  padding: 12px 16px;
+  text-align: center;
+}
+.order-code-box .lbl {
+  font-size: .7rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--orange-dark);
+  font-weight: 800;
+  margin-bottom: 4px;
+}
+.order-code-box .code {
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: 6px;
+  color: var(--orange-dark);
+}
+.order-code-box .hint {
+  font-size: .74rem;
+  color: var(--text-secondary);
+  margin-top: 4px;
+}
+
+/* ── Settings form ────────────────────────────────────────── */
+.settings-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  margin-bottom: 20px;
+  box-shadow: var(--shadow-sm);
+}
+.settings-card h3 {
+  font-size: 1.05rem;
+  font-weight: 800;
+  margin: 0 0 4px;
+}
+.settings-card .sub {
+  font-size: .82rem;
+  color: var(--text-secondary);
+  margin: 0 0 18px;
+}
+.form-row {
+  margin-bottom: 16px;
+}
+.form-row label {
+  display: block;
+  font-size: .82rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 6px;
+}
+.form-row input {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-main);
+  font-size: .92rem;
+  transition: var(--transition);
+  box-sizing: border-box;
+}
+.form-row input:focus {
+  outline: none;
+  border-color: var(--orange);
+}
+.form-row input:disabled {
+  background: var(--bg);
+  color: var(--text-muted);
+}
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 4px;
+}
+.account-save-btn {
+  background: var(--orange);
+  color: #fff;
+  border: none;
+  padding: 12px 24px;
+  border-radius: var(--radius-sm);
+  font-weight: 800;
+  font-size: .9rem;
+  cursor: pointer;
+  transition: var(--transition);
+}
+.account-save-btn:hover { background: var(--orange-dark); }
+.account-save-btn:disabled { opacity: .6; cursor: not-allowed; }
+
+.load-more-btn {
+  display: block;
+  margin: 8px auto 0;
+  background: none;
+  border: 1.5px solid var(--border);
+  padding: 10px 22px;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: .85rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+.load-more-btn:hover { border-color: var(--orange); color: var(--orange); }
+
+@media (max-width: 560px) {
+  .order-progress .label { display: none; }
+}

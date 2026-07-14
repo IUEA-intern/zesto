@@ -49,6 +49,7 @@ const State = {
   analyticsDays:      30,
   socket:             null,
   liveFeedItems:      [],
+  autoRefreshTimer:   null,
 };
 
 /* ── Utils ─────────────────────────────────────────────────── */
@@ -161,6 +162,22 @@ function showApp() {
   document.getElementById('appShell').classList.remove('hidden');
   initSocket();
   navigateTo('dashboard');
+  startAutoRefresh();
+}
+
+/**
+ * Belt-and-suspenders auto-refresh: several tabs already get pushed
+ * live updates via sockets, but poll the currently active tab on an
+ * interval too so every tab (Dashboard, Restaurants, Riders, Users,
+ * Orders, Payments, Analytics, Audit Logs, Platform Settings) stays
+ * current even if a socket event is missed or the connection drops.
+ */
+function startAutoRefresh() {
+  if (State.autoRefreshTimer) clearInterval(State.autoRefreshTimer);
+  State.autoRefreshTimer = setInterval(() => {
+    if (document.hidden) return; // don't burn calls on a background tab
+    refreshActivePage();
+  }, 20000); // 20s
 }
 
 function showAuthGate() {
@@ -225,7 +242,7 @@ function initSocket() {
       amt: Utils.currency(data.amount),
     });
     refreshKPIs();
-    if (State.currentPage === 'payments') loadPayments();
+    refreshActivePage();
   });
 
   /** Payment made — gateway received payment, awaiting server verification */
@@ -238,7 +255,7 @@ function initSocket() {
       amt: Utils.currency(data.amount),
     });
     refreshKPIs();
-    if (State.currentPage === 'payments') loadPayments();
+    refreshActivePage();
   });
 
   /** New paid order received (payment verified) */
@@ -285,6 +302,30 @@ function initSocket() {
   });
 
   State.socket.on('toast', ({ message }) => Toast.info(message));
+
+  /* ── Analytics / Stock / Rider Events ─────────────────── */
+
+  /** Real-time analytics metric tick */
+  State.socket.on('analytics:update', ({ data }) => {
+    if (State.currentPage === 'analytics') loadAnalytics();
+    refreshKPIs();
+  });
+
+  /** Stock level changed */
+  State.socket.on('product:stock_update', ({ data }) => {
+    if (State.currentPage === 'products' || State.currentPage === 'dashboard') {
+      refreshActivePage();
+    }
+  });
+
+  /** Rider availability changed — update riders list if viewing it */
+  State.socket.on('order:update', ({ data: outerData }) => {
+    // Also handle rider availability updates piggybacked on order:update
+    const data = outerData || {};
+    if (data.type === 'rider:availability' && State.currentPage === 'riders') {
+      loadRiders();
+    }
+  });
 }
 
 /* ── Navigation ────────────────────────────────────────────── */
@@ -884,6 +925,30 @@ async function loadSettings() {
   }
 }
 
+async function changePassword() {
+  const btn     = document.getElementById('changePasswordBtn');
+  const current = document.getElementById('acct_current_password').value;
+  const next    = document.getElementById('acct_new_password').value;
+  const confirm = document.getElementById('acct_confirm_password').value;
+
+  if (!current || !next || !confirm) { Toast.error('Please fill in all password fields.'); return; }
+  if (next.length < 8) { Toast.error('New password must be at least 8 characters.'); return; }
+  if (next !== confirm) { Toast.error('New password and confirmation do not match.'); return; }
+
+  btn.disabled = true; btn.textContent = 'Updating…';
+  try {
+    await Api.post('/auth/change-password', { currentPassword: current, newPassword: next });
+    Toast.success('Password updated successfully.');
+    document.getElementById('acct_current_password').value = '';
+    document.getElementById('acct_new_password').value = '';
+    document.getElementById('acct_confirm_password').value = '';
+  } catch (err) {
+    Toast.error(err.message || 'Failed to update password.');
+  } finally {
+    btn.disabled = false; btn.textContent = '🔑 Update Password';
+  }
+}
+
 async function saveSettings() {
   const settings = {};
   for (const [key, fieldId] of Object.entries(SETTING_FIELD_MAP)) {
@@ -1017,6 +1082,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Settings save
   document.getElementById('saveSettingsBtn')?.addEventListener('click', saveSettings);
+  document.getElementById('changePasswordBtn')?.addEventListener('click', changePassword);
 
   // Modal closes
   document.getElementById('closeRestaurantModal')?.addEventListener('click', () => {

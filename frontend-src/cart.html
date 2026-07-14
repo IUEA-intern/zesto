@@ -5,28 +5,29 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Zesto — Your Cart</title>
   <link rel="icon" type="image/svg+xml"
-href='data:image/svg+xml,
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-    
-    <!-- Background -->
-    <circle cx="32" cy="32" r="30" fill="%23FF6200"/>
+  href='data:image/svg+xml,
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+      
+      <!-- Background -->
+      <circle cx="32" cy="32" r="30" fill="%23FF6200"/>
 
-    <!-- Lightning Z -->
-    <path d="M40 10
-             L22 30
-             H33
-             L24 54
-             L44 30
-             H33
-             Z"
-          fill="white"/>
-          
-</svg>'>
+      <!-- Lightning Z -->
+      <path d="M40 10
+              L22 30
+              H33
+              L24 54
+              L44 30
+              H33
+              Z"
+            fill="white"/>
+            
+  </svg>'>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Knewave&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/cart.css" />
-  <link rel="stylesheet" href="css/auth_modal.css" />
+  <link rel="stylesheet" href="css/auth-modal.css" />
+  <link rel="stylesheet" href="css/user-menu.css" />
 </head>
 <body>
 
@@ -133,11 +134,7 @@ href='data:image/svg+xml,
         <a href="order.html" class="nav-link">← Back to Menu</a>
       </div>
       <div class="nav-actions">
-        <div id="userPill" class="user-pill hidden">
-          <span class="user-avatar">👤</span>
-          <span id="userName" class="user-name-text"></span>
-          <button id="logoutBtn" class="btn-logout" title="Logout">↩</button>
-        </div>
+        <div id="userPill" class="user-pill hidden"></div>
         <a href="cart.html" class="cart-btn active-cart" id="cartNavBtn" aria-label="View cart">
           <span class="cart-icon">🛒</span>
           <span class="cart-badge" id="cartBadge">0</span>
@@ -231,5 +228,6 @@ href='data:image/svg+xml,
   <script src="/socket.io/socket.io.js"></script>
   <script src="script/order&cart.js"></script>
   <script src="script/shared_auth.js"></script>
+  <script src="script/user-menu.js"></script>
 </body>
 </html>
