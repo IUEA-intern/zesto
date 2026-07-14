@@ -32,26 +32,31 @@ a{text-decoration:none;color:inherit;}
 .section-sub{font-size:15px;color:var(--mid);line-height:1.65;margin-top:10px;}
 
 /* ─── NAV ─── */
-.nav{position:sticky;top:0;z-index:100;background:rgba(250,250,247,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--lt2);}
-.nav-inner{display:flex;align-items:center;gap:0;height:64px;}
-.nav-logo{display:flex;align-items:center;gap:10px;margin-right:0;flex-shrink:0;}
-.logo-mark{width:34px;height:34px;background:var(--or);border-radius:10px;display:flex;align-items:center;justify-content:center;}
-.logo-mark svg{width:18px;height:18px;fill:white;}
-.logo-text{font-family:'Knewave',cursive;font-size:26px;color:var(--dk);letter-spacing:1px;}
+.nav{position:fixed;top:0;left:0;right:0;z-index:900;height:68px;background:rgba(255,255,255,.75);backdrop-filter:blur(18px) saturate(1.8);-webkit-backdrop-filter:blur(18px) saturate(1.8);border-bottom:1px solid rgba(255,107,44,.12);box-shadow:0 2px 20px rgba(0,0,0,.06);}
+.nav-inner{max-width:1280px;margin:0 auto;padding:0 24px;height:100%;display:flex;align-items:center;gap:24px;}
+.nav-logo{display:flex;align-items:center;gap:10px;flex-shrink:0;}
+.logo-text{font-family:'Knewave',cursive;font-size:1.9rem;color:var(--dk);letter-spacing:-.5px;}
 .logo-text span{color:var(--or);}
-.nav-links{display:flex;gap:6px;flex:1;}
-.nav-link{font-size:14px;font-weight:500;color:var(--mid);padding:7px 14px;border-radius:var(--r6);transition:color .18s,background .18s;}
-.nav-link:hover{color:var(--dk);background:var(--lt);}
-.nav-link.active{color:var(--dk);}
-.nav-loc{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:500;color:var(--mid);background:var(--lt);border-radius:var(--r6);padding:6px 12px;margin-right:12px;margin-left:auto;cursor:pointer;transition:background .18s;}
-.nav-loc:hover{background:var(--lt2);}
-.nav-loc svg{width:14px;height:14px;flex-shrink:0;color:var(--or);}
-.nav-actions{display:flex;gap:8px;align-items:center;}
+.nav-links{display:flex;gap:4px;margin-left:auto;}
+.nav-link{padding:6px 14px;border-radius:99px;font-size:.88rem;font-weight:600;color:var(--mid);transition:var(--transition);}
+.nav-link:hover{color:var(--or);background:var(--or-lt);}
+.nav-link.active{color:var(--or);background:var(--or-lt);}
+.nav-loc{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:500;color:var(--mid);border-radius:var(--r6);padding:6px 12px;margin-right:12px;margin-left:auto;transition:background .18s;}
+.nav-actions{display:flex;align-items:center;gap:10px;margin-left:auto;}
+
+/* alias order-style classnames to the same styles so navbar markup matches order page */
+.navbar{ /* let .navbar be styled like .nav */ }
+.navbar .nav-inner{display:flex;align-items:center;gap:24px;max-width:1280px;margin:0 auto;padding:0 24px;height:68px;}
+.nav-brand{display:flex;align-items:center;gap:10px;flex-shrink:0;}
+.brand-logo{font-family:'Knewave',cursive;font-size:1.9rem;color:var(--dk);letter-spacing:-.5px;}
+.brand-accent{color:var(--or);}
 .btn{font-family:'Plus Jakarta Sans',sans-serif;cursor:pointer;border:none;font-weight:600;transition:all .18s;display:inline-flex;align-items:center;gap:6px;}
 .btn-ghost{background:transparent;border:1.5px solid var(--lt2);color:var(--dk);font-size:13px;padding:7px 18px;border-radius:var(--r6);}
 .btn-ghost:hover{border-color:var(--mid);background:var(--lt);}
 .btn-primary{background:var(--or);color:white;font-size:13px;padding:8px 20px;border-radius:var(--r6);}
 .btn-primary:hover{background:var(--or-dk);}
+.btn-auth{background:var(--or);color:#fff;border:none;border-radius:99px;padding:8px 18px;font-size:.84rem;font-weight:700;cursor:pointer;transition:all .18s;}
+.btn-auth:hover{background:var(--or-dk);transform:translateY(-1px);} 
 .nav-hamburger{display:none;background:transparent;border:none;cursor:pointer;padding:6px;}
 .nav-hamburger span{display:block;width:22px;height:2px;background:var(--dk);border-radius:2px;transition:all .2s;}
 .nav-hamburger span+span{margin-top:5px;}
@@ -63,6 +68,13 @@ a{text-decoration:none;color:inherit;}
 .mobile-link{font-size:18px;font-weight:600;color:var(--dk);padding:14px 16px;border-radius:var(--r12);border-bottom:1px solid var(--lt2);}
 .mobile-link:hover{background:var(--lt);}
 .mobile-actions{display:flex;flex-direction:column;gap:10px;}
+
+/* make auth visible on mobile and hide hamburger like order page */
+@media (max-width: 600px){
+  .nav-hamburger{display:none !important}
+  .nav-actions{display:flex !important}
+  .mobile-actions{display:flex}
+}
 
 /* ─── HERO ─── */
 .hero{background:var(--wh);padding:72px 0 0;}
