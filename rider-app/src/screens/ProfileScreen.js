@@ -7,10 +7,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors, Typography, Spacing, Radius, Shadows } from '../theme';
 import { ZestoBrand, RiderChip, Card, Button, StatusPill, InfoRow, Divider } from '../components';
 import { useAuth } from '../services/AuthContext';
+import { useSettings } from '../services/SettingsContext';
 import { formatDateTime } from '../utils';
 
 export default function ProfileScreen() {
   const { user, riderProfile, isApproved, isAvailable, logout, refreshProfile } = useAuth();
+  const { settings } = useSettings();
   const [refreshing, setRefreshing] = useState(false);
 
   const onRefresh = useCallback(async () => {
@@ -55,7 +57,7 @@ export default function ProfileScreen() {
             <Text style={styles.alertText}>
               Your account is awaiting review. Contact the Zesto team to get approved faster.
             </Text>
-            <TouchableOpacity onPress={() => Linking.openURL('tel:+256700000000')} style={styles.alertBtn}>
+            <TouchableOpacity onPress={() => Linking.openURL(`tel:${settings.support_phone}`)} style={styles.alertBtn}>
               <Text style={styles.alertBtnText}>📞  Call Zesto Team</Text>
             </TouchableOpacity>
           </View>
@@ -94,20 +96,20 @@ export default function ProfileScreen() {
         {/* Support */}
         <Card style={styles.card}>
           <Text style={styles.cardTitle}>Support</Text>
-          <TouchableOpacity style={styles.supportRow} onPress={() => Linking.openURL('tel:+256700000000')}>
+          <TouchableOpacity style={styles.supportRow} onPress={() => Linking.openURL(`tel:${settings.support_phone}`)}>
             <Text style={styles.supportIcon}>📞</Text>
             <View style={{ flex: 1 }}>
               <Text style={styles.supportLabel}>Call Zesto Support</Text>
-              <Text style={styles.supportSub}>+256 700 000 000</Text>
+              <Text style={styles.supportSub}>{settings.support_phone}</Text>
             </View>
             <Text style={styles.supportArrow}>›</Text>
           </TouchableOpacity>
           <Divider />
-          <TouchableOpacity style={styles.supportRow} onPress={() => Linking.openURL('mailto:riders@zesto.ug')}>
+          <TouchableOpacity style={styles.supportRow} onPress={() => Linking.openURL(`mailto:${settings.support_email}`)}>
             <Text style={styles.supportIcon}>✉️</Text>
             <View style={{ flex: 1 }}>
               <Text style={styles.supportLabel}>Email Support</Text>
-              <Text style={styles.supportSub}>riders@zesto.ug</Text>
+              <Text style={styles.supportSub}>{settings.support_email}</Text>
             </View>
             <Text style={styles.supportArrow}>›</Text>
           </TouchableOpacity>

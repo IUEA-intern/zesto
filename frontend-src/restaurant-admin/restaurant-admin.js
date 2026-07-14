@@ -888,9 +888,74 @@ async function loadSettings() {
     document.getElementById('set_email').value       = r.email       || '';
     // Keep existing logo URL on load if needed for display elsewhere; no form input required here.
     document.getElementById('set_address').value     = r.address     || '';
+    document.getElementById('set_latitude').value    = r.latitude    ?? '';
+    document.getElementById('set_longitude').value   = r.longitude   ?? '';
     document.getElementById('set_description').value = r.description || '';
+    updateLocationStatus(r.latitude, r.longitude);
   } catch (err) {
     Toast.error('Failed to load settings: ' + err.message);
+  }
+}
+
+function updateLocationStatus(lat, lng) {
+  const el = document.getElementById('locationStatus');
+  if (!el) return;
+  if (lat && lng) {
+    el.textContent = `✅ Location set (${Number(lat).toFixed(5)}, ${Number(lng).toFixed(5)}) — riders can navigate to you and see you on the map.`;
+    el.style.color = 'var(--success, #16a34a)';
+  } else {
+    el.textContent = '⚠️ No location set yet — riders won\'t be able to navigate to your restaurant or see it on the map until you set this.';
+    el.style.color = '#d97706';
+  }
+}
+
+/** Uses the browser's Geolocation API to fill in latitude/longitude. */
+function detectLocation() {
+  const btn = document.getElementById('detectLocationBtn');
+  if (!navigator.geolocation) {
+    Toast.error('Your browser does not support location detection. Enter coordinates manually.');
+    return;
+  }
+  btn.disabled = true;
+  const originalText = btn.textContent;
+  btn.textContent = '📍 Detecting…';
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      document.getElementById('set_latitude').value  = pos.coords.latitude.toFixed(7);
+      document.getElementById('set_longitude').value = pos.coords.longitude.toFixed(7);
+      updateLocationStatus(pos.coords.latitude, pos.coords.longitude);
+      Toast.success('Location detected — remember to click Save Profile.');
+      btn.disabled = false; btn.textContent = originalText;
+    },
+    (err) => {
+      Toast.error('Could not detect location: ' + (err.message || 'permission denied'));
+      btn.disabled = false; btn.textContent = originalText;
+    },
+    { enableHighAccuracy: true, timeout: 10000 }
+  );
+}
+
+async function changePassword() {
+  const btn     = document.getElementById('changePasswordBtn');
+  const current = document.getElementById('acct_current_password').value;
+  const next    = document.getElementById('acct_new_password').value;
+  const confirm = document.getElementById('acct_confirm_password').value;
+
+  if (!current || !next || !confirm) { Toast.error('Please fill in all password fields.'); return; }
+  if (next.length < 8) { Toast.error('New password must be at least 8 characters.'); return; }
+  if (next !== confirm) { Toast.error('New password and confirmation do not match.'); return; }
+
+  btn.disabled = true; btn.textContent = 'Updating…';
+  try {
+    await Api.post('/auth/change-password', { currentPassword: current, newPassword: next });
+    Toast.success('Password updated successfully.');
+    document.getElementById('acct_current_password').value = '';
+    document.getElementById('acct_new_password').value = '';
+    document.getElementById('acct_confirm_password').value = '';
+  } catch (err) {
+    Toast.error(err.message || 'Failed to update password.');
+  } finally {
+    btn.disabled = false; btn.textContent = '🔑 Update Password';
   }
 }
 
@@ -904,12 +969,17 @@ async function saveSettings() {
     body.append('phone',       document.getElementById('set_phone').value.trim());
     body.append('email',       document.getElementById('set_email').value.trim());
     body.append('address',     document.getElementById('set_address').value.trim());
+    const lat = document.getElementById('set_latitude').value.trim();
+    const lng = document.getElementById('set_longitude').value.trim();
+    if (lat !== '') body.append('latitude',  lat);
+    if (lng !== '') body.append('longitude', lng);
     body.append('description', document.getElementById('set_description').value.trim());
     if (logoFile) {
       body.append('logo', logoFile);
     }
     await Api.put('/restaurant/settings', body);
     Toast.success('Restaurant settings saved.');
+    updateLocationStatus(lat, lng);
   } catch (err) {
     Toast.error(err.message);
   } finally {
@@ -1010,4 +1080,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Settings save
   document.getElementById('saveSettingsBtn')?.addEventListener('click', saveSettings);
+  document.getElementById('changePasswordBtn')?.addEventListener('click', changePassword);
+  document.getElementById('detectLocationBtn')?.addEventListener('click', detectLocation);
 });

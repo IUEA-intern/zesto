@@ -76,3 +76,10 @@ export const RiderApi = {
   confirmDelivery:  (id, code)      => Api.post(`/rider/orders/${id}/confirm-delivery`, { code }),
   getHistory:       (page = 1)      => Api.get(`/rider/history?page=${page}&limit=20`),
 };
+
+// ── Public platform settings (no auth) ──────────────────────────────
+// Support email/phone shown across the app come from here — set by the
+// super admin in Platform Settings — instead of being hard-coded.
+export const SettingsApi = {
+  getPublic: () => Api.get('/settings/public'),
+};
