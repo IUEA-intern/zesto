@@ -4,3 +4,5 @@ backend/node_modules
 backend/uploads/restaurant
 backend/.env
 .expo/
+rider-app/node_modules
+customer-app/node_modules
