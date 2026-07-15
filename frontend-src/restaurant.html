@@ -57,6 +57,7 @@ href='data:image/svg+xml,
   </style>
     <title>Zesto — Search & Restaurants</title>
     <link rel="stylesheet" href="css/auth-modal.css">
+    <link rel="stylesheet" href="css/user-menu.css">
 </head>
 <body>
     
@@ -69,11 +70,7 @@ href='data:image/svg+xml,
     </a>
 
     <div class="nav-actions">
-      <!-- <div id="userPill" class="user-pill hidden">
-        <span class="user-avatar">👤</span>
-        <span id="userName" class="user-name-text"></span>
-        <button id="logoutBtn" class="btn-logout" title="Logout">↩</button>
-      </div> -->
+      <div id="userPill" class="user-pill hidden"></div>
 
       <button id="openAuthModal" class="btn-auth" onclick="window.SharedAuth?.showLogin?.()">Login / Sign Up</button>
      
@@ -157,5 +154,7 @@ href='data:image/svg+xml,
   }
 </script>
 <script src="script/shared_auth.js"></script>
+<script src="script/user-menu.js"></script>
+<script src="script/nav-auth.js"></script>
 </body>
 </html>
