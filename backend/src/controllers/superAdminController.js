@@ -102,7 +102,28 @@ async function getRiders(req, res) {
   try {
     const { limit, current, offset } = page(req);
     const status = req.query.status || null;
-    let sql = `SELECT r.*, u.name AS rider_name, u.email AS rider_email FROM riders r JOIN users u ON u.user_id=r.user_id`;
+    // ONLINE_TIMEOUT_SECONDS: how long we keep showing a rider as
+    // online after their last heartbeat (app open, availability toggle,
+    // or socket rider:join/ping) before treating a stale connection as
+    // offline. Riders app pings roughly every 15s while connected, so
+    // 45s gives a couple of missed beats' worth of slack for normal
+    // network jitter without showing a genuinely-gone rider as online.
+    const ONLINE_TIMEOUT_SECONDS = 45;
+
+    let sql = `SELECT r.*, u.name AS rider_name, u.email AS rider_email,
+        (r.is_available = 1 AND r.last_seen_at IS NOT NULL
+          AND r.last_seen_at >= DATE_SUB(NOW(), INTERVAL ${ONLINE_TIMEOUT_SECONDS} SECOND)) AS online,
+        COALESCE(dstats.deliveries_completed, 0) AS deliveries_completed,
+        COALESCE(dstats.deliveries_failed, 0)    AS deliveries_failed
+      FROM riders r
+      JOIN users u ON u.user_id = r.user_id
+      LEFT JOIN (
+        SELECT rider_id,
+          SUM(status = 'delivered') AS deliveries_completed,
+          SUM(status = 'failed')    AS deliveries_failed
+        FROM deliveries
+        GROUP BY rider_id
+      ) dstats ON dstats.rider_id = r.rider_id`;
     const params = [];
     if (status) { sql += ' WHERE r.status = ?'; params.push(status); }
     sql += ' ORDER BY r.created_at DESC LIMIT ? OFFSET ?';
