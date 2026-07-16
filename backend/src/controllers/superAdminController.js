@@ -108,11 +108,31 @@ async function getRiders(req, res) {
     // offline. Riders app pings roughly every 15s while connected, so
     // 45s gives a couple of missed beats' worth of slack for normal
     // network jitter without showing a genuinely-gone rider as online.
+    //
+    // Edge case: Android/iOS can pause the app's background heartbeat
+    // while the rider has an external maps app open for navigation, so
+    // a rider actively out on a delivery can go quiet past the timeout
+    // even though they're clearly still working. To avoid falsely
+    // marking them offline, "online" is also true whenever they have
+    // an active delivery (assigned/picked_up/on_the_way), regardless of
+    // heartbeat freshness — see on_delivery below.
     const ONLINE_TIMEOUT_SECONDS = 45;
 
     let sql = `SELECT r.*, u.name AS rider_name, u.email AS rider_email,
-        (r.is_available = 1 AND r.last_seen_at IS NOT NULL
-          AND r.last_seen_at >= DATE_SUB(NOW(), INTERVAL ${ONLINE_TIMEOUT_SECONDS} SECOND)) AS online,
+        EXISTS (
+          SELECT 1 FROM deliveries d
+          WHERE d.rider_id = r.rider_id
+            AND d.status IN ('assigned', 'picked_up', 'on_the_way')
+        ) AS on_delivery,
+        (
+          (r.is_available = 1 AND r.last_seen_at IS NOT NULL
+            AND r.last_seen_at >= DATE_SUB(NOW(), INTERVAL ${ONLINE_TIMEOUT_SECONDS} SECOND))
+          OR EXISTS (
+            SELECT 1 FROM deliveries d
+            WHERE d.rider_id = r.rider_id
+              AND d.status IN ('assigned', 'picked_up', 'on_the_way')
+          )
+        ) AS online,
         COALESCE(dstats.deliveries_completed, 0) AS deliveries_completed,
         COALESCE(dstats.deliveries_failed, 0)    AS deliveries_failed
       FROM riders r
