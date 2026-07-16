@@ -100,6 +100,8 @@ function initSocketManager(io) {
       socket.join(`rider:${riderId}`);
       socket.data.riderId = riderId;
       socket.data.userId  = userId;
+      // Heartbeat: the rider's socket is connected/reconnected right now.
+      query('UPDATE riders SET last_seen_at = NOW() WHERE rider_id = ?', [riderId]).catch(() => {});
       console.log(`   ↳ Rider ${riderId} joined pool`);
     });
 
@@ -127,8 +129,15 @@ function initSocketManager(io) {
       console.log(`🔌 Socket disconnected  id=${socket.id}  reason=${reason}`);
     });
 
-    /* ── Ping/pong health ─────────────────────────────────────*/
-    socket.on('ping:client', () => socket.emit('pong:server', { ts: Date.now() }));
+    /* ── Ping/pong health (also doubles as the rider heartbeat —
+       keeps last_seen_at fresh for the Online/Offline calculation in
+       Super Admin without needing a separate event type) ──────────*/
+    socket.on('ping:client', () => {
+      socket.emit('pong:server', { ts: Date.now() });
+      if (socket.data.riderId) {
+        query('UPDATE riders SET last_seen_at = NOW() WHERE rider_id = ?', [socket.data.riderId]).catch(() => {});
+      }
+    });
   });
 
   return emitters(io);

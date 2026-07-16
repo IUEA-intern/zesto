@@ -9,7 +9,7 @@ import { getItem, setItem, deleteItem } from './storage';
 // UPDATE THIS to your server's LAN IP for physical device testing
 // (same backend as the rider app — keep these in sync).
 // e.g. '192.168.1.42'. Use 'localhost' only for web/simulator.
-export const SERVER_HOST = '172.16.113.83'; // ← change to your PC's IP
+export const SERVER_HOST = '172.16.111.212'; // ← change to your PC's IP
 export const SERVER_PORT = 3000;
 export const BASE_URL = `http://${SERVER_HOST}:${SERVER_PORT}/api`;
 export const ASSET_BASE_URL = `http://${SERVER_HOST}:${SERVER_PORT}`;

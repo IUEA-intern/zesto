@@ -113,6 +113,7 @@ CREATE TABLE IF NOT EXISTS riders (
   vehicle_number VARCHAR(30)  NULL,
   national_id    VARCHAR(50)  NULL,
   is_available   TINYINT(1)   NOT NULL DEFAULT 0,
+  last_seen_at   DATETIME     NULL, -- heartbeat timestamp: last time we know the rider's app was actually connected/active. Combined with is_available to derive real Online/Offline status in Super Admin (see superAdminController.getRiders).
   status         ENUM('pending','approved','suspended') NOT NULL DEFAULT 'pending',
   created_at     TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at     TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -421,3 +422,15 @@ ALTER TABLE orders
   ADD COLUMN IF NOT EXISTS pickup_confirmation_code CHAR(6) NULL
     COMMENT '6-digit code generated when order is marked ready_for_pickup; restaurant reads it aloud, rider enters it to confirm pickup'
   AFTER assigned_staff_id;
+
+-- ============================================================
+-- MIGRATION: Add last_seen_at to riders
+-- Heartbeat timestamp used to derive real Online/Offline status in
+-- Super Admin (is_available alone doesn't reflect whether the rider's
+-- app/connection is actually still alive).
+-- Run this on existing databases that already have the riders table.
+-- ============================================================
+ALTER TABLE riders
+  ADD COLUMN IF NOT EXISTS last_seen_at DATETIME NULL
+    COMMENT 'Last heartbeat from the rider app (login, availability toggle, or socket ping)'
+  AFTER is_available;

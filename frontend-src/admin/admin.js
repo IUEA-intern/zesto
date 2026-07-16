@@ -594,7 +594,7 @@ async function loadRiders() {
         <td>${Utils.escape(r.vehicle_number||'—')}</td>
         <td>${r.deliveries_completed ?? 0}</td>
         <td>${r.deliveries_failed ?? 0}</td>
-        <td><span style="color:${r.is_available?'var(--success)':'var(--text-muted)'};font-weight:700">${r.is_available?'🟢 Yes':'⚫ No'}</span></td>
+        <td><span style="color:${r.on_delivery?'var(--orange)':(r.online?'var(--success)':'var(--text-muted)')};font-weight:700">${r.on_delivery?'🛵 On Delivery':(r.online?'🟢 Online':'⚫ Offline')}</span></td>
         <td>${Utils.restaurantStatusPill(r.status)}</td>
         <td>
           <div style="display:flex;gap:6px">

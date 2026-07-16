@@ -39,6 +39,10 @@ router.use(requireRider);
 router.get('/profile', async (req, res) => {
   try {
     const userId = req.user.user_id;
+
+    // Heartbeat: fetching the profile means the app is open/logging in.
+    query('UPDATE riders SET last_seen_at = NOW() WHERE user_id = ?', [userId]).catch(() => {});
+
     const rows = safeRows(await query(
       `SELECT r.rider_id, r.vehicle_type, r.vehicle_number, r.national_id,
               r.is_available, r.status, r.created_at,
@@ -85,7 +89,10 @@ router.put('/availability', async (req, res) => {
     }
 
     const val = is_available ? 1 : 0;
-    await query('UPDATE riders SET is_available = ? WHERE user_id = ?', [val, userId]);
+    // Toggling availability is itself a sign of life — stamp the
+    // heartbeat here too (also makes "switched OFF" reflect instantly,
+    // since is_available drives the online check directly).
+    await query('UPDATE riders SET is_available = ?, last_seen_at = NOW() WHERE user_id = ?', [val, userId]);
 
     // Emit rider availability change to admin dashboard
     const se = req.app.get('socketEmitters');
