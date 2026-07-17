@@ -9,14 +9,10 @@ import { getItem, setItem, deleteItem } from './storage';
 // UPDATE THIS to your server's LAN IP for physical device testing
 // (same backend as the rider app — keep these in sync).
 // e.g. '192.168.1.42'. Use 'localhost' only for web/simulator.
-<<<<<<< HEAD
-export const SERVER_HOST = '172.16.113.83'; // ← change to your PC's IP
-=======
-export const SERVER_HOST = '172.16.111.212'; // ← change to your PC's IP
->>>>>>> f267f9f53d0a961e661b081affdfaf6dffda255f
-export const SERVER_PORT = 3000;
-export const BASE_URL = `http://${SERVER_HOST}:${SERVER_PORT}/api`;
-export const ASSET_BASE_URL = `http://${SERVER_HOST}:${SERVER_PORT}`;
+export const SERVER_HOST = 'http://13.63.203.228:3000'; // ← change to your PC's IP
+// export const SERVER_PORT = 3000;
+export const BASE_URL = `${Api_BASE_URL}/api`;
+// export const ASSET_BASE_URL = `http://${SERVER_HOST}:${SERVER_PORT}`;
 
 const TOKEN_KEY = 'zesto_customer_token';
 const USER_KEY = 'zesto_customer_user';

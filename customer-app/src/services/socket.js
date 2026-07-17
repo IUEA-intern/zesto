@@ -4,9 +4,11 @@
  * Listens on the user's personal room for order + payment updates.
  */
 import { io } from 'socket.io-client';
-import { SERVER_HOST, SERVER_PORT } from './api';
+import { API_BASE_URL } from './api';
+export const SOCKET_URL = API_BASE_URL;
+// import { SERVER_HOST, SERVER_PORT } from './api';
 
-export const SOCKET_URL = `http://${SERVER_HOST}:${SERVER_PORT}`;
+// export const SOCKET_URL = `http://${SERVER_HOST}:${SERVER_PORT}`;
 
 let socket = null;
 let _userId = null;

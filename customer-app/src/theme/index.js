@@ -93,6 +93,7 @@ export const CategoryIcons = {
   food:    '🍔',
   drink:   '🥤',
   dessert: '🍰',
+  combo:   '🍔',
   other:   '🍱',
 };
 

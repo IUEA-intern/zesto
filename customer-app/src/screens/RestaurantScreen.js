@@ -15,7 +15,7 @@ import { useCart } from '../services/CartContext';
 
 export default function RestaurantScreen({ route, navigation }) {
   const { restaurant } = route.params;
-  const { items, itemCount, addItem, updateQty } = useCart();
+  const { items, itemCount, addItem, updateQty, removeItem } = useCart();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [category, setCategory] = useState('all');
@@ -74,8 +74,8 @@ export default function RestaurantScreen({ route, navigation }) {
               style={[styles.catChip, category === c && styles.catChipActive]}
               activeOpacity={0.8}
             >
-              <Text style={[styles.catChipText, category === c && styles.catChipTextActive]}>
-                {c === 'all' ? 'All' : `${CategoryIcons[c] || '🍽️'} ${c[0].toUpperCase()}${c.slice(1)}`}
+              <Text numberOfLines={1} style={[styles.catChipText, category === c && styles.catChipTextActive]}>
+                {c === 'all' ? 'All' : `${CategoryIcons[c] || '🍔'} ${c[0].toUpperCase()}${c.slice(1)}`}
               </Text>
             </TouchableOpacity>
           ))}
@@ -92,7 +92,7 @@ export default function RestaurantScreen({ route, navigation }) {
             cartItem={cartItemFor(item.product_id)}
             onAdd={() => addItem(item, 1)}
             onIncrease={(cartItem) => updateQty(cartItem.cart_id, cartItem.qty + 1)}
-            onDecrease={(cartItem) => updateQty(cartItem.cart_id, cartItem.qty - 1)}
+            onDecrease={(cartItem) => cartItem.qty - 1 < 1 ? removeItem(cartItem.cart_id) : updateQty(cartItem.cart_id, cartItem.qty - 1)}
           />
         )}
         ListEmptyComponent={
@@ -157,11 +157,12 @@ const styles = StyleSheet.create({
   cartBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
   catBar: { backgroundColor: Colors.surface, paddingVertical: Spacing.sm, borderBottomWidth: 1, borderBottomColor: Colors.border },
   catChip: {
-    paddingVertical: 8, paddingHorizontal: 14, borderRadius: Radius.full,
+    height: 36, paddingHorizontal: 14, borderRadius: Radius.full,
     backgroundColor: Colors.bg, borderWidth: 1, borderColor: Colors.border,
+    alignItems: 'center', justifyContent: 'center',
   },
   catChipActive: { backgroundColor: Colors.orange, borderColor: Colors.orange },
-  catChipText: { fontSize: Typography.sm, fontWeight: Typography.semibold, color: Colors.textSec },
+  catChipText: { fontSize: Typography.sm, fontWeight: Typography.semibold, color: Colors.textSec, lineHeight: 18 },
   catChipTextActive: { color: '#fff' },
   prodCard: { marginBottom: Spacing.sm, padding: Spacing.sm },
   prodRow: { flexDirection: 'row', gap: Spacing.md },
