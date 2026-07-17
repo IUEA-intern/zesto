@@ -3,9 +3,9 @@
  * Reuses the existing backend Socket.IO implementation.
  */
 import { io } from 'socket.io-client';
-import { SERVER_HOST } from './api';
+import { API_BASE_URL } from './api';
 
-export const SOCKET_URL = `http://${SERVER_HOST}:3000`;
+export const SOCKET_URL = API_BASE_URL;
 
 let socket = null;
 let _riderId = null;

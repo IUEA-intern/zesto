@@ -27,11 +27,13 @@
       "permissions": [
         "ACCESS_FINE_LOCATION",
         "ACCESS_COARSE_LOCATION",
-        "ACCESS_BACKGROUND_LOCATION"
+        "ACCESS_BACKGROUND_LOCATION",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION"
       ],
       "config": {
         "googleMaps": {
-          "apiKey": "YOUR_GOOGLE_MAPS_ANDROID_KEY"
+          "apiKey": "AIzaSyAmB4XGcA0DTOTo4Mhj_CkQNkun936x3gY"
         }
       }
     },
@@ -48,6 +50,11 @@
         }
       ],
       "expo-font"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "4cb3bbcd-998a-4fef-8b2c-5f22b7f335df"
+      }
+    }
   }
 }

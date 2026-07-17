@@ -5,7 +5,7 @@
  */
 'use strict';
 
-const API = '/api';
+const API = 'http://13.63.203.228:3000/api';
 
 const STATUS_LABELS = {
   pending:          '⏳ Pending',
@@ -211,7 +211,12 @@ function initSocket() {
     document.getElementById('liveIndicator').style.color = '#9CA3AF';
     return;
   }
-  State.socket = io({ credentials: true, reconnection: true, reconnectionDelay: 1000, reconnectionDelayMax: 5000 });
+  State.socket = io("http://13.63.203.228:3000", {
+    credentials: true,
+    reconnection: true,
+    reconnectionDelay: 1000,
+    reconnectionDelayMax: 5000,
+  });
   
   State.socket.on('connect', () => {
     State.socket.emit('admin:join');

@@ -154,6 +154,7 @@ async function getRiders(req, res) {
     const total = safeRows(await query(countSql, status ? [status] : []));
     return res.json({ success: true, data: rows, meta: { page: current, limit, total: Number(total[0]?.total || 0) } });
   } catch (err) {
+    console.error('[superAdmin] getRiders', err);
     return res.status(500).json({ success: false, message: 'Failed to fetch riders.' });
   }
 }

@@ -6,8 +6,11 @@ import { getItem, setItem, deleteItem } from './storage';
 // ── Server URL ────────────────────────────────────────────────────
 // UPDATE THIS to your server's LAN IP for physical device testing.
 // Use the same IP in socket.js → SOCKET_URL
-export const SERVER_HOST = '172.16.111.212';  // ← change to your PC's IP
-export const BASE_URL    = `http://${SERVER_HOST}:3000/api`;
+// src/services/api.js
+
+export const API_BASE_URL = "http://13.63.203.228:3000";
+
+export const BASE_URL = `${API_BASE_URL}/api`;
 
 const TOKEN_KEY = 'zesto_rider_token';
 const USER_KEY  = 'zesto_rider_user';
