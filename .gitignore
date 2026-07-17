@@ -3,5 +3,11 @@ backend/node_modules
 .vscode
 backend/uploads/restaurant
 backend/.env
+<<<<<<< HEAD
 rider-app/node_modules
 customer-app/node_modules
+=======
+.expo/
+rider-app/node_modules
+customer-app/node_modules
+>>>>>>> f267f9f53d0a961e661b081affdfaf6dffda255f

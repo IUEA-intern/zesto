@@ -57,65 +57,26 @@ href='data:image/svg+xml,
   </style>
     <title>Zesto — Search & Restaurants</title>
     <link rel="stylesheet" href="css/auth-modal.css">
+    <link rel="stylesheet" href="css/user-menu.css">
 </head>
 <body>
-    <div class="mobile-menu" id="mobileMenu">
-  <div class="mobile-menu-header">
-    <div class="nav-logo">
-      <!-- <div class="logo-mark">
-        <svg viewBox="0 0 24 24"><path d="M13 2L4 13h7l-1 9 10-12h-7l1-8z"/></svg>
-      </div> -->
-      <span class="logo-text">Zes<span>to</span></span>
+    
+
+<!-- ── NAV (match order page structure, no cart) ── -->
+<nav class="navbar" id="mainNav">
+  <div class="nav-inner">
+    <a href="index.html" class="nav-brand">
+      <span class="brand-logo">Zes<span class="brand-accent">to</span></span>
+    </a>
+
+    <div class="nav-actions">
+      <div id="userPill" class="user-pill hidden"></div>
+
+      <button id="openAuthModal" class="btn-auth" onclick="window.SharedAuth?.showLogin?.()">Login / Sign Up</button>
+     
     </div>
-    <button class="mobile-close" onclick="document.getElementById('mobileMenu').classList.remove('open')">✕</button>
   </div>
-  <!-- <div class="mobile-links">
-    <a class="mobile-link" href="restaurant.html">Restaurants</a>
-     <a class="mobile-link" href="#">Grocery</a> 
-    <a class="mobile-link" href="for-busines.html">for business</a>
-    <a class="mobile-link" href="about.html">About us</a>
-    <a class="mobile-link" href="Blog.html">Blog</a>
-
-  </div> -->
-  <div class="mobile-actions" style="margin-top:24px;">
-    <a href="login.html" class="btn btn-ghost" style="justify-content:center;padding:14px;">Sign in</a>
-    <a href="signin.html" class="btn btn-primary" style="justify-content:center;padding:14px;border-radius:var(--r12);">Get started</a>
-  </div>
-</div >
-
-<!-- ── NAV ── -->
-<header class="nav">
-  <div class="container">
-    <nav class="nav-inner">
-      <a href="index.html" class="nav-logo">
-        <!-- <div class="logo-mark">
-          <svg viewBox="0 0 24 24"><path d="M13 2L4 13h7l-1 9 10-12h-7l1-8z"/></svg>
-        </div> -->
-        <span class="logo-text">Zes<span>to</span></span>
-      </a>
-      <!-- <div class="nav-links">
-        <a href="restaurant.html" class="nav-link active">Restaurants</a>
-        <a href="#" class="nav-link">Grocery</a>
-        <a href="for-busines.html" class="nav-link">for Busines</a>
-        <a href="about.html" class="nav-link">About us</a>
-        <a href="Blog.html" class="nav-link">Blog</a>
-
-      </div> -->
-      <a href="#" class="nav-loc">
-        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M8 1.5A4.5 4.5 0 0 1 12.5 6c0 3.2-4.5 8.5-4.5 8.5S3.5 9.2 3.5 6A4.5 4.5 0 0 1 8 1.5z"/><circle cx="8" cy="6" r="1.6"/></svg>
-        Kampala, UG
-        <svg viewBox="0 0 10 6" fill="none" stroke="currentColor" stroke-width="1.5" style="width:10px;height:10px;"><path d="M1 1l4 4 4-4"/></svg>
-      </a>
-      <div class="nav-actions">
-      <a href="login.html" class="btn btn-ghost">Sign in</a>
-      <a href="signin.html" class="btn btn-primary">Get started</a>
-      </div>
-      <button class="nav-hamburger" onclick="document.getElementById('mobileMenu').classList.add('open')" aria-label="Open menu">
-        <span></span><span></span><span></span>
-      </button>
-    </nav>
-  </div>
-</header>
+</nav>
 <!-- ── RESTAURANTS SECTION ── -->
 <section class="restos-section">
   <div class="container">
@@ -193,5 +154,7 @@ href='data:image/svg+xml,
   }
 </script>
 <script src="script/shared_auth.js"></script>
+<script src="script/user-menu.js"></script>
+<script src="script/nav-auth.js"></script>
 </body>
 </html>

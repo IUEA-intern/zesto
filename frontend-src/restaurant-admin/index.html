@@ -258,11 +258,37 @@ href='data:image/svg+xml,
                     <div class="form-group"><label>Logo</label><input type="file" id="set_logo" accept="image/*"/></div>
                 </div>
                 <div class="form-group"><label>Address</label><input type="text" id="set_address"/></div>
+                <div class="form-group">
+                    <label>Location (for rider navigation &amp; map)</label>
+                    <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+                        <input type="number" id="set_latitude" placeholder="Latitude" step="0.0000001" style="flex:1; min-width:140px;"/>
+                        <input type="number" id="set_longitude" placeholder="Longitude" step="0.0000001" style="flex:1; min-width:140px;"/>
+                        <button type="button" class="btn-sm edit" id="detectLocationBtn" style="white-space:nowrap;">📍 Use My Current Location</button>
+                    </div>
+                    <small id="locationStatus" style="display:block; margin-top:6px; color:var(--text-muted);">
+                        Riders use this to navigate to your restaurant and to draw the delivery route on their map. Stand at (or near) the restaurant and tap "Use My Current Location", or enter coordinates manually.
+                    </small>
+                </div>
                 <div class="form-group"><label>Description</label><textarea id="set_description" rows="3"></textarea></div>
                 </div>
             </div>
 
             <button class="btn-primary" id="saveSettingsBtn" style="min-width:160px;">💾 Save Profile</button>
+
+            <div class="dash-card" style="margin:20px 0;">
+                <div class="dash-card-header"><h3>🔒 Account Security</h3></div>
+                <div style="padding:20px;">
+                <p style="margin:0 0 16px;color:var(--text-muted);font-size:.85rem;">
+                    Change the password for your own restaurant admin login.
+                </p>
+                <div class="form-row">
+                    <div class="form-group"><label>Current Password</label><input type="password" id="acct_current_password" autocomplete="current-password"/></div>
+                    <div class="form-group"><label>New Password</label><input type="password" id="acct_new_password" autocomplete="new-password" placeholder="At least 8 characters"/></div>
+                </div>
+                <div class="form-group" style="max-width:280px;"><label>Confirm New Password</label><input type="password" id="acct_confirm_password" autocomplete="new-password"/></div>
+                <button class="btn-primary" id="changePasswordBtn" style="min-width:160px;">🔑 Update Password</button>
+                </div>
+            </div>
             </div>
         </section>
 

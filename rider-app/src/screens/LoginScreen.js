@@ -11,6 +11,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors, Typography, Spacing, Radius, Shadows } from '../theme';
 import { ZestoBrand, RiderChip, Button, Toast } from '../components';
 import { useAuth } from '../services/AuthContext';
+import { useSettings } from '../services/SettingsContext';
 
 export default function LoginScreen({ navigation }) {
   const [tab, setTab] = useState('login'); // 'login' | 'register'
@@ -306,6 +307,7 @@ function RegisterStep2({ email, onBack, onSuccess, showToast, toast, onHide }) {
 
 // Step 3 — Success / Pending approval
 function RegisterStep3() {
+  const { settings } = useSettings();
   return (
     <ScrollView contentContainerStyle={[styles.formScroll, styles.successContainer]}>
       <Text style={styles.successEmoji}>🎉</Text>
@@ -320,8 +322,8 @@ function RegisterStep3() {
           Before you can start receiving deliveries, your account needs to be reviewed and approved by the Zesto team.
         </Text>
         <View style={styles.contactList}>
-          <Text style={styles.contactItem}>📞  WhatsApp / Call: +256 700 000 000</Text>
-          <Text style={styles.contactItem}>✉️  Email: riders@zesto.ug</Text>
+          <Text style={styles.contactItem}>📞  WhatsApp / Call: {settings.support_phone}</Text>
+          <Text style={styles.contactItem}>✉️  Email: {settings.support_email}</Text>
           <Text style={styles.contactItem}>🏢  Visit our offices in Kampala</Text>
         </View>
         <Text style={styles.pendingNote}>

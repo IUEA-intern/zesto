@@ -5,7 +5,7 @@
  */
 'use strict';
 
-const API = '/api';
+const API = 'http://13.63.203.228:3000/api';
 
 const STATUS_LABELS = {
   pending:          '⏳ Pending',
@@ -211,7 +211,12 @@ function initSocket() {
     document.getElementById('liveIndicator').style.color = '#9CA3AF';
     return;
   }
-  State.socket = io({ credentials: true, reconnection: true, reconnectionDelay: 1000, reconnectionDelayMax: 5000 });
+  State.socket = io("http://13.63.203.228:3000", {
+    credentials: true,
+    reconnection: true,
+    reconnectionDelay: 1000,
+    reconnectionDelayMax: 5000,
+  });
   
   State.socket.on('connect', () => {
     State.socket.emit('admin:join');
@@ -594,7 +599,7 @@ async function loadRiders() {
         <td>${Utils.escape(r.vehicle_number||'—')}</td>
         <td>${r.deliveries_completed ?? 0}</td>
         <td>${r.deliveries_failed ?? 0}</td>
-        <td><span style="color:${r.is_available?'var(--success)':'var(--text-muted)'};font-weight:700">${r.is_available?'🟢 Yes':'⚫ No'}</span></td>
+        <td><span style="color:${r.on_delivery?'var(--orange)':(r.online?'var(--success)':'var(--text-muted)')};font-weight:700">${r.on_delivery?'🛵 On Delivery':(r.online?'🟢 Online':'⚫ Offline')}</span></td>
         <td>${Utils.restaurantStatusPill(r.status)}</td>
         <td>
           <div style="display:flex;gap:6px">
@@ -925,6 +930,30 @@ async function loadSettings() {
   }
 }
 
+async function changePassword() {
+  const btn     = document.getElementById('changePasswordBtn');
+  const current = document.getElementById('acct_current_password').value;
+  const next    = document.getElementById('acct_new_password').value;
+  const confirm = document.getElementById('acct_confirm_password').value;
+
+  if (!current || !next || !confirm) { Toast.error('Please fill in all password fields.'); return; }
+  if (next.length < 8) { Toast.error('New password must be at least 8 characters.'); return; }
+  if (next !== confirm) { Toast.error('New password and confirmation do not match.'); return; }
+
+  btn.disabled = true; btn.textContent = 'Updating…';
+  try {
+    await Api.post('/auth/change-password', { currentPassword: current, newPassword: next });
+    Toast.success('Password updated successfully.');
+    document.getElementById('acct_current_password').value = '';
+    document.getElementById('acct_new_password').value = '';
+    document.getElementById('acct_confirm_password').value = '';
+  } catch (err) {
+    Toast.error(err.message || 'Failed to update password.');
+  } finally {
+    btn.disabled = false; btn.textContent = '🔑 Update Password';
+  }
+}
+
 async function saveSettings() {
   const settings = {};
   for (const [key, fieldId] of Object.entries(SETTING_FIELD_MAP)) {
@@ -1058,6 +1087,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Settings save
   document.getElementById('saveSettingsBtn')?.addEventListener('click', saveSettings);
+  document.getElementById('changePasswordBtn')?.addEventListener('click', changePassword);
 
   // Modal closes
   document.getElementById('closeRestaurantModal')?.addEventListener('click', () => {

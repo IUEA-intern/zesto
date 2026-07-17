@@ -69,6 +69,7 @@ button, input, select, textarea { font-family: inherit; }
   height: 100%;
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 24px;
 }
 .nav-brand { display: flex; align-items: center; }
@@ -102,8 +103,10 @@ button, input, select, textarea { font-family: inherit; }
 .nav-actions {
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   gap: 10px;
   margin-left: auto;
+  flex: 1;
 }
 
 /* User pill — see css/user-menu.css for the avatar/dropdown component */

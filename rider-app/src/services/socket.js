@@ -3,14 +3,29 @@
  * Reuses the existing backend Socket.IO implementation.
  */
 import { io } from 'socket.io-client';
-import { SERVER_HOST } from './api';
+import { API_BASE_URL } from './api';
 
-export const SOCKET_URL = `http://${SERVER_HOST}:3000`;
+export const SOCKET_URL = API_BASE_URL;
 
 let socket = null;
 let _riderId = null;
 let _userId  = null;
 let _isAvailable = false;
+let _heartbeatTimer = null;
+
+const HEARTBEAT_INTERVAL_MS = 15000; // keeps riders.last_seen_at fresh for the
+                                      // Online/Offline calculation in Super Admin
+
+function startHeartbeat() {
+  stopHeartbeat();
+  _heartbeatTimer = setInterval(() => {
+    if (socket?.connected) socket.emit('ping:client');
+  }, HEARTBEAT_INTERVAL_MS);
+}
+
+function stopHeartbeat() {
+  if (_heartbeatTimer) { clearInterval(_heartbeatTimer); _heartbeatTimer = null; }
+}
 
 const listeners = new Map();
 
@@ -43,11 +58,13 @@ export function connectSocket({ riderId, userId, isAvailable = false }) {
     console.log('[Socket] Connected', socket.id);
     if (_userId) socket.emit('user:join', _userId);
     if (_isAvailable && _riderId) socket.emit('rider:join', { riderId: _riderId, userId: _userId });
+    startHeartbeat();
     dispatch('connect', {});
   });
 
   socket.on('disconnect', (reason) => {
     console.log('[Socket] Disconnected:', reason);
+    stopHeartbeat();
     dispatch('disconnect', { reason });
   });
 
@@ -55,6 +72,7 @@ export function connectSocket({ riderId, userId, isAvailable = false }) {
     console.log('[Socket] Reconnected');
     if (_userId)  socket.emit('user:join', _userId);
     if (_isAvailable && _riderId) socket.emit('rider:join', { riderId: _riderId, userId: _userId });
+    startHeartbeat();
     dispatch('reconnect', {});
   });
 
@@ -69,6 +87,7 @@ export function connectSocket({ riderId, userId, isAvailable = false }) {
 }
 
 export function disconnectSocket() {
+  stopHeartbeat();
   if (socket) { socket.removeAllListeners(); socket.disconnect(); socket = null; }
   _riderId = null; _userId = null; _isAvailable = false;
 }
