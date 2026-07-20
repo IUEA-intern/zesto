@@ -351,11 +351,7 @@ async function logout(req, res) {
   try {
     if (req.user?.role === 'rider') {
       const result = await query(
-<<<<<<< HEAD
-        'UPDATE riders SET is_available = 0 WHERE user_id = ?',
-=======
         'UPDATE riders SET is_available = 0, last_seen_at = NOW() WHERE user_id = ?',
->>>>>>> f267f9f53d0a961e661b081affdfaf6dffda255f
         [req.user.user_id]
       );
       if (Number(result?.affectedRows || 0)) {
