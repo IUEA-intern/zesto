@@ -32,7 +32,7 @@
       ],
       "config": {
         "googleMaps": {
-          "apiKey": ""
+          "apiKey": "YOUR_GOOGLE_MAPS_IOS_KEY"
         }
       }
     },
