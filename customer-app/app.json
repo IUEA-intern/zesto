@@ -21,13 +21,21 @@
         "backgroundColor": "#1A1A2E"
       },
       "package": "ug.zesto.customer",
-      "permissions": []
+      "permissions": [],
+      "usesCleartextTraffic": true
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      "expo-secure-store"
-    ]
+      "expo-secure-store",
+      "expo-font",
+      "./plugins/withClearTextTraffic"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "3b76c969-a3a2-44ab-a810-94bd909fbdd8"
+      }
+    }
   }
 }
